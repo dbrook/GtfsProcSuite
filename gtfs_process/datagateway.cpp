@@ -9,7 +9,8 @@ DataGateway &DataGateway::inst()
     static DataGateway *_instance = 0;
     if (_instance == 0) {
         _instance = new DataGateway();
-        _instance->handledRequests = 0;
+        _instance->handledRequests  = 0;
+        _instance->stopsNoSortTimes = 0;
     }
     return *_instance;
 }
@@ -88,6 +89,7 @@ void DataGateway::linkStopsTripsRoutes()
             }
 
             if (sortTime == -1) {
+                incStopsNoSortTimes();
                 qDebug() << "WARNING: a sortTime was not findable for Route: " << tripDB[stopTimeTripID].route_id
                          << ", Trip: " << stopTimeTripID << ", Stop: " << rec.stop_id;
             }
@@ -184,6 +186,16 @@ qint64 DataGateway::getHandledRequests()
     qint64 HRs = handledRequests;
     lock_handledRequests.unlock();
     return HRs;
+}
+
+void DataGateway::incStopsNoSortTimes()
+{
+    ++stopsNoSortTimes;
+}
+
+qint32 DataGateway::getStopsNoSortTimes()
+{
+    return stopsNoSortTimes;
 }
 
 DataGateway::DataGateway(QObject *parent) :

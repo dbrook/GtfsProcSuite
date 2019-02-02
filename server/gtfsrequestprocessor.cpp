@@ -39,50 +39,52 @@ GtfsRequestProcessor::GtfsRequestProcessor(QString userRequest) : request(userRe
  */
 void GtfsRequestProcessor::run()
 {
+    QJsonObject respJson;
     QString SystemResponse;
 
     qDebug() << "GtfsRequestProcessor: Answering on thread " << this;
 
     // The first three chars are assumed to be that of the application request
-    QString userApp = this->request.left(3);  // 3-digit application code
-    QString userReq = this->request.mid(4);   // Remainder of request (syntax varies)
+    QString userApp = request.left(3);  // 3-digit application code
+    QString userReq = request.mid(4);   // Remainder of request (syntax varies)
 
     // Decode the application request
     if (! userApp.compare("SDS", Qt::CaseInsensitive)) {
-        SystemResponse = this->applicationStatus();
+        applicationStatus(respJson);
     } else if (! userApp.compare("RTE", Qt::CaseInsensitive)) {
-        SystemResponse = this->availableRoutes();
+        availableRoutes(respJson);
     } else if (! userApp.compare("TRI", Qt::CaseInsensitive)) {
-        SystemResponse = this->tripStopsDisplay(userReq);
+        tripStopsDisplay(userReq, respJson);
     } else if (! userApp.compare("TSR", Qt::CaseInsensitive)) {
         QDate noDate;
-        SystemResponse = this->tripsServingRoute(userReq, noDate);
+        tripsServingRoute(userReq, noDate, respJson);
     } else if (! userApp.compare("TRD", Qt::CaseInsensitive)) {
         QString remainingReq;
         QDate reqDate = determineServiceDay(userReq, remainingReq);
-        SystemResponse = this->tripsServingRoute(remainingReq, reqDate);
+        tripsServingRoute(remainingReq, reqDate, respJson);
     } else if (! userApp.compare("TSS", Qt::CaseInsensitive)) {
         QDate noDate;
-        SystemResponse = this->tripsServingStop(userReq, noDate);
+        tripsServingStop(userReq, noDate, respJson);
     } else if (! userApp.compare("TSD", Qt::CaseInsensitive)) {
         QString remainingReq;
         QDate reqDate = determineServiceDay(userReq, remainingReq);
-        SystemResponse = this->tripsServingStop(remainingReq, reqDate);
+        tripsServingStop(remainingReq, reqDate, respJson);
     } else if (! userApp.compare("STA", Qt::CaseInsensitive)) {
-        SystemResponse = this->stationDetailsDisplay(userReq);
+        stationDetailsDisplay(userReq, respJson);
     } else if (! userApp.compare("SSR", Qt::CaseInsensitive)) {
-        SystemResponse = this->stopsServedByRoute(userReq);
+        stopsServedByRoute(userReq, respJson);
     } else if (! userApp.compare("NEX", Qt::CaseInsensitive)) {
         QString remainingReq;
         qint32 futureMinutes = determineMinuteRange(userReq, remainingReq);
-        SystemResponse = this->nextTripsAtStop(remainingReq, futureMinutes);
+        nextTripsAtStop(remainingReq, futureMinutes, respJson);
     } else {
         // Return ERROR 1: Unknown request (userApp)
         SystemResponse = "{\"error\":\"1\",\"user_string\":\"" + this->request + "\"}";
     }
 
-    // (Note: we append "\n" so clients can detect the end of the stream)
-    emit Result(SystemResponse + "\n");
+    // Serialize for Transport (Note: we append "\n" so clients can detect the end of the stream)
+    QJsonDocument jdoc(respJson);
+    emit Result(jdoc.toJson(QJsonDocument::Compact) + "\n");
 }
 
 
@@ -97,9 +99,8 @@ void GtfsRequestProcessor::run()
 /*
  * "STA" --> Application Status
  */
-QString GtfsRequestProcessor::applicationStatus()
+void GtfsRequestProcessor::applicationStatus(QJsonObject &resp)
 {
-    QJsonObject         resp;
     QJsonArray          agencyArray;
     const GTFS::Status *data        = GTFS::DataGateway::inst().getStatus();
     qint64              reqsHandled = GTFS::DataGateway::inst().incrementHandledRequests();
@@ -122,6 +123,7 @@ QString GtfsRequestProcessor::applicationStatus()
     resp["feed_valid_end"]   = (!data->getEndDate().isNull())   ? data->getEndDate().toString("dd-MMM-yyyy")
                                                                 : "__-___-____";
     resp["feed_version"]     = data->getVersion();
+    resp["stops_noSortTime"] = GTFS::DataGateway::inst().getStopsNoSortTimes();
 
     // Fill the agency information
     const QVector<GTFS::AgencyRecord> agencyVec = data->getAgencies();
@@ -139,25 +141,20 @@ QString GtfsRequestProcessor::applicationStatus()
 
     // Note how long query took
     resp["proc_time_ms"]     = currUTC.msecsTo(QDateTime::currentDateTimeUtc());
-
-    // Serialize for transport
-    QJsonDocument jdoc(resp);
-    return jdoc.toJson(QJsonDocument::Compact);
 }
 
-QString GtfsRequestProcessor::availableRoutes()
+void GtfsRequestProcessor::availableRoutes(QJsonObject &resp)
 {
-    QJsonObject         resp;
     QJsonArray          routeArray;
-    QDateTime           currUTC    = QDateTime::currentDateTimeUtc();
+    QDateTime           currUTC     = QDateTime::currentDateTimeUtc();
     const GTFS::Status *data        = GTFS::DataGateway::inst().getStatus();
     QDateTime           currAgency  = currUTC.toTimeZone(data->getAgencyTZ());
 
     GTFS::DataGateway::inst().incrementHandledRequests();
 
-    resp["message_type"]     = "RTE";   // Indicate it is a status message
-    resp["error"]            = 0;                                         // TODO: Nice and robust error code system :-)
-    resp["message_time"]     = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+    resp["message_type"] = "RTE";   // Indicate it is a status message
+    resp["error"]        = 0;                                         // TODO: Nice and robust error code system :-)
+    resp["message_time"] = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
 
     // Fill routes associated to each agency (TODO: integrate the two... for now just dump JSON to play with)
     const QMap<QString, GTFS::RouteRec> *routes = GTFS::DataGateway::inst().getRoutesDB();
@@ -179,24 +176,19 @@ QString GtfsRequestProcessor::availableRoutes()
 
     // Note query lookup time
     resp["proc_time_ms"] = currUTC.msecsTo(QDateTime::currentDateTimeUtc());
-
-    // Serialize for transport
-    QJsonDocument jdoc(resp);
-    return jdoc.toJson(QJsonDocument::Compact);
 }
 
-QString GtfsRequestProcessor::tripStopsDisplay(QString tripID)
+void GtfsRequestProcessor::tripStopsDisplay(QString tripID, QJsonObject &resp)
 {
-    QJsonObject resp;
     QJsonArray  tripStopArray;
-    QDateTime   currUTC       = QDateTime::currentDateTimeUtc();
+    QDateTime   currUTC             = QDateTime::currentDateTimeUtc();
     GTFS::DataGateway::inst().incrementHandledRequests();
     const GTFS::Status *data        = GTFS::DataGateway::inst().getStatus();
     QDateTime           currAgency  = currUTC.toTimeZone(data->getAgencyTZ());
 
-    resp["message_type"]       = "TRI";
-    resp["error"]              = 0;
-    resp["message_time"]       = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+    resp["message_type"] = "TRI";
+    resp["error"]        = 0;
+    resp["message_time"] = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
 
     // Fill the information for the trip from the data structures
     const QMap<QString, GTFS::TripRec> *tripDB    = GTFS::DataGateway::inst().getTripsDB();
@@ -205,11 +197,11 @@ QString GtfsRequestProcessor::tripStopsDisplay(QString tripID)
     // Make sure the requested Trip ID actually Exists (otherwise we will make an entry for EVERY SINGLE REQUEST :-O)
     if ((*tripDB).contains(tripID)) {
         // The Trip ID actually exists so fill the JSON
-        resp["route_id"]           = (*tripDB)[tripID].route_id;
-        resp["trip_id"]            = tripID;
-        resp["headsign"]           = (*tripDB)[tripID].trip_headsign;
-        resp["service_id"]         = (*tripDB)[tripID].service_id;
-        resp["operate_days"]       = serviceDB->serializeOpDays((*tripDB)[tripID].service_id);
+        resp["route_id"]     = (*tripDB)[tripID].route_id;
+        resp["trip_id"]      = tripID;
+        resp["headsign"]     = (*tripDB)[tripID].trip_headsign;
+        resp["service_id"]   = (*tripDB)[tripID].service_id;
+        resp["operate_days"] = serviceDB->serializeOpDays((*tripDB)[tripID].service_id);
 
         // Provide the associated route name / details to the response
         const QMap<QString, GTFS::RouteRec> *routes = GTFS::DataGateway::inst().getRoutesDB();
@@ -217,10 +209,10 @@ QString GtfsRequestProcessor::tripStopsDisplay(QString tripID)
         resp["route_long_name"]  = (*routes)[(*tripDB)[tripID].route_id].route_long_name;
 
         // String together all the dates in range for which the trip_id requested SPECIFICALLY does not operate
-        resp["exception_dates"]  = serviceDB->serializeNoServiceDates((*tripDB)[tripID].service_id);
+        resp["exception_dates"] = serviceDB->serializeNoServiceDates((*tripDB)[tripID].service_id);
 
         // String together all the dates in range for which the trip_id requested operates additionally
-        resp["added_dates"]  = serviceDB->serializeAddedServiceDates((*tripDB)[tripID].service_id);
+        resp["added_dates"] = serviceDB->serializeAddedServiceDates((*tripDB)[tripID].service_id);
 
         // Provide the validity range
         resp["svc_start_date"] = serviceDB->getServiceStartDate((*tripDB)[tripID].service_id).toString("dd-MMM-yyyy");
@@ -266,31 +258,26 @@ QString GtfsRequestProcessor::tripStopsDisplay(QString tripID)
     else {
         resp["error"] = 101;   // The trip ID doesn't exist in the database
     }
-
-    // Serialize for Transport
-    QJsonDocument jdoc(resp);
-    return jdoc.toJson(QJsonDocument::Compact);
 }
 
-QString GtfsRequestProcessor::tripsServingRoute(QString routeID, QDate onlyDate)
+void GtfsRequestProcessor::tripsServingRoute(QString routeID, QDate onlyDate, QJsonObject &resp)
 {
-    QJsonObject resp;
     QJsonArray  routeTripArray;
     QDateTime   currUTC        = QDateTime::currentDateTimeUtc();
     GTFS::DataGateway::inst().incrementHandledRequests();
-    const GTFS::Status *data        = GTFS::DataGateway::inst().getStatus();
-    QDateTime           currAgency  = currUTC.toTimeZone(data->getAgencyTZ());
+    const GTFS::Status *data       = GTFS::DataGateway::inst().getStatus();
+    QDateTime           currAgency = currUTC.toTimeZone(data->getAgencyTZ());
 
-    resp["message_type"]       = "TSR";
-    resp["error"]              = 0;
-    resp["message_time"]       = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+    resp["message_type"] = "TSR";
+    resp["error"]        = 0;
+    resp["message_time"] = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
 
     // See if the route requested actually exists
     const QMap<QString, GTFS::RouteRec> *routes = GTFS::DataGateway::inst().getRoutesDB();
 
     if (routes->contains(routeID)) {
-        const QMap<QString, GTFS::TripRec>              *tripDB    = GTFS::DataGateway::inst().getTripsDB();
-        const GTFS::OperatingDay                        *svc       = GTFS::DataGateway::inst().getServiceDB();
+        const QMap<QString, GTFS::TripRec> *tripDB = GTFS::DataGateway::inst().getTripsDB();
+        const GTFS::OperatingDay           *svc    = GTFS::DataGateway::inst().getServiceDB();
 
         resp["route_id"]         = routeID;
         resp["route_short_name"] = (*routes)[routeID].route_short_name;
@@ -320,7 +307,7 @@ QString GtfsRequestProcessor::tripsServingRoute(QString routeID, QDate onlyDate)
             // Since it is the beginning of the trip's time that will be displayed, we assume it's not -1
             QTime localMidnight(0, 0, 0);
             QTime firstStopDep = localMidnight.addSecs(tripIDwTime.second);
-            singleStopJSON["first_stop_departure"]   = firstStopDep.toString("hh:mm");
+            singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
 
             routeTripArray.push_back(singleStopJSON);
         }
@@ -333,24 +320,19 @@ QString GtfsRequestProcessor::tripsServingRoute(QString routeID, QDate onlyDate)
     else {
         resp["error"] = 201;  // The route ID does not exist in the database
     }
-
-    // Serialize for Transport
-    QJsonDocument jdoc(resp);
-    return jdoc.toJson(QJsonDocument::Compact);
 }
 
-QString GtfsRequestProcessor::tripsServingStop(QString stopID, QDate onlyDate)
+void GtfsRequestProcessor::tripsServingStop(QString stopID, QDate onlyDate, QJsonObject &resp)
 {
-    QJsonObject resp;
     QJsonArray  stopRouteArray;
     QDateTime   currUTC        = QDateTime::currentDateTimeUtc();
     GTFS::DataGateway::inst().incrementHandledRequests();
-    const GTFS::Status *data        = GTFS::DataGateway::inst().getStatus();
-    QDateTime           currAgency  = currUTC.toTimeZone(data->getAgencyTZ());
+    const GTFS::Status *data       = GTFS::DataGateway::inst().getStatus();
+    QDateTime           currAgency = currUTC.toTimeZone(data->getAgencyTZ());
 
-    resp["message_type"]       = "TSS";
-    resp["error"]              = 0;
-    resp["message_time"]       = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+    resp["message_type"] = "TSS";
+    resp["error"]        = 0;
+    resp["message_time"] = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
 
     // See if the route requested actually exists
     const QMap<QString, GTFS::StopRec> *stops = GTFS::DataGateway::inst().getStopsDB();
@@ -405,24 +387,19 @@ QString GtfsRequestProcessor::tripsServingStop(QString stopID, QDate onlyDate)
     else {
         resp["error"] = 301;  // The trip ID does not exist in the database
     }
-
-    // Serialize for Transport
-    QJsonDocument jdoc(resp);
-    return jdoc.toJson(QJsonDocument::Compact);
 }
 
-QString GtfsRequestProcessor::stationDetailsDisplay(QString stopID)
+void GtfsRequestProcessor::stationDetailsDisplay(QString stopID, QJsonObject &resp)
 {
-    QJsonObject resp;
     QJsonArray  stopRouteArray;
     QDateTime   currUTC = QDateTime::currentDateTimeUtc();
     GTFS::DataGateway::inst().incrementHandledRequests();
     const GTFS::Status *data        = GTFS::DataGateway::inst().getStatus();
     QDateTime           currAgency  = currUTC.toTimeZone(data->getAgencyTZ());
 
-    resp["message_type"]       = "STA";
-    resp["error"]              = 0;
-    resp["message_time"]       = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+    resp["message_type"] = "STA";
+    resp["error"]        = 0;
+    resp["message_time"] = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
 
     // See if the route requested actually exists
     const QMap<QString, GTFS::StopRec>    *stops  = GTFS::DataGateway::inst().getStopsDB();
@@ -446,8 +423,7 @@ QString GtfsRequestProcessor::stationDetailsDisplay(QString stopID)
     } else {
         // StopID doesn't exist in either database, then an error must be raised
         resp["error"] = 401;  // The stop ID does not exist in the database
-        QJsonDocument jdoc(resp);
-        return jdoc.toJson(QJsonDocument::Compact);
+        return;
     }
 
     if (stops->contains(stopID)) {
@@ -485,27 +461,22 @@ QString GtfsRequestProcessor::stationDetailsDisplay(QString stopID)
         // Note the lookup time
         resp["proc_time_ms"] = currUTC.msecsTo(QDateTime::currentDateTimeUtc());
     }
-
-    // Serialize for Transport
-    QJsonDocument jdoc(resp);
-    return jdoc.toJson(QJsonDocument::Compact);
 }
 
-QString GtfsRequestProcessor::stopsServedByRoute(QString routeID)
+void GtfsRequestProcessor::stopsServedByRoute(QString routeID, QJsonObject &resp)
 {
-    QJsonObject resp;
     QJsonArray  routeStopArray;
     QDateTime   currUTC = QDateTime::currentDateTimeUtc();
     GTFS::DataGateway::inst().incrementHandledRequests();
-    const GTFS::Status *data        = GTFS::DataGateway::inst().getStatus();
-    QDateTime           currAgency  = currUTC.toTimeZone(data->getAgencyTZ());
+    const GTFS::Status *data       = GTFS::DataGateway::inst().getStatus();
+    QDateTime           currAgency = currUTC.toTimeZone(data->getAgencyTZ());
 
-    resp["message_type"]       = "SSR";
-    resp["error"]              = 0;
-    resp["message_time"]       = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+    resp["message_type"] = "SSR";
+    resp["error"]        = 0;
+    resp["message_time"] = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
 
-    const QMap<QString, GTFS::StopRec>    *stops  = GTFS::DataGateway::inst().getStopsDB();
-    const QMap<QString, GTFS::RouteRec>   *routes = GTFS::DataGateway::inst().getRoutesDB();
+    const QMap<QString, GTFS::StopRec>  *stops  = GTFS::DataGateway::inst().getStopsDB();
+    const QMap<QString, GTFS::RouteRec> *routes = GTFS::DataGateway::inst().getRoutesDB();
 
     // See if the route requested actually exists
     if (routes->contains(routeID)) {
@@ -537,20 +508,15 @@ QString GtfsRequestProcessor::stopsServedByRoute(QString routeID)
     else {
         resp["error"] = 501;  // The route ID does not exist in the database
     }
-
-    // Serialize for Transport
-    QJsonDocument jdoc(resp);
-    return jdoc.toJson(QJsonDocument::Compact);
 }
 
-QString GtfsRequestProcessor::nextTripsAtStop(QString stopID, qint32 futureMinutes)
+void GtfsRequestProcessor::nextTripsAtStop(QString stopID, qint32 futureMinutes, QJsonObject &resp)
 {
-    QJsonObject resp;
     QJsonArray  stopRouteArray;
     QDateTime   currUTC        = QDateTime::currentDateTimeUtc();
     GTFS::DataGateway::inst().incrementHandledRequests();
-    const GTFS::Status *data        = GTFS::DataGateway::inst().getStatus();
-    QDateTime           currAgency  = currUTC.toTimeZone(data->getAgencyTZ());
+    const GTFS::Status *data       = GTFS::DataGateway::inst().getStatus();
+    QDateTime           currAgency = currUTC.toTimeZone(data->getAgencyTZ());
 
     // Determine the range of time for which we must look for trips - use the local (transit agency's) time
     // We have to look back to the previous operating day ALWAYS (well ... ok, it's easier to always do it...) in order
@@ -565,8 +531,8 @@ QString GtfsRequestProcessor::nextTripsAtStop(QString stopID, qint32 futureMinut
     QDate today  = QDate::currentDate();
     QDateTime todaysOpDayStart(today);
     todaysOpDayStart.setTimeZone(data->getAgencyTZ());
-    qint32 curSecSinceStartToday     = todaysOpDayStart.secsTo(currAgency);
-    qint32 totSecSinceStartToday     = curSecSinceStartToday + futureMinutes * 60;
+    qint32 curSecSinceStartToday = todaysOpDayStart.secsTo(currAgency);
+    qint32 totSecSinceStartToday = curSecSinceStartToday + futureMinutes * 60;
 
     // ... and lastly, anything that is running on tomorrow's service since we can request into the future, that future
     // could include an additional service day. We have to lop off any remaining seconds to the end of today when
@@ -574,12 +540,12 @@ QString GtfsRequestProcessor::nextTripsAtStop(QString stopID, qint32 futureMinut
     QDate tomorrow = QDate::currentDate().addDays(1);
     QDateTime tomorrowOpDayStart(tomorrow);
     tomorrowOpDayStart.setTimeZone(data->getAgencyTZ());
-    qint32 secUntilTomorrow          = currAgency.secsTo(tomorrowOpDayStart);
-    qint32 totSecSinceTomorrow       = futureMinutes * 60 - secUntilTomorrow;
+    qint32 secUntilTomorrow    = currAgency.secsTo(tomorrowOpDayStart);
+    qint32 totSecSinceTomorrow = futureMinutes * 60 - secUntilTomorrow;
 
-    resp["message_type"]       = "NEX";
-    resp["error"]              = 0;
-    resp["message_time"]       = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+    resp["message_type"] = "NEX";
+    resp["error"]        = 0;
+    resp["message_time"] = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
 
     // See if the route requested actually exists
     const QMap<QString, GTFS::StopRec> *stops = GTFS::DataGateway::inst().getStopsDB();
@@ -705,11 +671,6 @@ QString GtfsRequestProcessor::nextTripsAtStop(QString stopID, qint32 futureMinut
     else {
         resp["error"] = 601;  // The trip ID does not exist in the database
     }
-
-    // Serialize for Transport
-    QJsonDocument jdoc(resp);
-    return jdoc.toJson(QJsonDocument::Compact);
-
 }
 
 qint32 determineServiceTime(qint32 departureTime, qint32 arrivalTime, qint32 sortTime)
@@ -746,12 +707,12 @@ void addTripToRouteArray(const QString                                   &tripID
 {
     QJsonObject singleStopJSON;
     QString serviceID = (*tripDB)[tripID].service_id;
-    singleStopJSON["trip_id"]                = (*tripDB)[tripID].trip_id;
-    singleStopJSON["headsign"]               = ((*stopTimes)[tripID].at(stopTripIdx).stop_headsign != "")
-                                                  ? (*stopTimes)[tripID].at(stopTripIdx).stop_headsign
-                                                  : (*tripDB)[tripID].trip_headsign;
-    singleStopJSON["drop_off_type"]          = (*stopTimes)[tripID].at(stopTripIdx).drop_off_type;
-    singleStopJSON["pickup_type"]            = (*stopTimes)[tripID].at(stopTripIdx).pickup_type;
+    singleStopJSON["trip_id"]       = (*tripDB)[tripID].trip_id;
+    singleStopJSON["headsign"]      = ((*stopTimes)[tripID].at(stopTripIdx).stop_headsign != "")
+                                         ? (*stopTimes)[tripID].at(stopTripIdx).stop_headsign
+                                         : (*tripDB)[tripID].trip_headsign;
+    singleStopJSON["drop_off_type"] = (*stopTimes)[tripID].at(stopTripIdx).drop_off_type;
+    singleStopJSON["pickup_type"]   = (*stopTimes)[tripID].at(stopTripIdx).pickup_type;
 
     // The service (applicable days, dates, exceptions, additions) details of each trip are not very interesting
     // on transactions where a specific time is requested, so we provide the option to NOT bother sending it in the
@@ -795,6 +756,15 @@ void addTripToRouteArray(const QString                                   &tripID
         singleStopJSON["trip_terminates"] = true;
     } else {
         singleStopJSON["trip_terminates"] = false;
+    }
+
+    // ... and just for sanity, it is also helpful to know if the stop is at the beginning of the trip in question
+    // since some agencies put a flag that the start of a trip will not drop off any passengers, but the "flag" to
+    // indicate that might otherwise standout despite how normal it is to do. This hopes to provide a rationale.
+    if (stopTripIdx == 0) {
+        singleStopJSON["trip_begins"] = true;
+    } else {
+        singleStopJSON["trip_begins"] = false;
     }
 
     // Add this individual trip to the route

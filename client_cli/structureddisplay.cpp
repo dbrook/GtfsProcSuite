@@ -27,10 +27,10 @@ void Display::reInitTerm()
     this->cols = columns;    // From NCURSES
     this->rows = lines;      // From NCURSES, useful for determining if text will go off the end of the terminal
 
-    // Banner is 68 columns wide (1/2 of banner is 34), we must try to center it
-    int leftbuf = this->cols / 2 - 34;
+    // Banner is 55 columns wide (1/2 of banner is 27), we can try to center it
+    int leftbuf = this->cols / 2 - 27;
 
-    // Stupid evil hack ... TODO: find a more glamorous way to do this...
+    // Stupid evil hack ... TODO: find a more glamorous way to do this... (like a QStringStream or something?)
     for (int spacer = 0; spacer < leftbuf; ++spacer) {
         this->buffer += " ";
     }
@@ -49,31 +49,33 @@ void Display::displayWelcome()
     // Actual display logic
     //
     QTextStream screen(stdout);
-    screen << "\n";
-    screen << buffer << "      GGGGGG     TTTTTTTTTT  FFFFFFFFFF   SSSSSSS     General" << endl;
-    screen << buffer << "    GG              TT      FF          SS      SS" << endl;
-    screen << buffer << "   GG              TT      FF          SS             Transit" << endl;
-    screen << buffer << "  GG    GGGG      TT      FFFFFFFF      SSSSSS" << endl;
-    screen << buffer << " GG      GG      TT      FF                  SS       Feed" << endl;
-    screen << buffer << "GG      GG      TT      FF          SS      SS" << endl;
-    screen << buffer << " GGGGGGG       TT      FF            SSSSSSS          Specification" << endl << endl;
-    screen << buffer << "   Data Browser  /  Debugging Console  v" << QCoreApplication::applicationVersion() << endl;
-    screen << endl;
-    screen << buffer << "Available Applications:  SDS / System and Data Status" << endl;
-    screen << buffer << "                         RTE / List all routes in database" << endl;
-    screen << buffer << "                         TRI / Individual trip schedule" << endl;
-    screen << buffer << "                         NEX / Next trips serving a stations" << endl;
-    screen << buffer << "                         PAR / Parent-Station-Children lookup" << endl << endl;
-    screen << buffer << "                         HOM / Display this welcome screen" << endl;
-    screen << buffer << "                         HEL / Help on individual commands" << endl;
-    screen << buffer << "                         BYE / Disconnect" << endl << endl;
+    screen << buffer << "GTFS Interactive Data Browser & Console -- Version: "
+                     << QCoreApplication::applicationVersion() << endl
+           << endl
+           << "[ System Information ]" << endl
+           << "SDS: Backend system and data load status" << endl
+           << "RTE: Routes available from the data set" << endl
+           << "SSR: List of all stops served by a single route" << endl
+           << endl
+           << "[ Full Data Lookup ]" << endl
+           << "STA: Stop information lookup by stop_id" << endl
+           << "TSR: List of trips serving a route_id" << endl
+           << "TSS: List of trips serving a stop_id" << endl
+           << "TRI: List all the stops served by a trip_id" << endl
+           << endl
+           << "[ Data Lookup for Specific Date ]" << endl
+           << "TRD: List of trips serving a route_id on a date" << endl
+           << "TSD: List of trips serving a stop_id on a date" << endl
+           << "NEX: List upcoming trips serving a stop_id within a number of minutes" << endl
+           << endl
+           << "Reinitialize the display with 'HOM', quit using 'BYE'"
+           << endl << endl;
 }
 
 void Display::showServer(QString hostname, int port)
 {
     QTextStream screen(stdout);
-    screen << buffer << "Connected to: " << hostname << " : " << port;
-    screen << endl << endl;
+    screen << "Connected to: " << hostname << " : " << port << endl;
     screen.flush();
 }
 

@@ -19,11 +19,15 @@ public:
     // Awaits user input and sends each query to the server
     void repl();
 
+    
 signals:
 
 public slots:
 
 private:
+    QString dropoffToChar(qint8 svcDropOff);
+    QString pickupToChar(qint8 svcPickUp);
+
     Display disp;
     QTcpSocket commSocket;
 };

@@ -25,7 +25,7 @@ private:
      *
      * (TODO: Insert details of message contents)
      */
-    QString applicationStatus();
+    void applicationStatus(QJsonObject &resp);
 
     /*
      * The "RTE" request handler - RouTEs belonging to agency/feed
@@ -34,7 +34,7 @@ private:
      *
      * (TODO: Insert details of message contents)
      */
-    QString availableRoutes();
+    void availableRoutes(QJsonObject &resp);
 
     /*
      * The "TRI" request handler - TRIp information
@@ -43,7 +43,7 @@ private:
      *
      * (TODO: Insert details of message contents)
      */
-    QString tripStopsDisplay(QString tripID);
+    void tripStopsDisplay(QString tripID, QJsonObject &resp);
 
     /*
      * The "TSR" request handler - Trips Serving Route
@@ -52,7 +52,7 @@ private:
      *
      * (TODO: Insert details of message contents)
      */
-    QString tripsServingRoute(QString routeID, QDate onlyDate);
+    void tripsServingRoute(QString routeID, QDate onlyDate, QJsonObject &resp);
 
     /*
      * The "TSS" request handler - Trips Serving Route
@@ -61,7 +61,7 @@ private:
      *
      * (TODO: Insert details of message contents)
      */
-    QString tripsServingStop(QString stopID, QDate onlyDate);
+    void tripsServingStop(QString stopID, QDate onlyDate, QJsonObject &resp);
 
     /*
      * The "STA" requestion handler - Station Details Display
@@ -70,7 +70,7 @@ private:
      *
      * (TODO: Insert details of message contents)
      */
-    QString stationDetailsDisplay(QString stopID);
+    void stationDetailsDisplay(QString stopID, QJsonObject &resp);
 
     /*
      * The "SSR" request handler - Stops Served by Route
@@ -79,7 +79,7 @@ private:
      *
      * (TOOD: Intert details of the message contents)
      */
-    QString stopsServedByRoute(QString routeID);
+    void stopsServedByRoute(QString routeID, QJsonObject &resp);
 
     /*
      * The "NEX" request handler - Next Trips to Serve a Stop
@@ -88,7 +88,7 @@ private:
      *
      * (TODO: Insert details of message contents)
      */
-    QString nextTripsAtStop(QString stopID, qint32 futureMinutes);
+    void nextTripsAtStop(QString stopID, qint32 futureMinutes, QJsonObject &resp);
 
 
     /*

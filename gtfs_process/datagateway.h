@@ -50,6 +50,8 @@ public:
     //
     qint64 incrementHandledRequests();
     qint64 getHandledRequests();
+    void   incStopsNoSortTimes();
+    qint32 getStopsNoSortTimes();
 
     //
     // Data Access
@@ -79,6 +81,7 @@ private:
 
     QMutex lock_handledRequests;
     qint64 handledRequests;
+    qint32 stopsNoSortTimes;
 };
 
 } // namespace GTFS

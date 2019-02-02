@@ -44,9 +44,8 @@ void ClientGtfs::repl()
         screen.flush();                                    // Forces the text above to print / make a "prompt"
 
         QTextStream query(stdin);
-        query.skipWhiteSpace();                            // Important to flush with \n !
-
-        QString qquery = query.readLine(1024);
+        query.skipWhiteSpace();                            // Important so that the user can 'flush' with \n !
+        QString qquery = query.readLine(1024);             // This should be more than enough characters
 
         //
         // Control Options: BYE to quit, HOM to display home screen
@@ -67,7 +66,7 @@ void ClientGtfs::repl()
         this->commSocket.write(serverRequest);
 
         //
-        // Process remote system's response ... FIX BUFFERING BELOW!!
+        // Process remote system's response
         //
         QString responseStr;
         while (1) {
@@ -139,7 +138,7 @@ void ClientGtfs::repl()
             screen << "Data Load Time . . " << respObj["dataloadtime_ms"].toInt() << "ms" << endl;
             screen << "Thread Pool  . . . " << respObj["threadpool_count"].toInt() << endl << endl;
 
-            screen << "[ Feed Information ]" << endl;
+            screen << "[ Static Feed Information ]" << endl;
             screen << "Publisher  . . . . " << respObj["feed_publisher"].toString() << endl;
             screen << "URL  . . . . . . . " << respObj["feed_url"].toString() << endl;
             screen << "Language . . . . . " << respObj["feed_lang"].toString() << endl;
@@ -147,6 +146,7 @@ void ClientGtfs::repl()
                                             << respObj["feed_valid_end"].toString() << endl;
             screen << "Version Text . . . " << respObj["feed_version"].toString() << endl;
             screen << "Recs Loaded  . . . " << respObj["records"].toInt() << endl;
+            screen << "NoStopTime Stops . " << respObj["stops_noSortTime"].toInt() << endl;
             screen << endl;
 
             screen << "[ Agency Load ]" << endl;
@@ -253,39 +253,8 @@ void ClientGtfs::repl()
 
                 QJsonArray stops = respObj["stops"].toArray();
                 for (const QJsonValue &st : stops) {
-                    QString dropOff, pickUp;
-                    qint8   svcDropOff = st["drop_off_type"].toInt();
-                    qint8   svcPickUp  = st["pickup_type"].toInt();
-
-                    switch (svcDropOff) {
-                    case 1:
-                        dropOff = "D";     // Drop-off service not available at this stop for this trip
-                        break;
-                    case 2:
-                        dropOff = "B";     // Dropping-off must be pre-arranged by calling the transit agency
-                        break;
-                    case 3:
-                        dropOff = "R";     // Request the operator/conductor to let you off (special)
-                        break;
-                    default:
-                        dropOff = " ";     // Regular stop (may still have to request especially if a bus route!)
-                        break;
-                    }
-
-                    switch (svcPickUp) {
-                    case 1:
-                        pickUp  = "P";     // Pick-up service not available, sometimes called a "limited" ?
-                        break;
-                    case 2:
-                        pickUp  = "C";     // Pick-up must be scheduled ahead of time by calling transit agency
-                        break;
-                    case 3:
-                        pickUp  = "F";     // Pick-up requested specifically flagging the operator ("flag stop")
-                        break;
-                    default:
-                        pickUp  = " ";     // Regular pick-up service, if a bus, you [probably] have to show intent
-                        break;
-                    }
+                    QString dropOff = dropoffToChar(st["drop_off_type"].toInt());
+                    QString pickUp  = pickupToChar(st["pickup_type"].toInt());
 
                     screen << qSetFieldWidth(c1) << st["sequence"].toInt()              << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c2) << st["stop_id"].toString().left(c2)   << qSetFieldWidth(1) << " "
@@ -412,40 +381,16 @@ void ClientGtfs::repl()
                         QString headsign   = tr["headsign"].toString().left(c2);
                         QString svcExempt  = (tr["exceptions_present"].toBool())     ? "E": " ";
                         QString svcSplmnt  = (tr["supplements_other_days"].toBool()) ? "S": " ";
-                        QString tripTerm   = (tr["trip_terminates"].toBool())        ? "T" : " ";
-                        QString dropOff, pickUp;
-                        qint8   svcDropOff = tr["drop_off_type"].toInt();
-                        qint8   svcPickUp  = tr["pickup_type"].toInt();
-
-                        switch (svcDropOff) {
-                        case 1:
-                            dropOff = "D";     // Drop-off service not available at this stop for this trip
-                            break;
-                        case 2:
-                            dropOff = "B";     // Dropping-off must be pre-arranged by calling the transit agency
-                            break;
-                        case 3:
-                            dropOff = "R";     // Request the operator/conductor to let you off (special)
-                            break;
-                        default:
-                            dropOff = " ";     // Regular stop (may still have to request especially if a bus route!)
-                            break;
+                        QString tripTerm;
+                        if (tr["trip_begins"].toBool()) {
+                            tripTerm = "S";
+                        } else if (tr["trip_terminates"].toBool()) {
+                            tripTerm = "T";
+                        } else {
+                            tripTerm = " ";
                         }
-
-                        switch (svcPickUp) {
-                        case 1:
-                            pickUp  = "P";     // Pick-up service not available, sometimes called a "limited" ?
-                            break;
-                        case 2:
-                            pickUp  = "C";     // Pick-up must be scheduled ahead of time by calling transit agency
-                            break;
-                        case 3:
-                            pickUp  = "F";     // Pick-up requested specifically flagging the operator ("flag stop")
-                            break;
-                        default:
-                            pickUp  = " ";     // Regular pick-up service, if a bus, you [probably] have to show intent
-                            break;
-                        }
+                        QString dropOff    = dropoffToChar(tr["drop_off_type"].toInt());
+                        QString pickUp     = pickupToChar(tr["pickup_type"].toInt());
 
                         screen << qSetFieldWidth(c1) << tr["trip_id"].toString().left(c1)   << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c2) << headsign                            << qSetFieldWidth(1) << " "
@@ -638,41 +583,16 @@ void ClientGtfs::repl()
                     QJsonArray trips = ro["trips"].toArray();
                     for (const QJsonValue &tr : trips) {
                         QString headsign   = tr["headsign"].toString().left(c2);
-                        QString tripTerm   = (tr["trip_terminates"].toBool())        ? "T" : " ";
-                        QString dropOff, pickUp;
-                        qint8   svcDropOff = tr["drop_off_type"].toInt();
-                        qint8   svcPickUp  = tr["pickup_type"].toInt();
-
-                        switch (svcDropOff) {
-                        case 1:
-                            dropOff = "#";     // Drop-off service not available at this stop for this trip
-                            break;
-                        case 2:
-                            dropOff = "B";     // Dropping-off must be pre-arranged by calling the transit agency
-                            break;
-                        case 3:
-                            dropOff = "R";     // Request the operator/conductor to let you off (special)
-                            break;
-                        default:
-                            dropOff = " ";     // Regular stop (may still have to request especially if a bus route!)
-                            break;
+                        QString tripTerm;
+                        if (tr["trip_begins"].toBool()) {
+                            tripTerm = "S";
+                        } else if (tr["trip_terminates"].toBool()) {
+                            tripTerm = "T";
+                        } else {
+                            tripTerm = " ";
                         }
-
-                        switch (svcPickUp) {
-                        case 1:
-                            pickUp  = "%";     // Pick-up service not available, sometimes called a "limited" ?
-                            break;
-                        case 2:
-                            pickUp  = "C";     // Pick-up must be scheduled ahead of time by calling transit agency
-                            break;
-                        case 3:
-                            pickUp  = "F";     // Pick-up requested specifically flagging the operator ("flag stop")
-                            break;
-                        default:
-                            pickUp  = " ";     // Regular pick-up service, if a bus, you [probably] have to show intent
-                            break;
-                        }
-
+                        QString dropOff    = dropoffToChar(tr["drop_off_type"].toInt());
+                        QString pickUp     = pickupToChar(tr["pickup_type"].toInt());
                         qint32 waitTimeMin = tr["wait_time_sec"].toInt() / 60;
                         screen << qSetFieldWidth(c1) << tr["trip_id"].toString().left(c1) << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c2) << headsign.left(c2)                 << qSetFieldWidth(1) << " "
@@ -703,4 +623,44 @@ void ClientGtfs::repl()
 
     // On exit (loop halted above)
     screen << "*** GOOD BYE ***" << endl;
+}
+
+QString ClientGtfs::dropoffToChar(qint8 svcDropOff)
+{
+    QString dropOff;
+    switch (svcDropOff) {
+    case 1:
+        dropOff = "D";     // Drop-off service not available at this stop for this trip
+        break;
+    case 2:
+        dropOff = "B";     // Dropping-off must be pre-arranged by calling the transit agency
+        break;
+    case 3:
+        dropOff = "R";     // Request the operator/conductor to let you off (special)
+        break;
+    default:
+        dropOff = " ";     // Regular stop (may still have to request especially if a bus route!)
+        break;
+    }
+    return dropOff;
+}
+
+QString ClientGtfs::pickupToChar(qint8 svcPickUp)
+{
+    QString pickUp;
+    switch (svcPickUp) {
+    case 1:
+        pickUp  = "P";     // Pick-up service not available, sometimes called a "limited" ?
+        break;
+    case 2:
+        pickUp  = "C";     // Pick-up must be scheduled ahead of time by calling transit agency
+        break;
+    case 3:
+        pickUp  = "F";     // Pick-up requested specifically flagging the operator ("flag stop")
+        break;
+    default:
+        pickUp  = " ";     // Regular pick-up service, if a bus, you [probably] have to show intent
+        break;
+    }
+    return pickUp;
 }
