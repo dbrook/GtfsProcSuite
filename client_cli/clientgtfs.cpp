@@ -109,9 +109,9 @@ void ClientGtfs::repl()
         if (respObj["message_type"] == "SDS") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
-            qint32 c1 = 3;                // Always 3 positions for the ID column
+            qint32 c1 = 10;               // Always 10 positions for the ID column
             qint32 c4 = 20;               // Always 20 positions for the PHONE number column
-            totalCol -= 26;               // Take the fixed width columns out of the calculation (+ all 3 spacers)
+            totalCol -= 33;               // Take the fixed width columns out of the calculation (+ all 3 spacers)
             qint32 c2 = totalCol * 0.50;  // 50% of non-fixed columns goes to agency "NAME"
             qint32 c3 = totalCol - c2;    // Whatever's left to the TimeZone column (truncation due to integer division)
 
@@ -630,16 +630,16 @@ QString ClientGtfs::dropoffToChar(qint8 svcDropOff)
     QString dropOff;
     switch (svcDropOff) {
     case 1:
-        dropOff = "D";     // Drop-off service not available at this stop for this trip
+        dropOff = "D";     // Drop-off unavailable for this trip (some agencies mark this for the start of trips)
         break;
     case 2:
-        dropOff = "B";     // Dropping-off must be pre-arranged by calling the transit agency
+        dropOff = "A";     // Drop-off must be pre-arranged by calling the transit agency
         break;
     case 3:
-        dropOff = "R";     // Request the operator/conductor to let you off (special)
+        dropOff = "R";     // Make a special request the operator/conductor to let you off here
         break;
     default:
-        dropOff = " ";     // Regular stop (may still have to request especially if a bus route!)
+        dropOff = " ";     // Regular stop (may still have to request to stop on a bus)
         break;
     }
     return dropOff;
@@ -650,7 +650,7 @@ QString ClientGtfs::pickupToChar(qint8 svcPickUp)
     QString pickUp;
     switch (svcPickUp) {
     case 1:
-        pickUp  = "P";     // Pick-up service not available, sometimes called a "limited" ?
+        pickUp  = "P";     // Pick-up service not available (some agencies mark this at the terminus, some don't)
         break;
     case 2:
         pickUp  = "C";     // Pick-up must be scheduled ahead of time by calling transit agency
@@ -659,8 +659,8 @@ QString ClientGtfs::pickupToChar(qint8 svcPickUp)
         pickUp  = "F";     // Pick-up requested specifically flagging the operator ("flag stop")
         break;
     default:
-        pickUp  = " ";     // Regular pick-up service, if a bus, you [probably] have to show intent
-        break;
+        pickUp  = " ";     // Regular pick-up service (NOTE: For rail this is a dedicate stop most likely,
+        break;             // but in the scope of a bus trip, you probably still want to signal the operator
     }
     return pickUp;
 }

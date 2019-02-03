@@ -15,7 +15,7 @@
  * For Trips Serving Stop (TSS/TSD) and Upcoming Trips (NEX) there was a great deal of repeated code
  */
 // Determine the ideal time to use to determine if a trip occurs before/after the requested time range
-static qint32 determineServiceTime(qint32 departureTime, qint32 arrivalTime, qint32 sortTime);
+static qint32 staticServiceTime(qint32 departureTime, qint32 arrivalTime, qint32 sortTime);
 
 
 // Append a valid trip belonging to a route to the response
@@ -76,7 +76,14 @@ void GtfsRequestProcessor::run()
     } else if (! userApp.compare("NEX", Qt::CaseInsensitive)) {
         QString remainingReq;
         qint32 futureMinutes = determineMinuteRange(userReq, remainingReq);
-        nextTripsAtStop(remainingReq, futureMinutes, respJson);
+        if (futureMinutes < 0) {
+            // Requesting a maximum number of future trips per route
+            // (cap at 72-hours so we can see today + tomorrow even through hopefully all of its after-midnight trips)
+            nextTripsAtStop(remainingReq, 4320, futureMinutes * -1, respJson);
+        } else {
+            // Requesting future trips for a time range, no limit on occurrences
+            nextTripsAtStop(remainingReq, futureMinutes, 0, respJson);
+        }
     } else {
         // Return ERROR 1: Unknown request (userApp)
         SystemResponse = "{\"error\":\"1\",\"user_string\":\"" + this->request + "\"}";
@@ -510,7 +517,10 @@ void GtfsRequestProcessor::stopsServedByRoute(QString routeID, QJsonObject &resp
     }
 }
 
-void GtfsRequestProcessor::nextTripsAtStop(QString stopID, qint32 futureMinutes, QJsonObject &resp)
+void GtfsRequestProcessor::nextTripsAtStop(QString stopID,
+                                           qint32 futureMinutes,
+                                           qint32 maxTripsPerRoute,
+                                           QJsonObject &resp)
 {
     QJsonArray  stopRouteArray;
     QDateTime   currUTC        = QDateTime::currentDateTimeUtc();
@@ -561,8 +571,9 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID, qint32 futureMinutes,
         resp["stop_desc"] = (*stops)[stopID].stop_desc;
 
         for (const QString routeID : (*stops)[stopID].stopTripsRoutes.keys()) {
+            qint32      nbTripsAddedThisRoute = 0;
             QJsonObject singleRouteJSON;
-            QJsonArray routeTripArray;
+            QJsonArray  routeTripArray;
 
             singleRouteJSON["route_id"]         = routeID;
             singleRouteJSON["route_short_name"] = (*routes)[routeID].route_short_name;
@@ -579,9 +590,9 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID, qint32 futureMinutes,
                 GTFS::tripStopSeqInfo tssi = (*stops)[stopID].stopTripsRoutes[routeID].at(tripLoopIdx);
                 QString tripID      = tssi.tripID;
                 qint32  stopTripIdx = tssi.tripStopSeq;
-                qint32  serviceTime = determineServiceTime((*stopTimes)[tripID].at(stopTripIdx).departure_time,
-                                                           (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
-                                                           tssi.sortTime);
+                qint32  serviceTime = staticServiceTime((*stopTimes)[tripID].at(stopTripIdx).departure_time,
+                                                        (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
+                                                        tssi.sortTime);
 
                 // Skip trips that we don't care about showing
                 if (!svc->serviceRunning(prevDay, (*tripDB)[tripID].service_id)) {
@@ -597,63 +608,89 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID, qint32 futureMinutes,
 
                 qint32 countdown = serviceTime - curSecSinceStartYesterday;
                 addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, true, true, countdown, routeTripArray);
+
+                // See if we have enough upcoming trips (if a limit was requested)
+                ++nbTripsAddedThisRoute;
+                if (maxTripsPerRoute != 0 && nbTripsAddedThisRoute >= maxTripsPerRoute) {
+                    break;
+                }
             }
 
-            /*
-             * Now rerun the scan of the trips for today's service day
-             */
-            for (qint32 tripLoopIdx = 0;
-                 tripLoopIdx < (*stops)[stopID].stopTripsRoutes[routeID].length();
-                 ++tripLoopIdx) {
-                GTFS::tripStopSeqInfo tssi = (*stops)[stopID].stopTripsRoutes[routeID].at(tripLoopIdx);
-                QString tripID      = tssi.tripID;
-                qint32  stopTripIdx = tssi.tripStopSeq;
-                qint32  serviceTime = determineServiceTime((*stopTimes)[tripID].at(stopTripIdx).departure_time,
-                                                           (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
-                                                           tssi.sortTime);
+            // Make sure we can keep adding trips (if a max was not requested, or we haven't reached it yet)
+            if (maxTripsPerRoute == 0 || nbTripsAddedThisRoute < maxTripsPerRoute) {
+                /*
+                 * Now rerun the scan of the trips for today's service day
+                 */
+                for (qint32 tripLoopIdx = 0;
+                     tripLoopIdx < (*stops)[stopID].stopTripsRoutes[routeID].length();
+                     ++tripLoopIdx) {
+                    GTFS::tripStopSeqInfo tssi = (*stops)[stopID].stopTripsRoutes[routeID].at(tripLoopIdx);
+                    QString tripID      = tssi.tripID;
+                    qint32  stopTripIdx = tssi.tripStopSeq;
+                    qint32  serviceTime = staticServiceTime((*stopTimes)[tripID].at(stopTripIdx).departure_time,
+                                                            (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
+                                                            tssi.sortTime);
 
-                // Skip trips that we don't care about showing
-                if (!svc->serviceRunning(today, (*tripDB)[tripID].service_id)) {
-                    // Trip didn't run this day
-                    continue;
-                } else if (serviceTime < curSecSinceStartToday) {
-                    // Trip has arrived / departed already
-                    continue;
-                } else if (serviceTime > totSecSinceStartToday) {
-                    // Trip arrival / departure occurs outside of the requested time range
-                    continue;
+                    // Skip trips that we don't care about showing
+                    if (!svc->serviceRunning(today, (*tripDB)[tripID].service_id)) {
+                        // Trip didn't run this day
+                        continue;
+                    } else if (serviceTime < curSecSinceStartToday) {
+                        // Trip has arrived / departed already
+                        continue;
+                    } else if (serviceTime > totSecSinceStartToday) {
+                        // Trip arrival / departure occurs outside of the requested time range
+                        continue;
+                    }
+
+                    qint32 countdown = serviceTime - curSecSinceStartToday;
+                    addTripToRouteArray(
+                                tripID, stopTripIdx, svc, stopTimes, tripDB, true, true, countdown, routeTripArray);
+
+                    // See if we have enough upcoming trips (if a limit was requested)
+                    ++nbTripsAddedThisRoute;
+                    if (maxTripsPerRoute != 0 && nbTripsAddedThisRoute >= maxTripsPerRoute) {
+                        break;
+                    }
                 }
-
-                qint32 countdown = serviceTime - curSecSinceStartToday;
-                addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, true, true, countdown, routeTripArray);
             }
 
-            /*
-             * Finally, rerun the scan of the trips for tomorrow's service day
-             */
-            for (qint32 tripLoopIdx = 0;
-                 tripLoopIdx < (*stops)[stopID].stopTripsRoutes[routeID].length();
-                 ++tripLoopIdx) {
-                GTFS::tripStopSeqInfo tssi = (*stops)[stopID].stopTripsRoutes[routeID].at(tripLoopIdx);
-                QString tripID      = tssi.tripID;
-                qint32  stopTripIdx = tssi.tripStopSeq;
-                qint32  serviceTime = determineServiceTime((*stopTimes)[tripID].at(stopTripIdx).departure_time,
-                                                           (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
-                                                           tssi.sortTime);
+            // Make sure we can keep adding trips (if a max was not requested, or we haven't reached it yet)
+            if (maxTripsPerRoute == 0 || nbTripsAddedThisRoute < maxTripsPerRoute) {
+                /*
+                 * Finally, rerun the scan of the trips for tomorrow's service day
+                 */
+                for (qint32 tripLoopIdx = 0;
+                     tripLoopIdx < (*stops)[stopID].stopTripsRoutes[routeID].length();
+                     ++tripLoopIdx) {
+                    GTFS::tripStopSeqInfo tssi = (*stops)[stopID].stopTripsRoutes[routeID].at(tripLoopIdx);
+                    QString tripID      = tssi.tripID;
+                    qint32  stopTripIdx = tssi.tripStopSeq;
+                    qint32  serviceTime = staticServiceTime((*stopTimes)[tripID].at(stopTripIdx).departure_time,
+                                                            (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
+                                                            tssi.sortTime);
 
-                // Skip trips that we don't care about showing
-                if (!svc->serviceRunning(tomorrow, (*tripDB)[tripID].service_id)) {
-                    // Trip didn't run this day
-                    continue;
-                } else if (serviceTime > totSecSinceTomorrow) {
-                    // *** NOTE: We assume that no trips of "tomorrow's" operating day can have completed yet
-                    //           (otherwise "tomorrow" would actually be today ... good luck figuring out what I meant!)
-                    // Trip arrival / departure occurs outside of the requested time range
-                    continue;
+                    // Skip trips that we don't care about showing
+                    if (!svc->serviceRunning(tomorrow, (*tripDB)[tripID].service_id)) {
+                        // Trip didn't run this day
+                        continue;
+                    } else if (serviceTime > totSecSinceTomorrow) {
+                        // *** NOTE: We assume that no trips of "tomorrow's" operating day can have completed yet
+                        //     (otherwise "tomorrow" would actually be today ... good luck figuring out what I meant!)
+                        // Trip arrival / departure occurs outside of the requested time range
+                        continue;
+                    }
+
+                    qint32 countdown = serviceTime + secUntilTomorrow;
+                    addTripToRouteArray(
+                                tripID, stopTripIdx, svc, stopTimes, tripDB, true, true, countdown, routeTripArray);
+
+                    // See if we have enough upcoming trips (if a limit was requested)
+                    ++nbTripsAddedThisRoute;
+                    if (maxTripsPerRoute != 0 && nbTripsAddedThisRoute >= maxTripsPerRoute) {
+                        break;
+                    }
                 }
-
-                qint32 countdown = serviceTime + secUntilTomorrow;
-                addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, true, true, countdown, routeTripArray);
             }
 
             // Add the individual route's worth of trips to the main array
@@ -673,7 +710,7 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID, qint32 futureMinutes,
     }
 }
 
-qint32 determineServiceTime(qint32 departureTime, qint32 arrivalTime, qint32 sortTime)
+qint32 staticServiceTime(qint32 departureTime, qint32 arrivalTime, qint32 sortTime)
 {
     /*
      * There are several notions of time we could compare with the current system time, so let's clarify
