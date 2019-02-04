@@ -29,8 +29,8 @@ bool ClientGtfs::startConnection(QString hostname, int port, int userTimeout)
     }
 
 
-    // Now that we are connected, show the server connected message
-    disp.showServer(hostname, port);
+    // Now that we are connected, show the server connected message (ehh ... there's no good point to do this)
+//    disp.showServer(hostname, port);
 
     return true;
 }
@@ -146,7 +146,6 @@ void ClientGtfs::repl()
                                             << respObj["feed_valid_end"].toString() << endl;
             screen << "Version Text . . . " << respObj["feed_version"].toString() << endl;
             screen << "Recs Loaded  . . . " << respObj["records"].toInt() << endl;
-            screen << "NoStopTime Stops . " << respObj["stops_noSortTime"].toInt() << endl;
             screen << endl;
 
             screen << "[ Agency Load ]" << endl;
@@ -542,8 +541,9 @@ void ClientGtfs::repl()
             qint32 c1 = totalCol * 0.5;   // 50% of open space for trip ID
             qint32 c2 = totalCol - c1;    // Remaining scalable range (~50%) Headsign
             qint32 c3 = 1;                //  1 space  (x3) for terminate + pickup/drop-off exception flags
-            qint32 c4 = 9;                //  9 spaces for date-of-service field
-            qint32 c5 = 4;                //  1 space  (x2) for exemption/supplement
+            qint32 c4 = 3;                //  9 spaces for date-of-service field
+            qint32 c5 = 5;                //  9 spaces for date-of-service field
+            qint32 c6 = 4;                //  1 space  (x2) for exemption/supplement
 
             this->disp.clearTerm();
 
@@ -566,11 +566,11 @@ void ClientGtfs::repl()
 
                 // ... then all the trips within each route
                 screen.setFieldAlignment(QTextStream::AlignLeft);
-                screen << qSetFieldWidth(c1)     << "TRIP-ID"   << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c2)     << "HEADSIGN"  << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c3*3)   << "TPD"       << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c4)     << "STOP-TIME" << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c5)     << "MINS"      << qSetFieldWidth(0) << endl << endl;
+                screen << qSetFieldWidth(c1)      << "TRIP-ID"   << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c2)      << "HEADSIGN"  << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c3*3)    << "TPD"       << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c4+c5+1) << "STOP-TIME" << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c5)      << "MINS"      << qSetFieldWidth(0) << endl << endl;
 
                 // Loop on all the routes
                 QJsonArray routes = respObj["routes"].toArray();
@@ -598,8 +598,9 @@ void ClientGtfs::repl()
                                << qSetFieldWidth(c2) << headsign.left(c2)                 << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c3) << tripTerm << pickUp << dropOff     << qSetFieldWidth(1) << " ";
                         screen.setFieldAlignment(QTextStream::AlignRight);
-                        screen << qSetFieldWidth(c4) << tr["dep_time"].toString()         << qSetFieldWidth(1) << " "
-                               << qSetFieldWidth(c5) << waitTimeMin                       << qSetFieldWidth(0);
+                        screen << qSetFieldWidth(c4) << tr["actual_day"].toString()       << qSetFieldWidth(1) << " "
+                               << qSetFieldWidth(c5) << tr["dep_time"].toString()         << qSetFieldWidth(1) << " "
+                               << qSetFieldWidth(c6) << waitTimeMin                       << qSetFieldWidth(0);
                         screen.setFieldAlignment(QTextStream::AlignLeft);
                         screen << endl;
                     } // End loop on Trips-within-Route
@@ -612,6 +613,49 @@ void ClientGtfs::repl()
             }
 
             screen << endl;
+            screen.setFieldAlignment(QTextStream::AlignRight);
+        }
+
+        else if (respObj["message_type"] == "SNT") {
+            // Scalable column width determination
+            qint32 totalCol = this->disp.getCols();
+            totalCol -= 4 + 16;              // Spacer + Location columns
+            qint32 c1 = totalCol * 0.25;     // Stop ID
+            qint32 c3 = totalCol * 0.30;     // Stop Description
+            qint32 c4 = 16;                  // Location entries
+            qint32 c2 = totalCol - c1 - c3;  // Remaining space to the stop-name
+
+            this->disp.clearTerm();
+
+            // Standard Response Header
+            screen << "Stops Without Trips"
+                   << qSetFieldWidth(this->disp.getCols() - 19)
+                   << respObj["message_time"].toString()
+                   << qSetFieldWidth(0) << endl << endl;
+
+            screen.setFieldAlignment(QTextStream::AlignLeft);
+            screen << qSetFieldWidth(c1) << "STOP-ID"   << qSetFieldWidth(1) << " "
+                   << qSetFieldWidth(c2) << "STOP-NAME" << qSetFieldWidth(1) << " "
+                   << qSetFieldWidth(c3) << "STOP-DESC" << qSetFieldWidth(1) << " "
+                   << qSetFieldWidth(c4) << "LOCATION"  << qSetFieldWidth(1) << endl;
+
+            // Loop on all the routes
+            QJsonArray stops = respObj["stops"].toArray();
+            for (const QJsonValue &st : stops) {
+                screen << qSetFieldWidth(c1)   << st["stop_id"].toString().left(c1)
+                       << qSetFieldWidth(1)    << " "
+                       << qSetFieldWidth(c2)   << st["stop_name"].toString().left(c2)
+                       << qSetFieldWidth(1)    << " "
+                       << qSetFieldWidth(c3)   << st["stop_desc"].toString().left(c3)
+                       << qSetFieldWidth(1)    << " ";
+                screen.setFieldAlignment(QTextStream::AlignRight);
+                screen << qSetFieldWidth(c4/2) << st["loc_lat"].toDouble()
+                       << qSetFieldWidth(1)    << ","
+                       << qSetFieldWidth(c4/2) << st["loc_lon"].toDouble()
+                       << qSetFieldWidth(0)    << endl;
+                screen.setFieldAlignment(QTextStream::AlignLeft);
+            }
+            screen << endl << "Query took " << respObj["proc_time_ms"].toInt() << " ms" << endl << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 

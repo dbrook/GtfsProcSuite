@@ -17,48 +17,48 @@ DataGateway &DataGateway::inst()
 
 void DataGateway::initDataPath(QString databaseFilePath)
 {
-    this->_dbRootPath = databaseFilePath;
+    _dbRootPath = databaseFilePath;
 }
 
 void DataGateway::initStatus()
 {
-    this->_status = new GTFS::Status(this->_dbRootPath, this);
+    _status = new GTFS::Status(_dbRootPath, this);
 }
 
 void DataGateway::initRoutes()
 {
-    this->_routes = new GTFS::Routes(this->_dbRootPath, this);
-    this->_status->incrementRecordsLoaded(this->_routes->getRoutesDBSize());
+    _routes = new GTFS::Routes(_dbRootPath, this);
+    _status->incrementRecordsLoaded(_routes->getRoutesDBSize());
 }
 
 void DataGateway::initOperatingDay()
 {
-    this->_opDay = new GTFS::OperatingDay(this->_dbRootPath, this);
-    this->_status->incrementRecordsLoaded(this->_opDay->getCalendarAndDatesDBSize());
+    _opDay = new GTFS::OperatingDay(_dbRootPath, this);
+    _status->incrementRecordsLoaded(_opDay->getCalendarAndDatesDBSize());
 }
 
 void DataGateway::initTrips()
 {
-    this->_trips = new GTFS::Trips(this->_dbRootPath, this);
-    this->_status->incrementRecordsLoaded(this->_trips->getTripsDBSize());
+    _trips = new GTFS::Trips(_dbRootPath, this);
+    _status->incrementRecordsLoaded(_trips->getTripsDBSize());
 }
 
 void DataGateway::initStopTimes()
 {
-    this->_stopTimes = new GTFS::StopTimes(this->_dbRootPath, this);
-    this->_status->incrementRecordsLoaded(this->_stopTimes->getStopTimesDBSize());
+    _stopTimes = new GTFS::StopTimes(_dbRootPath, this);
+    _status->incrementRecordsLoaded(_stopTimes->getStopTimesDBSize());
 }
 
 void DataGateway::initStops()
 {
-    this->_stops = new GTFS::Stops(this->_dbRootPath, this);
-    this->_status->incrementRecordsLoaded(this->_stops->getStopsDBSize());
+    _stops = new GTFS::Stops(_dbRootPath, this);
+    _status->incrementRecordsLoaded(_stops->getStopsDBSize());
 }
 
 void DataGateway::linkStopsTripsRoutes()
 {
-    QMap<QString, QVector<StopTimeRec>> sTimDB = this->_stopTimes->getStopTimesDB();
-    QMap<QString, TripRec> tripDB              = this->_trips->getTripsDB();
+    QMap<QString, QVector<StopTimeRec>> sTimDB = _stopTimes->getStopTimesDB();
+    QMap<QString, TripRec> tripDB              = _trips->getTripsDB();
 
     // For every StopTime in the database, bind its trip_id and route_id to its stop_id
     for (const QString &stopTimeTripID : sTimDB.keys()) {
@@ -89,7 +89,6 @@ void DataGateway::linkStopsTripsRoutes()
             }
 
             if (sortTime == -1) {
-                incStopsNoSortTimes();
                 qDebug() << "WARNING: a sortTime was not findable for Route: " << tripDB[stopTimeTripID].route_id
                          << ", Trip: " << stopTimeTripID << ", Stop: " << rec.stop_id;
             }
@@ -102,14 +101,14 @@ void DataGateway::linkStopsTripsRoutes()
         }
     }
 
-    this->_stops->sortStopTripTimes();
+    _stops->sortStopTripTimes();
 
     // For every route, there are stops served but those stops are coded in every single trip, which is annoying if you
     // want to see the full scope of available service per route. What we've done here is to associate stops to routes
     // as well as the # of trips that serve them so the fuller-scale of service is clearer.
     for (const QString &stopTimeTripID : sTimDB.keys()) {
         for (const StopTimeRec &rec : sTimDB[stopTimeTripID]) {
-            this->_routes->connectStop(tripDB[stopTimeTripID].route_id, rec.stop_id);
+            _routes->connectStop(tripDB[stopTimeTripID].route_id, rec.stop_id);
         }
     }
 }
@@ -122,53 +121,22 @@ void DataGateway::linkTripsRoutes()
     // For every TripID in the database, bind it to its associated RouteID
     // (This will only insert them in the order from the data provider, which is difficult to grok) ...
     for (QString tripID : tripDB.keys()) {
-        this->_routes->connectTrip(tripDB[tripID].route_id, tripID,
-                                   stopTimeDB[tripID].at(0).departure_time, stopTimeDB[tripID].at(0).arrival_time);
+        _routes->connectTrip(tripDB[tripID].route_id, tripID,
+                             stopTimeDB[tripID].at(0).departure_time, stopTimeDB[tripID].at(0).arrival_time);
     }
 
     // ... so we will sort them after they're all connected
-    this->_routes->sortRouteTrips();
+    _routes->sortRouteTrips();
 }
 
-const Status *DataGateway::getStatus()
-{
-    return this->_status;
-}
-
-const QMap<QString, GTFS::RouteRec> *DataGateway::getRoutesDB()
-{
-    return &this->_routes->getRoutesDB();
-}
-
-const QMap<QString, TripRec> *DataGateway::getTripsDB()
-{
-    return &this->_trips->getTripsDB();
-}
-
-const QMap<QString, QVector<StopTimeRec> > *DataGateway::getStopTimesDB()
-{
-    return &this->_stopTimes->getStopTimesDB();
-}
-
-const QMap<QString, StopRec> *DataGateway::getStopsDB()
-{
-    return &this->_stops->getStopDB();
-}
-
-const QMap<QString, QVector<QString> > *DataGateway::getParentStationDB()
-{
-    return &this->_stops->getParentStationDB();
-}
-
-const OperatingDay *DataGateway::getServiceDB()
-{
-    return this->_opDay;
-}
-
-void DataGateway::setStatusLoadFinishTimeUTC()
-{
-    this->_status->setLoadFinishTimeUTC();
-}
+const Status                              *DataGateway::getStatus()      {return _status;}
+const QMap<QString, GTFS::RouteRec>       *DataGateway::getRoutesDB()    {return &_routes->getRoutesDB();}
+const QMap<QString, TripRec>              *DataGateway::getTripsDB()     {return &_trips->getTripsDB();}
+const QMap<QString, QVector<StopTimeRec>> *DataGateway::getStopTimesDB() {return &_stopTimes->getStopTimesDB();}
+const QMap<QString, StopRec>              *DataGateway::getStopsDB()     {return &_stops->getStopDB();}
+const QMap<QString, QVector<QString>>     *DataGateway::getParentsDB()   {return &_stops->getParentStationDB();}
+const OperatingDay                        *DataGateway::getServiceDB()   {return _opDay;}
+void  DataGateway::setStatusLoadFinishTimeUTC()                          {_status->setLoadFinishTimeUTC();}
 
 qint64 DataGateway::incrementHandledRequests()
 {
@@ -188,16 +156,6 @@ qint64 DataGateway::getHandledRequests()
     return HRs;
 }
 
-void DataGateway::incStopsNoSortTimes()
-{
-    ++stopsNoSortTimes;
-}
-
-qint32 DataGateway::getStopsNoSortTimes()
-{
-    return stopsNoSortTimes;
-}
-
 DataGateway::DataGateway(QObject *parent) :
     QObject(parent)
 {    
@@ -205,11 +163,11 @@ DataGateway::DataGateway(QObject *parent) :
 
 DataGateway::~DataGateway()
 {
-    delete this->_status;
-    delete this->_routes;
-    delete this->_opDay;
-    delete this->_trips;
-    delete this->_stopTimes;
+    delete _status;
+    delete _routes;
+    delete _opDay;
+    delete _trips;
+    delete _stopTimes;
 }
 
 } // namespace GTFS

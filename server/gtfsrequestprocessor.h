@@ -112,6 +112,14 @@ private:
      */
     void nextTripsAtStop(QString stopID, qint32 futureMinutes, qint32 maxTripsPerRoute, QJsonObject &resp);
 
+    /*
+     * The SNT request handler - Stops with No Trips
+     *
+     * Response Format: JSON
+     */
+    void stopsNoTrips(QJsonObject &resp);
+
+
 
     /*
      * Date decoder / helper

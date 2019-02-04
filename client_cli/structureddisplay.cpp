@@ -28,7 +28,7 @@ void Display::reInitTerm()
     this->rows = lines;      // From NCURSES, useful for determining if text will go off the end of the terminal
 
     // Banner is 55 columns wide (1/2 of banner is 27), we can try to center it
-    int leftbuf = this->cols / 2 - 27;
+    int leftbuf = this->cols / 2 - 22;
 
     // Stupid evil hack ... TODO: find a more glamorous way to do this... (like a QStringStream or something?)
     for (int spacer = 0; spacer < leftbuf; ++spacer) {
@@ -49,15 +49,16 @@ void Display::displayWelcome()
     // Actual display logic
     //
     QTextStream screen(stdout);
-    screen << buffer << "GTFS Interactive Data Browser & Console -- Version: "
+    screen << buffer << "GTFS Interactive Data Console -- Version: "
                      << QCoreApplication::applicationVersion() << endl
            << endl
            << "[ System Information ]" << endl
            << "SDS: Backend system and data load status" << endl
            << "RTE: Routes available from the data set" << endl
            << "SSR: List of all stops served by a single route" << endl
+           << "SNT: List all stops that have no trips (diagnostic)" << endl
            << endl
-           << "[ Full Data Lookup ]" << endl
+           << "[ Full Schedule Lookup ]" << endl
            << "STA: Stop information lookup by stop_id" << endl
            << "TSR: List of trips serving a route_id" << endl
            << "TSS: List of trips serving a stop_id" << endl

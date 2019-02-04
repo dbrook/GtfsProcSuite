@@ -25,7 +25,7 @@ static void addTripToRouteArray(const QString                                   
                                 const QMap<QString, QVector<GTFS::StopTimeRec>> *stopTimes,
                                 const QMap<QString, GTFS::TripRec>              *tripDB,
                                 bool                                             skipServiceDetail,
-                                bool                                             addWaitTime, qint32 waitTime,
+                                bool                                             addWaitTime, QDateTime &currAgency, qint32 waitTimeSec,
                                 QJsonArray                                      &routeTripArray);
 
 
@@ -84,6 +84,8 @@ void GtfsRequestProcessor::run()
             // Requesting future trips for a time range, no limit on occurrences
             nextTripsAtStop(remainingReq, futureMinutes, 0, respJson);
         }
+    } else if (! userApp.compare("SNT", Qt::CaseInsensitive)) {
+        stopsNoTrips(respJson);
     } else {
         // Return ERROR 1: Unknown request (userApp)
         SystemResponse = "{\"error\":\"1\",\"user_string\":\"" + this->request + "\"}";
@@ -130,7 +132,6 @@ void GtfsRequestProcessor::applicationStatus(QJsonObject &resp)
     resp["feed_valid_end"]   = (!data->getEndDate().isNull())   ? data->getEndDate().toString("dd-MMM-yyyy")
                                                                 : "__-___-____";
     resp["feed_version"]     = data->getVersion();
-    resp["stops_noSortTime"] = GTFS::DataGateway::inst().getStopsNoSortTimes();
 
     // Fill the agency information
     const QVector<GTFS::AgencyRecord> agencyVec = data->getAgencies();
@@ -376,7 +377,7 @@ void GtfsRequestProcessor::tripsServingStop(QString stopID, QDate onlyDate, QJso
                     continue;
                 }
 
-                addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, false, false, 0, routeTripArray);
+                addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, false, false, currAgency, 0, routeTripArray);
             }
 
             // Add the individual route's worth of trips to the main array
@@ -410,7 +411,7 @@ void GtfsRequestProcessor::stationDetailsDisplay(QString stopID, QJsonObject &re
 
     // See if the route requested actually exists
     const QMap<QString, GTFS::StopRec>    *stops  = GTFS::DataGateway::inst().getStopsDB();
-    const QMap<QString, QVector<QString>> *parSta = GTFS::DataGateway::inst().getParentStationDB();
+    const QMap<QString, QVector<QString>> *parSta = GTFS::DataGateway::inst().getParentsDB();
     const QMap<QString, GTFS::RouteRec>   *routes = GTFS::DataGateway::inst().getRoutesDB();
 
     QList<QString> routesServed;
@@ -607,7 +608,8 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID,
                 }
 
                 qint32 countdown = serviceTime - curSecSinceStartYesterday;
-                addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, true, true, countdown, routeTripArray);
+                addTripToRouteArray(
+                      tripID, stopTripIdx, svc, stopTimes, tripDB, true, true, currAgency, countdown, routeTripArray);
 
                 // See if we have enough upcoming trips (if a limit was requested)
                 ++nbTripsAddedThisRoute;
@@ -644,8 +646,16 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID,
                     }
 
                     qint32 countdown = serviceTime - curSecSinceStartToday;
-                    addTripToRouteArray(
-                                tripID, stopTripIdx, svc, stopTimes, tripDB, true, true, countdown, routeTripArray);
+                    addTripToRouteArray(tripID,
+                                        stopTripIdx,
+                                        svc,
+                                        stopTimes,
+                                        tripDB,
+                                        true,
+                                        true,
+                                        currAgency,
+                                        countdown,
+                                        routeTripArray);
 
                     // See if we have enough upcoming trips (if a limit was requested)
                     ++nbTripsAddedThisRoute;
@@ -682,8 +692,16 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID,
                     }
 
                     qint32 countdown = serviceTime + secUntilTomorrow;
-                    addTripToRouteArray(
-                                tripID, stopTripIdx, svc, stopTimes, tripDB, true, true, countdown, routeTripArray);
+                    addTripToRouteArray(tripID,
+                                        stopTripIdx,
+                                        svc,
+                                        stopTimes,
+                                        tripDB,
+                                        true,
+                                        true,
+                                        currAgency,
+                                        countdown,
+                                        routeTripArray);
 
                     // See if we have enough upcoming trips (if a limit was requested)
                     ++nbTripsAddedThisRoute;
@@ -708,6 +726,42 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID,
     else {
         resp["error"] = 601;  // The trip ID does not exist in the database
     }
+}
+
+void GtfsRequestProcessor::stopsNoTrips(QJsonObject &resp)
+{
+    QJsonArray  stopArray;
+    QDateTime   currUTC        = QDateTime::currentDateTimeUtc();
+    GTFS::DataGateway::inst().incrementHandledRequests();
+    const GTFS::Status                    *data  = GTFS::DataGateway::inst().getStatus();
+    const QMap<QString, QVector<QString>> *par   = GTFS::DataGateway::inst().getParentsDB();
+    const QMap<QString, GTFS::StopRec>    *stops = GTFS::DataGateway::inst().getStopsDB();
+    QDateTime           currAgency = currUTC.toTimeZone(data->getAgencyTZ());
+
+    resp["message_type"] = "SNT";
+    resp["error"]        = 0;
+    resp["message_time"] = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+
+    // Run through the entire stops database and find any that have no trips associated with them
+    for (const QString &stopID : (*stops).keys()) {
+        if (par->contains(stopID)) {
+            // Don't bother listing parent stations, as their childless children will be printed anyway
+            continue;
+        }
+
+        if ((*stops)[stopID].stopTripsRoutes.size() == 0) {
+            QJsonObject unassocStop;
+            unassocStop["stop_id"]    = stopID;
+            unassocStop["stop_name"]  = (*stops)[stopID].stop_name;
+            unassocStop["stop_desc"]  = (*stops)[stopID].stop_desc;
+            unassocStop["loc_lat"]    = (*stops)[stopID].stop_lat;
+            unassocStop["loc_lon"]    = (*stops)[stopID].stop_lon;
+            unassocStop["parent_sta"] = (*stops)[stopID].parent_station;
+            stopArray.push_back(unassocStop);
+        }
+    }
+
+    resp["stops"] = stopArray;
 }
 
 qint32 staticServiceTime(qint32 departureTime, qint32 arrivalTime, qint32 sortTime)
@@ -739,7 +793,8 @@ void addTripToRouteArray(const QString                                   &tripID
                          const QMap<QString, GTFS::TripRec>              *tripDB,
                          bool                                             skipServiceDetail,
                          bool                                             addWaitTime,
-                         qint32                                           waitTime,
+                         QDateTime                                       &currAgency,
+                         qint32                                           waitTimeSec,
                          QJsonArray                                      &routeTripArray)
 {
     QJsonObject singleStopJSON;
@@ -763,9 +818,7 @@ void addTripToRouteArray(const QString                                   &tripID
         singleStopJSON["exceptions_present"]     = svc->serviceRemovedOnDates(serviceID);
     }
 
-    // TODO: This may be a problem! We can have stops with no stop time (i.e. the time should be
-    //       considered as part of a whole trip and it not a 'reference' stop with a full time.
-    //       Showing times for a non-reference stop means no times will ever be displayed!
+    // Fill the time of service. Note that it could be distinct from the countdown when we have no scheduled time(s)!
     QTime localMidnight(0, 0, 0);
     if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != -1) {
         QTime stopDep = localMidnight.addSecs((*stopTimes)[tripID].at(stopTripIdx).departure_time);
@@ -780,8 +833,13 @@ void addTripToRouteArray(const QString                                   &tripID
         singleStopJSON["arr_time"] = "-";
     }
 
+    // For the "NEX" display, we need to actually show how long somebody will wait
+    // Just showing a time in the NEX display is also ambiguous, so we should also add the ACTUAL day with it
     if (addWaitTime) {
-        singleStopJSON["wait_time_sec"] = waitTime;
+        singleStopJSON["wait_time_sec"] = waitTimeSec;
+
+        QDateTime tripStopTime = currAgency.addSecs(waitTimeSec);
+        singleStopJSON["actual_day"]    = tripStopTime.toString("ddd");
     }
 
     // Indicate that the trip actually terminates at the requested stop (i.e. a client may wish to omit

@@ -50,21 +50,20 @@ public:
     //
     qint64 incrementHandledRequests();
     qint64 getHandledRequests();
-    void   incStopsNoSortTimes();
-    qint32 getStopsNoSortTimes();
 
     //
-    // Data Access
+    // Direct External Data Access
     //
     const Status *getStatus();
     const QMap<QString, RouteRec> *getRoutesDB();
     const QMap<QString, GTFS::TripRec> *getTripsDB();
     const QMap<QString, QVector<GTFS::StopTimeRec>> *getStopTimesDB();
     const QMap<QString, GTFS::StopRec> *getStopsDB();
-    const QMap<QString, QVector<QString>> *getParentStationDB();
+    const QMap<QString, QVector<QString>> *getParentsDB();
     const OperatingDay *getServiceDB();
 
 private:
+    // Required per the Singleton Pattern
     explicit DataGateway(QObject *parent = nullptr);
     explicit DataGateway(const DataGateway &);
     DataGateway &operator =(DataGateway const &other);
