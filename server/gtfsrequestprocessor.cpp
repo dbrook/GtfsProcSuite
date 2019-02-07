@@ -15,8 +15,10 @@
  * For Trips Serving Stop (TSS/TSD) and Upcoming Trips (NEX) there was a great deal of repeated code
  */
 // Determine the ideal time to use to determine if a trip occurs before/after the requested time range
-static qint32 staticServiceTime(qint32 departureTime, qint32 arrivalTime, qint32 sortTime);
-
+static QDateTime staticServiceTime(const QDateTime &localNoon,
+                                   qint32           departureTime,
+                                   qint32           arrivalTime,
+                                   qint32           sortTime);
 
 // Append a valid trip belonging to a route to the response
 static void addTripToRouteArray(const QString                                   &tripID,
@@ -24,10 +26,12 @@ static void addTripToRouteArray(const QString                                   
                                 const GTFS::OperatingDay                        *svc,
                                 const QMap<QString, QVector<GTFS::StopTimeRec>> *stopTimes,
                                 const QMap<QString, GTFS::TripRec>              *tripDB,
+                                const QDate                                     &serviceDate,
                                 bool                                             skipServiceDetail,
-                                bool                                             addWaitTime, QDateTime &currAgency, qint32 waitTimeSec,
+                                bool                                             addWaitTime,
+                                QDateTime                                       &currAgency,
+                                qint64                                           waitTimeSec,
                                 QJsonArray                                      &routeTripArray);
-
 
 GtfsRequestProcessor::GtfsRequestProcessor(QString userRequest) : request(userRequest)
 {
@@ -234,17 +238,17 @@ void GtfsRequestProcessor::tripStopsDisplay(QString tripID, QJsonObject &resp)
 
         for (GTFS::StopTimeRec stop : tripStops) {
             QJsonObject singleStopJSON;
-            QTime localMidnight(0, 0, 0);
+            QTime localNoon(12, 0, 0);
 
             if (stop.arrival_time != -1) {
-                QTime arrivalTime = localMidnight.addSecs(stop.arrival_time);
+                QTime arrivalTime = localNoon.addSecs(stop.arrival_time);
                 singleStopJSON["arr_time"] = arrivalTime.toString("hh:mm");
             } else {
                 singleStopJSON["arr_time"] = "-";
             }
 
             if (stop.departure_time != -1) {
-                QTime departureTime = localMidnight.addSecs(stop.departure_time);
+                QTime departureTime = localNoon.addSecs(stop.departure_time);
                 singleStopJSON["dep_time"]  = departureTime.toString("hh:mm");
             } else {
                 singleStopJSON["dep_time"]  = "-";
@@ -313,9 +317,16 @@ void GtfsRequestProcessor::tripsServingRoute(QString routeID, QDate onlyDate, QJ
             singleStopJSON["exceptions_present"]     = svc->serviceRemovedOnDates(serviceID);
 
             // Since it is the beginning of the trip's time that will be displayed, we assume it's not -1
-            QTime localMidnight(0, 0, 0);
-            QTime firstStopDep = localMidnight.addSecs(tripIDwTime.second);
-            singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
+            if (onlyDate.isNull()) {
+                QTime localNoon    = QTime(12, 0, 0);
+                QTime firstStopDep = localNoon.addSecs(tripIDwTime.second);
+                singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
+            } else {
+                QDateTime localNoon(onlyDate, QTime(12, 0, 0), data->getAgencyTZ());
+                QDateTime firstStopDep = localNoon.addSecs(tripIDwTime.second);
+                singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
+                singleStopJSON["dst_on"] = firstStopDep.isDaylightTime();
+            }
 
             routeTripArray.push_back(singleStopJSON);
         }
@@ -377,7 +388,8 @@ void GtfsRequestProcessor::tripsServingStop(QString stopID, QDate onlyDate, QJso
                     continue;
                 }
 
-                addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, false, false, currAgency, 0, routeTripArray);
+                addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, onlyDate,
+                                    false, false, currAgency, 0, routeTripArray);
             }
 
             // Add the individual route's worth of trips to the main array
@@ -530,35 +542,36 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID,
     QDateTime           currAgency = currUTC.toTimeZone(data->getAgencyTZ());
 
     // Determine the range of time for which we must look for trips - use the local (transit agency's) time
-    // We have to look back to the previous operating day ALWAYS (well ... ok, it's easier to always do it...) in order
-    // to cover scenarios where we are after midnight but trips from the previous operating day are still active
-    QDate prevDay = QDate::currentDate().addDays(-1);
-    QDateTime prevOpDayStart(prevDay);
-    prevOpDayStart.setTimeZone(data->getAgencyTZ());
-    qint32 curSecSinceStartYesterday = prevOpDayStart.secsTo(currAgency);
-    qint32 totSecSinceStartYesterday = curSecSinceStartYesterday + futureMinutes * 60;
+    // We have to look back to the previous operating day ALWAYS in order to cover scenarios where we are after
+    // midnight but trips from the previous operating day are still active
 
-    // Of course process any of the current service day's trips
-    QDate today  = QDate::currentDate();
-    QDateTime todaysOpDayStart(today);
-    todaysOpDayStart.setTimeZone(data->getAgencyTZ());
-    qint32 curSecSinceStartToday = todaysOpDayStart.secsTo(currAgency);
-    qint32 totSecSinceStartToday = curSecSinceStartToday + futureMinutes * 60;
+    // Standard procedure ... today is today
+    QDate today   = QDate::currentDate();
 
-    // ... and lastly, anything that is running on tomorrow's service since we can request into the future, that future
-    // could include an additional service day. We have to lop off any remaining seconds to the end of today when
-    // applying future time in tomorrow's service day.
-    QDate tomorrow = QDate::currentDate().addDays(1);
-    QDateTime tomorrowOpDayStart(tomorrow);
-    tomorrowOpDayStart.setTimeZone(data->getAgencyTZ());
-    qint32 secUntilTomorrow    = currAgency.secsTo(tomorrowOpDayStart);
-    qint32 totSecSinceTomorrow = futureMinutes * 60 - secUntilTomorrow;
+    // Debugging for trap days ... fix "today" as a hard date, but let the current time remain as is
+//    QDate today(2018, 11, 11);
+//    currAgency.setTime(QTime(23, 30, 0));
 
+//    QDate today(2018, 11, 3);
+//    currAgency.setTime(QTime(23, 30, 0));
+
+//    QDate today(2018, 11, 4);
+//    currAgency.setDate(today);
+//    currAgency.setTime(QTime(0, 30, 0));
+//    currAgency = currAgency.addSecs(45*60);
+
+    // Determine yesterday and tomorrow for additional trip lookups
+    QDate prevDay = today.addDays(-1);
+    QDate tomorrow = today.addDays(1);
+
+    QDateTime maxLookaheadTime = currAgency.addSecs(futureMinutes * 60);
+
+    // Prepare for output building
     resp["message_type"] = "NEX";
     resp["error"]        = 0;
     resp["message_time"] = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
 
-    // See if the route requested actually exists
+    // See if the requested stop actually exists
     const QMap<QString, GTFS::StopRec> *stops = GTFS::DataGateway::inst().getStopsDB();
 
     if (stops->contains(stopID)) {
@@ -585,31 +598,36 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID,
             /*
              * Let's find all the trips that ran yesterday which could still be running (after-midnight trips)
              */
+            QDateTime prevDayNoon(prevDay, QTime(12, 0, 0), data->getAgencyTZ());
+
             for (qint32 tripLoopIdx = 0;
                  tripLoopIdx < (*stops)[stopID].stopTripsRoutes[routeID].length();
                  ++tripLoopIdx) {
                 GTFS::tripStopSeqInfo tssi = (*stops)[stopID].stopTripsRoutes[routeID].at(tripLoopIdx);
                 QString tripID      = tssi.tripID;
                 qint32  stopTripIdx = tssi.tripStopSeq;
-                qint32  serviceTime = staticServiceTime((*stopTimes)[tripID].at(stopTripIdx).departure_time,
-                                                        (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
-                                                        tssi.sortTime);
+
+                QDateTime serviceTime = staticServiceTime(prevDayNoon,
+                                                          (*stopTimes)[tripID].at(stopTripIdx).departure_time,
+                                                          (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
+                                                          tssi.sortTime);
 
                 // Skip trips that we don't care about showing
                 if (!svc->serviceRunning(prevDay, (*tripDB)[tripID].service_id)) {
                     // Trip didn't run this day
                     continue;
-                } else if (serviceTime < curSecSinceStartYesterday) {
+                } else if (serviceTime < currAgency) {
                     // Trip has arrived / departed already
                     continue;
-                } else if (serviceTime > totSecSinceStartYesterday) {
+                } else if (serviceTime > maxLookaheadTime) {
                     // Trip arrival / departure occurs outside of the requested time range
                     continue;
                 }
 
-                qint32 countdown = serviceTime - curSecSinceStartYesterday;
-                addTripToRouteArray(
-                      tripID, stopTripIdx, svc, stopTimes, tripDB, true, true, currAgency, countdown, routeTripArray);
+                //QDateTime
+                qint64 countdown = currAgency.secsTo(serviceTime);
+                addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, prevDay,
+                                    true, true, currAgency, countdown, routeTripArray);
 
                 // See if we have enough upcoming trips (if a limit was requested)
                 ++nbTripsAddedThisRoute;
@@ -623,39 +641,34 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID,
                 /*
                  * Now rerun the scan of the trips for today's service day
                  */
+                QDateTime todayNoon(today, QTime(12, 0, 0), data->getAgencyTZ());
+
                 for (qint32 tripLoopIdx = 0;
                      tripLoopIdx < (*stops)[stopID].stopTripsRoutes[routeID].length();
                      ++tripLoopIdx) {
                     GTFS::tripStopSeqInfo tssi = (*stops)[stopID].stopTripsRoutes[routeID].at(tripLoopIdx);
                     QString tripID      = tssi.tripID;
                     qint32  stopTripIdx = tssi.tripStopSeq;
-                    qint32  serviceTime = staticServiceTime((*stopTimes)[tripID].at(stopTripIdx).departure_time,
-                                                            (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
-                                                            tssi.sortTime);
+                    QDateTime serviceTime = staticServiceTime(todayNoon,
+                                                              (*stopTimes)[tripID].at(stopTripIdx).departure_time,
+                                                              (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
+                                                              tssi.sortTime);
 
                     // Skip trips that we don't care about showing
                     if (!svc->serviceRunning(today, (*tripDB)[tripID].service_id)) {
                         // Trip didn't run this day
                         continue;
-                    } else if (serviceTime < curSecSinceStartToday) {
+                    } else if (serviceTime < currAgency) {
                         // Trip has arrived / departed already
                         continue;
-                    } else if (serviceTime > totSecSinceStartToday) {
+                    } else if (serviceTime > maxLookaheadTime) {
                         // Trip arrival / departure occurs outside of the requested time range
                         continue;
                     }
 
-                    qint32 countdown = serviceTime - curSecSinceStartToday;
-                    addTripToRouteArray(tripID,
-                                        stopTripIdx,
-                                        svc,
-                                        stopTimes,
-                                        tripDB,
-                                        true,
-                                        true,
-                                        currAgency,
-                                        countdown,
-                                        routeTripArray);
+                    qint64 countdown = currAgency.secsTo(serviceTime);
+                    addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, today,
+                                        true, true, currAgency, countdown, routeTripArray);
 
                     // See if we have enough upcoming trips (if a limit was requested)
                     ++nbTripsAddedThisRoute;
@@ -670,38 +683,33 @@ void GtfsRequestProcessor::nextTripsAtStop(QString stopID,
                 /*
                  * Finally, rerun the scan of the trips for tomorrow's service day
                  */
+                QDateTime tomorrowNoon(tomorrow, QTime(12, 0, 0), data->getAgencyTZ());
+
                 for (qint32 tripLoopIdx = 0;
                      tripLoopIdx < (*stops)[stopID].stopTripsRoutes[routeID].length();
                      ++tripLoopIdx) {
                     GTFS::tripStopSeqInfo tssi = (*stops)[stopID].stopTripsRoutes[routeID].at(tripLoopIdx);
                     QString tripID      = tssi.tripID;
                     qint32  stopTripIdx = tssi.tripStopSeq;
-                    qint32  serviceTime = staticServiceTime((*stopTimes)[tripID].at(stopTripIdx).departure_time,
-                                                            (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
-                                                            tssi.sortTime);
+                    QDateTime serviceTime = staticServiceTime(tomorrowNoon,
+                                                              (*stopTimes)[tripID].at(stopTripIdx).departure_time,
+                                                              (*stopTimes)[tripID].at(stopTripIdx).arrival_time,
+                                                              tssi.sortTime);
 
                     // Skip trips that we don't care about showing
                     if (!svc->serviceRunning(tomorrow, (*tripDB)[tripID].service_id)) {
                         // Trip didn't run this day
                         continue;
-                    } else if (serviceTime > totSecSinceTomorrow) {
+                    } else if (serviceTime > maxLookaheadTime) {
                         // *** NOTE: We assume that no trips of "tomorrow's" operating day can have completed yet
                         //     (otherwise "tomorrow" would actually be today ... good luck figuring out what I meant!)
                         // Trip arrival / departure occurs outside of the requested time range
                         continue;
                     }
 
-                    qint32 countdown = serviceTime + secUntilTomorrow;
-                    addTripToRouteArray(tripID,
-                                        stopTripIdx,
-                                        svc,
-                                        stopTimes,
-                                        tripDB,
-                                        true,
-                                        true,
-                                        currAgency,
-                                        countdown,
-                                        routeTripArray);
+                    qint64 countdown = currAgency.secsTo(serviceTime);
+                    addTripToRouteArray(tripID, stopTripIdx, svc, stopTimes, tripDB, tomorrow,
+                                        true, true, currAgency, countdown, routeTripArray);
 
                     // See if we have enough upcoming trips (if a limit was requested)
                     ++nbTripsAddedThisRoute;
@@ -764,7 +772,7 @@ void GtfsRequestProcessor::stopsNoTrips(QJsonObject &resp)
     resp["stops"] = stopArray;
 }
 
-qint32 staticServiceTime(qint32 departureTime, qint32 arrivalTime, qint32 sortTime)
+QDateTime staticServiceTime(const QDateTime &localNoon, qint32 departureTime, qint32 arrivalTime, qint32 sortTime)
 {
     /*
      * There are several notions of time we could compare with the current system time, so let's clarify
@@ -777,13 +785,18 @@ qint32 staticServiceTime(qint32 departureTime, qint32 arrivalTime, qint32 sortTi
      *    times (this is referred to as the "sort time" elsewhere), so we will compare on that as a last
      *    resort. Note that the sort time is never displayed, but for the sake of computing whether or not
      *    the trip should still display on a countdown, it might be the only option we have!
+     *
+     * To try and avoid timezone / DST bugs, we should only work with QDateTimes for comparisons / countdowns!
      */
+    QDateTime serviceTime = localNoon;
     if (departureTime != -1)
-        return departureTime;
+        serviceTime = localNoon.addSecs(departureTime);
     else if (arrivalTime != -1)
-        return arrivalTime;
+        serviceTime = localNoon.addSecs(arrivalTime);
     else
-        return sortTime;
+        serviceTime = localNoon.addSecs(sortTime);
+
+    return serviceTime;
 }
 
 void addTripToRouteArray(const QString                                   &tripID,
@@ -791,10 +804,11 @@ void addTripToRouteArray(const QString                                   &tripID
                          const GTFS::OperatingDay                        *svc,
                          const QMap<QString, QVector<GTFS::StopTimeRec>> *stopTimes,
                          const QMap<QString, GTFS::TripRec>              *tripDB,
+                         const QDate                                     &serviceDate,
                          bool                                             skipServiceDetail,
                          bool                                             addWaitTime,
                          QDateTime                                       &currAgency,
-                         qint32                                           waitTimeSec,
+                         qint64                                           waitTimeSec,
                          QJsonArray                                      &routeTripArray)
 {
     QJsonObject singleStopJSON;
@@ -819,18 +833,44 @@ void addTripToRouteArray(const QString                                   &tripID
     }
 
     // Fill the time of service. Note that it could be distinct from the countdown when we have no scheduled time(s)!
-    QTime localMidnight(0, 0, 0);
-    if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != -1) {
-        QTime stopDep = localMidnight.addSecs((*stopTimes)[tripID].at(stopTripIdx).departure_time);
-        singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
+    if (serviceDate.isNull()) {
+        // No particular day requested, we will just show the "offset" times
+        QTime localNoon(12, 0, 0);
+        if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != -1) {
+            QTime stopDep = localNoon.addSecs((*stopTimes)[tripID].at(stopTripIdx).departure_time);
+            singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
+        } else {
+            singleStopJSON["dep_time"] = "-";
+        }
+        if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != -1) {
+            QTime stopArr = localNoon.addSecs((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
+            singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
+        } else {
+            singleStopJSON["arr_time"] = "-";
+        }
     } else {
-        singleStopJSON["dep_time"] = "-";
-    }
-    if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != -1) {
-        QTime stopArr = localMidnight.addSecs((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
-        singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
-    } else {
-        singleStopJSON["arr_time"] = "-";
+        // A service day was specified so we should respect the actual DateTime (in case of daylight saving, etc.)
+        // Given that we are using QDateTime creation from a QDate and a QTime, we SHOULD be immune from time-zone
+        // and daylight-saving bugs
+        QTime     localNoon(12, 0, 0);
+        QDateTime localNoonDT(serviceDate, localNoon, currAgency.timeZone());
+
+//        localNoonDT = localNoonDT.toUTC();
+
+        if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != -1) {
+            QDateTime stopDep = localNoonDT.addSecs((*stopTimes)[tripID].at(stopTripIdx).departure_time);
+            singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
+            singleStopJSON["dst_on"]   = stopDep.isDaylightTime();
+        } else {
+            singleStopJSON["dep_time"] = "-";
+        }
+        if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != -1) {
+            QDateTime stopArr = localNoonDT.addSecs((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
+            singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
+            singleStopJSON["dst_on"]   = stopArr.isDaylightTime();
+        } else {
+            singleStopJSON["arr_time"] = "-";
+        }
     }
 
     // For the "NEX" display, we need to actually show how long somebody will wait

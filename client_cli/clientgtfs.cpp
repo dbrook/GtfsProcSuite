@@ -289,7 +289,6 @@ void ClientGtfs::repl()
                 screen << "Route not found." << endl;
             }
             else {
-
                 screen << "Route ID . . . . . " << respObj["route_id"].toString() << endl;
                 screen << "Route Name . . . . " << respObj["route_short_name"].toString() << ", \""
                                                 << respObj["route_long_name"].toString()  << "\"" << endl;
@@ -308,13 +307,22 @@ void ClientGtfs::repl()
                 for (const QJsonValue &tr : trips) {
                     QString svcExempt = (tr["exceptions_present"].toBool())     ? "E": " ";
                     QString svcSplmnt = (tr["supplements_other_days"].toBool()) ? "S": " ";
+                    QString dstOn     = " ";
+                    if (tr["dst_on"].isBool()) {
+                        if (tr["dst_on"].toBool()) {
+                            dstOn = "D";
+                        } else {
+                            dstOn = "S";
+                        }
+                    }
                     screen << qSetFieldWidth(c1) << tr["trip_id"].toString().left(c1)       << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c2) << tr["headsign"].toString().left(c2)      << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c3) << tr["svc_start_date"].toString()         << qSetFieldWidth(1) << "-"
                            << qSetFieldWidth(c3) << tr["svc_end_date"].toString()           << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c4) << tr["operate_days_condensed"].toString().left(c4)
                            << qSetFieldWidth(1) << " "
-                           << qSetFieldWidth(c5) << svcExempt << svcSplmnt                  << qSetFieldWidth(1) << " "
+                           << qSetFieldWidth(c5) << svcExempt << svcSplmnt
+                           << qSetFieldWidth(1) << dstOn
                            << qSetFieldWidth(c6) << tr["first_stop_departure"].toString()  << qSetFieldWidth(0) << endl;
                 }
 
@@ -390,6 +398,14 @@ void ClientGtfs::repl()
                         }
                         QString dropOff    = dropoffToChar(tr["drop_off_type"].toInt());
                         QString pickUp     = pickupToChar(tr["pickup_type"].toInt());
+                        QString dstIndic   = " ";
+                        if (tr["dst_on"].isBool()) {
+                            if (tr["dst_on"].toBool()) {
+                                dstIndic = "D";
+                            } else {
+                                dstIndic = "S";
+                            }
+                        }
 
                         screen << qSetFieldWidth(c1) << tr["trip_id"].toString().left(c1)   << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c2) << headsign                            << qSetFieldWidth(1) << " "
@@ -398,7 +414,7 @@ void ClientGtfs::repl()
                                << qSetFieldWidth(c4) << tr["operate_days_condensed"].toString().left(c4)
                                << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c5) << svcExempt << svcSplmnt << tripTerm << pickUp << dropOff
-                               << qSetFieldWidth(1) << " "
+                               << qSetFieldWidth(1) << dstIndic
                                << qSetFieldWidth(c6) << tr["dep_time"].toString() << qSetFieldWidth(0) << endl;
                     } // End loop on Trips-within-Route
                     tripsLoaded += trips.size();
@@ -593,12 +609,14 @@ void ClientGtfs::repl()
                         }
                         QString dropOff    = dropoffToChar(tr["drop_off_type"].toInt());
                         QString pickUp     = pickupToChar(tr["pickup_type"].toInt());
+                        QString dstIndic   = (tr["dst_on"].toBool()) ? "D" : "S";
                         qint32 waitTimeMin = tr["wait_time_sec"].toInt() / 60;
                         screen << qSetFieldWidth(c1) << tr["trip_id"].toString().left(c1) << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c2) << headsign.left(c2)                 << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c3) << tripTerm << pickUp << dropOff     << qSetFieldWidth(1) << " ";
                         screen.setFieldAlignment(QTextStream::AlignRight);
-                        screen << qSetFieldWidth(c4) << tr["actual_day"].toString()       << qSetFieldWidth(1) << " "
+                        screen << qSetFieldWidth(c4) << tr["actual_day"].toString()
+                               << qSetFieldWidth(1)  << dstIndic
                                << qSetFieldWidth(c5) << tr["dep_time"].toString()         << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c6) << waitTimeMin                       << qSetFieldWidth(0);
                         screen.setFieldAlignment(QTextStream::AlignLeft);

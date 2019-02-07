@@ -99,7 +99,8 @@ bool OperatingDay::serviceRunning(QDate serviceDate, QString serviceName) const
     }
 
     // ... should we actually be in the range of the service start and end dates
-    if (serviceDate <= cri->start_date || serviceDate >= cri->end_date) {
+    // NOTE: The start_date and end_date values are INCLUSIVE (meaning an end_date of 10mar2019 will have service)
+    if (serviceDate < cri->start_date || serviceDate > cri->end_date) {
         return false;
     }
 

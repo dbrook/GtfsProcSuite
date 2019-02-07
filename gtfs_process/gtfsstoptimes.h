@@ -12,8 +12,8 @@ typedef struct {
 //    QString trip_id;          Trip ID is the primary key
     qint32  stop_sequence;
     QString stop_id;
-    qint32  arrival_time;     // in seconds since midnight (local time) of operating day (can exceed 24 hours!)
-    qint32  departure_time;   // in seconds since midnight (local time) of operating day (can exceed 24 hours!)
+    qint32  arrival_time;     // in seconds relative to local noon of the operating day (can exceed 12-hours!)
+    qint32  departure_time;   // in seconds relative to local noon of the operating day (can exceed 12-hours!)
     /*
      * There are several more feeds which are not mandatory (nor are interesting here), so we will skip them for now
      */
@@ -43,6 +43,9 @@ public:
     // Sorter
     static bool compareByStopSequence(const StopTimeRec &a, const StopTimeRec &b);
 
+    // Notion of local noon (for offset calculations)
+    static const qint32 s_localNoonSec;
+
 private:
     static void stopTimesCSVOrder(const QVector<QString> csvHeader,
                                   qint8 &tripIdPos,
@@ -54,7 +57,7 @@ private:
                                   qint8 &pickupPos,
                                   qint8 &stopHeadsignPos);
 
-    static qint32 computeSecondsSinceMidnight(const QString &hhmmssTime);  // Send time as (h)h:mm:ss
+    static qint32 computeSecondsLocalNoonOffset(const QString &hhmmssTime);  // Send time as (h)h:mm:ss
 
     bool operator <(const StopTimeRec &strec) const;
 

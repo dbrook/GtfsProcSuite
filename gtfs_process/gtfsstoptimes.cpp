@@ -6,6 +6,9 @@
 
 namespace GTFS {
 
+const qint32 StopTimes::s_localNoonSec = 43200; // 12 * 60 * 60
+
+
 StopTimes::StopTimes(const QString dataRootPath, QObject *parent) : QObject(parent)
 {
     QVector<QVector<QString>> dataStore;
@@ -22,8 +25,8 @@ StopTimes::StopTimes(const QString dataRootPath, QObject *parent) : QObject(pare
         StopTimeRec stopTime;
         stopTime.stop_sequence  = dataStore.at(l).at(stopSeqPos).toInt();
         stopTime.stop_id        = dataStore.at(l).at(stopIdPos);
-        stopTime.arrival_time   = computeSecondsSinceMidnight(dataStore.at(l).at(arrTimePos));
-        stopTime.departure_time = computeSecondsSinceMidnight(dataStore.at(l).at(depTimePos));
+        stopTime.arrival_time   = computeSecondsLocalNoonOffset(dataStore.at(l).at(arrTimePos));
+        stopTime.departure_time = computeSecondsLocalNoonOffset(dataStore.at(l).at(depTimePos));
         stopTime.drop_off_type  = (dropOffPos != -1)      ? dataStore.at(l).at(dropOffPos).toInt() : 0;
         stopTime.pickup_type    = (pickupPos != -1)       ? dataStore.at(l).at(pickupPos).toInt()  : 0;
         stopTime.stop_headsign  = (stopHeadsignPos != -1) ? dataStore.at(l).at(stopHeadsignPos)    : "";
@@ -89,7 +92,7 @@ void StopTimes::stopTimesCSVOrder(const QVector<QString> csvHeader,
     }
 }
 
-qint32 StopTimes::computeSecondsSinceMidnight(const QString &hhmmssTime)
+qint32 StopTimes::computeSecondsLocalNoonOffset(const QString &hhmmssTime)
 {
     /*
      * Time comes in in the format of hh:mm:ss but with a 24+ hour format to deal with trip times that
@@ -105,7 +108,7 @@ qint32 StopTimes::computeSecondsSinceMidnight(const QString &hhmmssTime)
     qint32 seconds    = hhmmssTime.right(2).toInt();
     qint32 minutes    = hhmmssTime.midRef(firstColon + 1, 2).toInt();
 
-    return hours * 3600 + minutes * 60 + seconds;
+    return (hours * 3600 + minutes * 60 + seconds) - s_localNoonSec;
 }
 
 bool StopTimes::compareByStopSequence(const StopTimeRec &a, const StopTimeRec &b)
