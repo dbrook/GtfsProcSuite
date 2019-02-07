@@ -57,6 +57,48 @@ const QMap<QString, QVector<StopTimeRec> > &StopTimes::getStopTimesDB() const
     return this->stopTimeDb;
 }
 
+qint64 StopTimes::duplicateTripWithTimeRange(const QString &trip_id,
+                                             const QString &uniqueChar,
+                                             qint32         startRange,
+                                             qint32         endRange,
+                                             qint32         headway,
+                                             QVector<QString> &generatedTrips)
+{
+    qint64 stopTimesAdded = 0;
+
+    // Duplicate an entire trip until we have used up all headways which can fall in the time range.
+    // NOTE: The GTFS Specification says we use the endRange time as a valid trip
+
+
+    const QVector<StopTimeRec> &baseRecord = stopTimeDb[trip_id];
+    qint32                      maxHeadway = endRange - startRange;
+
+//    for (qint32 currentHeadway = headway; currentHeadway <= maxHeadway; currentHeadway += headway) {
+    for (qint32 currentHeadway = 0; currentHeadway <= maxHeadway; currentHeadway += headway) {
+        // We need to make a dynamic trip_id
+        QString newTripId = trip_id + "_D" + uniqueChar + QString::number(currentHeadway);
+        generatedTrips.push_back(newTripId);
+
+        // For each stop_time in the trip, we need to generate new times:
+        for (const StopTimeRec br : baseRecord) {
+            StopTimeRec nr;
+            nr.drop_off_type  = br.drop_off_type;
+            nr.pickup_type    = br.pickup_type;
+            nr.stop_id        = br.stop_id;
+            nr.stop_sequence  = br.stop_sequence;
+            nr.stop_headsign  = br.stop_headsign;
+            nr.arrival_time   = br.arrival_time   + (startRange - s_localNoonSec) + currentHeadway;
+            nr.departure_time = br.departure_time + (startRange - s_localNoonSec) + currentHeadway;
+
+            ++stopTimesAdded;
+            stopTimeDb[newTripId].push_back(nr);
+        }
+    }
+
+    // Tell how many records were added
+    return stopTimesAdded;
+}
+
 void StopTimes::stopTimesCSVOrder(const QVector<QString> csvHeader,
                                   qint8 &tripIdPos,
                                   qint8 &stopSeqPos,

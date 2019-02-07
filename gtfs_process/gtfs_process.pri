@@ -14,7 +14,8 @@ HEADERS += \
     $$PWD/operatingday.h \
     $$PWD/gtfstrip.h \
     $$PWD/gtfsstoptimes.h \
-    $$PWD/gtfsstops.h
+    $$PWD/gtfsstops.h \
+    $$PWD/gtfsfrequencies.h
 
 SOURCES += \
     $$PWD/gtfsstatus.cpp \
@@ -24,6 +25,7 @@ SOURCES += \
     $$PWD/operatingday.cpp \
     $$PWD/gtfstrip.cpp \
     $$PWD/gtfsstoptimes.cpp \
-    $$PWD/gtfsstops.cpp
+    $$PWD/gtfsstops.cpp \
+    $$PWD/gtfsfrequencies.cpp
 
 LIBS += -lcsv

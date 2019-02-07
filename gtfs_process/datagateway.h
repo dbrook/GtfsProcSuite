@@ -7,6 +7,7 @@
 #include "gtfstrip.h"
 #include "gtfsstoptimes.h"
 #include "gtfsstops.h"
+#include "gtfsfrequencies.h"
 
 #include <QObject>
 #include <QMutex>
@@ -29,10 +30,15 @@ public:
     void initTrips();
     void initStopTimes();
     void initStops();
+    void initFrequencies();
 
     //
     // Data load post-processing functions - used to make data access more efficient than scanning entire DB
     //
+
+    // Create any trips based off of frequency-headway database entries
+    // NOTE: This requires that the rest of the data is already loaded but NOT post-processed yet
+    void createFrequencyTrips();
 
     // Associate all Trip Stops (StopTime) and Routes to all the StopIDs in the database
     void linkStopsTripsRoutes();
@@ -74,6 +80,7 @@ private:
     GTFS::Status       *_status;
     GTFS::Routes       *_routes;
     GTFS::OperatingDay *_opDay;
+    GTFS::Frequencies  *_frequencies;
     GTFS::Trips        *_trips;
     GTFS::StopTimes    *_stopTimes;
     GTFS::Stops        *_stops;

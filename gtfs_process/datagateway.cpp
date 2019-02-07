@@ -55,6 +55,42 @@ void DataGateway::initStops()
     _status->incrementRecordsLoaded(_stops->getStopsDBSize());
 }
 
+void DataGateway::initFrequencies()
+{
+    _frequencies = new GTFS::Frequencies(_dbRootPath, this);
+    _status->incrementRecordsLoaded(_frequencies->getFrequencyDBSize());
+}
+
+void DataGateway::createFrequencyTrips()
+{
+    qint64                 dynRecords = 0;
+    const QVector<FreqRec> freq       = _frequencies->getFrequenciesDB();
+    QVector<QString>       usedBaseTripId;
+
+    for (const FreqRec fr : freq) {
+        QVector<QString> newTripIds;
+
+        // TripIDs could be duplicated even with dynamic headway-time-based generation, so add more 'uniqueness'
+        QString          uniqueChar = "";
+        if (usedBaseTripId.contains(fr.trip_id)) {
+            qDebug() << "Duplicate Trip detected, making new TripId : " << fr.trip_id << "A";
+            uniqueChar = "A";
+        }
+        dynRecords += _stopTimes->duplicateTripWithTimeRange(fr.trip_id,
+                                                             uniqueChar,
+                                                             fr.start_time,
+                                                             fr.end_time,
+                                                             fr.headway_sec,
+                                                             newTripIds);
+
+        usedBaseTripId += fr.trip_id;
+
+        // Make the Trips Database aware of what we just did...
+        dynRecords =+ _trips->duplicateTripNewId(fr.trip_id, newTripIds);
+    }
+    _status->incrementRecordsLoaded(dynRecords);
+}
+
 void DataGateway::linkStopsTripsRoutes()
 {
     QMap<QString, QVector<StopTimeRec>> sTimDB = _stopTimes->getStopTimesDB();

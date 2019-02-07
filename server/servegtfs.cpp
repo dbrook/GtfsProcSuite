@@ -18,6 +18,10 @@ ServeGTFS::ServeGTFS(QString dbRootPath, QObject *parent) : TcpServer(parent)
     data.initStopTimes();                // Fill the stop_times.txt data
     data.initStops();                    // Fill the stops.txt data
 
+    // Dynamically-generate trips and stop times based on the frequency database if it is present
+    data.initFrequencies();
+    data.createFrequencyTrips();
+
     // Post-Processing of Data Load
     data.linkTripsRoutes();              // Associate all the trips to the routes they serve
     data.linkStopsTripsRoutes();         // Associate all possible TripIDs + RouteIDs to every stop served (and sort)

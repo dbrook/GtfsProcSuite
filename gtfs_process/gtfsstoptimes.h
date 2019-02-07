@@ -40,10 +40,20 @@ public:
 
     const QMap<QString, QVector<StopTimeRec>> &getStopTimesDB() const;
 
+    // Duplicate a Trip ID using offsets (headways) between two times
+    // (this is our hack to make frequencies.txt work without too much of a fuss..)
+    qint64 duplicateTripWithTimeRange(const QString    &trip_id,
+                                      const QString    &uniqueChar,
+                                      qint32            startRange,
+                                      qint32            endRange,
+                                      qint32            headway,
+                                      QVector<QString> &generatedTrips);
+
     // Sorter
     static bool compareByStopSequence(const StopTimeRec &a, const StopTimeRec &b);
 
     // Notion of local noon (for offset calculations)
+    static qint32 computeSecondsLocalNoonOffset(const QString &hhmmssTime);  // Send time as (h)h:mm:ss
     static const qint32 s_localNoonSec;
 
 private:
@@ -56,8 +66,6 @@ private:
                                   qint8 &dropOffPos,
                                   qint8 &pickupPos,
                                   qint8 &stopHeadsignPos);
-
-    static qint32 computeSecondsLocalNoonOffset(const QString &hhmmssTime);  // Send time as (h)h:mm:ss
 
     bool operator <(const StopTimeRec &strec) const;
 

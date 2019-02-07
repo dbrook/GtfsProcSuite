@@ -36,6 +36,19 @@ const QMap<QString, TripRec> &Trips::getTripsDB() const
     return this->tripDb;
 }
 
+qint64 Trips::duplicateTripNewId(const QString &baseTripId, const QVector<QString> &newTripIds)
+{
+    // Copy all the required details from the base trip_id into the new one, except the name, of course
+    for (const QString &ntid : newTripIds) {
+        TripRec newTrip;
+        newTrip.route_id = tripDb[baseTripId].route_id;
+        newTrip.service_id = tripDb[baseTripId].service_id;
+        newTrip.trip_headsign = tripDb[baseTripId].trip_headsign;
+        newTrip.trip_id = ntid;
+        tripDb[ntid] = newTrip;
+    }
+}
+
 void Trips::tripsCSVOrder(const QVector<QString> csvHeader,
                           qint8 &routeIdPos, qint8 &tripIdPos, qint8 &serviceIdPos, qint8 &headsignPos)
 {

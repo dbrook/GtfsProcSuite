@@ -28,6 +28,9 @@ public:
 
     const QMap<QString, TripRec> &getTripsDB() const;
 
+    // Make the database aware of any newly-created TripIds that were forced due to frequencies.txt being present
+    qint64 duplicateTripNewId(const QString &baseTripId, const QVector<QString> &newTripIds);
+
 private:
     // Determine the order of the 'interesting' fields within the trip database
     static void tripsCSVOrder(const QVector<QString> csvHeader,
