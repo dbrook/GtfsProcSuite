@@ -1,10 +1,15 @@
 #include "servegtfs.h"
+
+// GTFS Static Data
 #include "datagateway.h"
 #include "gtfsconnection.h"
 
+// GTFS RealTime Data
+#include "gtfsrealtimegateway.h"
+
 #include <QDebug>
 
-ServeGTFS::ServeGTFS(QString dbRootPath, QObject *parent) : TcpServer(parent)
+ServeGTFS::ServeGTFS(QString dbRootPath, QString realTimePath, QObject *parent) : TcpServer(parent)
 {
     // Setup the global data access
     GTFS::DataGateway &data = GTFS::DataGateway::inst();
@@ -28,6 +33,17 @@ ServeGTFS::ServeGTFS(QString dbRootPath, QObject *parent) : TcpServer(parent)
 
     // Note when we finished loading (for performance analysis)
     GTFS::DataGateway::inst().setStatusLoadFinishTimeUTC();
+
+    // If Real-Time data is requested, then we also need to load it
+    if (realTimePath.isEmpty()) {
+        return;
+    }
+
+    GTFS::RealTimeGateway &rtData = GTFS::RealTimeGateway::inst();
+    rtData.setRealTimeFeedPath(realTimePath);
+    rtData.refetchData();
+
+    qDebug() << "What time is the real-time data? " << rtData.activeFeedTime();
 }
 
 ServeGTFS::~ServeGTFS()
@@ -38,7 +54,7 @@ ServeGTFS::~ServeGTFS()
 void ServeGTFS::displayDebugging() const
 {
     const GTFS::Status *data = GTFS::DataGateway::inst().getStatus();
-
+    qDebug() << "[ GTFS Static Data Information ]";
     qDebug() << "Recs Loaded . . . ." << data->getRecordsLoaded();
     qDebug() << "Server Start Time ." << data->getServerStartTimeUTC();
     qDebug() << "Feed Publisher  . ." << data->getPublisher();

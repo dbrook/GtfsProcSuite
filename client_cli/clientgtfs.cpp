@@ -89,7 +89,7 @@ void ClientGtfs::repl()
         //
         // Display whole response in case decoding below doesn't happen
         //
-//        screen << "> " << responseStr << endl << endl; screen.flush();
+        screen << "> " << responseStr << endl << endl; screen.flush();
 
         // Deserialize from JSON so we can process the response type
         QJsonObject respObj;
@@ -270,7 +270,7 @@ void ClientGtfs::repl()
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
             totalCol -= 45;               // Remove 45 columns for ValidTime, Op-Days, ES, SCH-D + 2 space
-            qint32 c1 = totalCol * 0.6;   // 60% of open space for trip ID
+            qint32 c1 = totalCol * 0.5;   // 60% of open space for trip ID
             qint32 c2 = totalCol - c1;    // Remaining scalable range (~40%) for Headsign
             qint32 c3 = 9;                //  9 spaces (x2) for valid date range
             qint32 c4 = 14;               // 14 spaces for operating date range
@@ -308,13 +308,13 @@ void ClientGtfs::repl()
                     QString svcExempt = (tr["exceptions_present"].toBool())     ? "E": " ";
                     QString svcSplmnt = (tr["supplements_other_days"].toBool()) ? "S": " ";
                     QString dstOn     = " ";
-                    if (tr["dst_on"].isBool()) {
-                        if (tr["dst_on"].toBool()) {
-                            dstOn = "D";
-                        } else {
-                            dstOn = "S";
-                        }
-                    }
+//                    if (tr["dst_on"].isBool()) {
+//                        if (tr["dst_on"].toBool()) {
+//                            dstOn = "D";
+//                        } else {
+//                            dstOn = "S";
+//                        }
+//                    }
                     screen << qSetFieldWidth(c1) << tr["trip_id"].toString().left(c1)       << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c2) << tr["headsign"].toString().left(c2)      << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c3) << tr["svc_start_date"].toString()         << qSetFieldWidth(1) << "-"
@@ -337,7 +337,7 @@ void ClientGtfs::repl()
         else if (respObj["message_type"] == "TSS") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
-            totalCol -= 48;               // Remove 48 columns for ValidTime, Op-Days, ESTPD, SCH-D + 2 space
+            totalCol -= 49;               // Remove 48 columns for ValidTime, Op-Days, ES, TPD, SCH-D + 2 space
             qint32 c1 = totalCol * 0.5;   // 50% of open space for trip ID
             qint32 c2 = totalCol - c1;    // Remaining scalable range (~40%) for Headsign
             qint32 c3 = 9;                //  9 spaces (x2) for valid date range
@@ -372,7 +372,7 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c2)     << "HEADSIGN"       << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c3*2+1) << "VALID-DURATION" << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c4)     << "OPERATING-DAYS" << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c5*5)   << "ESTPD"          << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c5*5)   << "ES TPD"         << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c6)     << "SCH-D"          << qSetFieldWidth(0) << endl << endl;
 
                 // Loop on all the routes
@@ -399,13 +399,13 @@ void ClientGtfs::repl()
                         QString dropOff    = dropoffToChar(tr["drop_off_type"].toInt());
                         QString pickUp     = pickupToChar(tr["pickup_type"].toInt());
                         QString dstIndic   = " ";
-                        if (tr["dst_on"].isBool()) {
-                            if (tr["dst_on"].toBool()) {
-                                dstIndic = "D";
-                            } else {
-                                dstIndic = "S";
-                            }
-                        }
+//                        if (tr["dst_on"].isBool()) {
+//                            if (tr["dst_on"].toBool()) {
+//                                dstIndic = "D";
+//                            } else {
+//                                dstIndic = "S";
+//                            }
+//                        }
 
                         screen << qSetFieldWidth(c1) << tr["trip_id"].toString().left(c1)   << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c2) << headsign                            << qSetFieldWidth(1) << " "
@@ -413,7 +413,7 @@ void ClientGtfs::repl()
                                << qSetFieldWidth(c3) << tr["svc_end_date"].toString()       << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c4) << tr["operate_days_condensed"].toString().left(c4)
                                << qSetFieldWidth(1) << " "
-                               << qSetFieldWidth(c5) << svcExempt << svcSplmnt << tripTerm << pickUp << dropOff
+                               << qSetFieldWidth(c5) << svcExempt << svcSplmnt << " " << tripTerm << pickUp << dropOff
                                << qSetFieldWidth(1) << dstIndic
                                << qSetFieldWidth(c6) << tr["dep_time"].toString() << qSetFieldWidth(0) << endl;
                     } // End loop on Trips-within-Route
@@ -553,7 +553,7 @@ void ClientGtfs::repl()
         else if (respObj["message_type"] == "NEX") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
-            totalCol -= 20;               // Remove space for fixed-width fields and spacers
+            totalCol -= 25;               // Remove space for fixed-width fields and spacers
             qint32 c1 = totalCol * 0.5;   // 50% of open space for trip ID
             qint32 c2 = totalCol - c1;    // Remaining scalable range (~50%) Headsign
             qint32 c3 = 1;                //  1 space  (x3) for terminate + pickup/drop-off exception flags
@@ -586,7 +586,8 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c2)      << "HEADSIGN"  << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c3*3)    << "TPD"       << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c4+c5+1) << "STOP-TIME" << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c5)      << "MINS"      << qSetFieldWidth(0) << endl << endl;
+                       << qSetFieldWidth(c5)      << "MINS"
+                       << qSetFieldWidth(c5)      << "STAT"      << qSetFieldWidth(0) << endl;
 
                 // Loop on all the routes
                 QJsonArray routes = respObj["routes"].toArray();
@@ -607,21 +608,56 @@ void ClientGtfs::repl()
                         } else {
                             tripTerm = " ";
                         }
+
                         QString dropOff    = dropoffToChar(tr["drop_off_type"].toInt());
                         QString pickUp     = pickupToChar(tr["pickup_type"].toInt());
-                        QString dstIndic   = (tr["dst_on"].toBool()) ? "D" : "S";
+//                        QString dstIndic   = (tr["dst_on"].toBool()) ? "D" : "S";
+                        QString dstIndic   = " ";
                         qint32 waitTimeMin = tr["wait_time_sec"].toInt() / 60;
                         screen << qSetFieldWidth(c1) << tr["trip_id"].toString().left(c1) << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c2) << headsign.left(c2)                 << qSetFieldWidth(1) << " "
                                << qSetFieldWidth(c3) << tripTerm << pickUp << dropOff     << qSetFieldWidth(1) << " ";
                         screen.setFieldAlignment(QTextStream::AlignRight);
-                        screen << qSetFieldWidth(c4) << tr["actual_day"].toString()
-                               << qSetFieldWidth(1)  << dstIndic
-                               << qSetFieldWidth(c5) << tr["dep_time"].toString()         << qSetFieldWidth(1) << " "
-                               << qSetFieldWidth(c6) << waitTimeMin                       << qSetFieldWidth(0);
+
+                        /*
+                         * Real-Time Processing -- Check if the "realtime_data" object is present
+                         */
+                        if (tr["realtime_data"].isObject()) {
+                            QJsonObject rt = tr["realtime_data"].toObject();
+
+                            QString rtStatus = rt["status"].toString();
+
+                            // Print the actual time of arrival and countdown
+                            if (rtStatus == "SKIP") {
+                                screen << qSetFieldWidth(c4+c5+1) << "-" << qSetFieldWidth(1) << " "
+                                       << qSetFieldWidth(c6)      << "-" << qSetFieldWidth(1) << " ";
+                            } else if (rtStatus == "CNCL") {
+                                // TODO: How to display a cancelled trip?
+                            } else {
+                                screen << qSetFieldWidth(c4+c5+1) << rt["actual_time"].toString()
+                                       << qSetFieldWidth(1)       << " "
+                                       << qSetFieldWidth(c6)      << waitTimeMin
+                                       << qSetFieldWidth(1)       << " ";
+                            }
+
+                            if (rtStatus == "ERLY" || rtStatus == "LATE") {
+                                screen << qSetFieldWidth(c6) << rt["offset_seconds"].toInt() / 60 << qSetFieldWidth(0);
+                            } else {
+                                screen << qSetFieldWidth(c6) << rtStatus << qSetFieldWidth(0);
+                            }
+                        } else {
+                            // Just print regular schedule information with no add-ons
+                            screen << qSetFieldWidth(c4) << tr["actual_day"].toString()
+                                   << qSetFieldWidth(1)  << dstIndic
+                                   << qSetFieldWidth(c5) << tr["dep_time"].toString()   << qSetFieldWidth(1) << " "
+                                   << qSetFieldWidth(c6) << waitTimeMin                 << qSetFieldWidth(0);
+                        }
+
                         screen.setFieldAlignment(QTextStream::AlignLeft);
                         screen << endl;
+
                     } // End loop on Trips-within-Route
+
                     tripsLoaded += trips.size();
                     screen << endl;
                 } // End loop on Routes-serving-Stop

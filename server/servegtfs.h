@@ -12,7 +12,7 @@ class ServeGTFS : public TcpServer
 {
     Q_OBJECT
 public:
-    ServeGTFS(QString dbRootPath, QObject *parent = 0);
+    ServeGTFS(QString dbRootPath, QString realTimePath, QObject *parent = 0);
     virtual ~ServeGTFS();
 
     void displayDebugging() const;

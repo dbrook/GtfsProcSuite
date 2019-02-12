@@ -20,28 +20,55 @@ int main(int argc, char *argv[])
     QCommandLineParser parser;
     parser.setApplicationDescription("GTFS Processor written with the Qt Framework");
     parser.addVersionOption();
-    parser.addPositionalArgument("dbRoot", QCoreApplication::translate("main", "path to all files from feed"));
+    parser.addHelpOption();
+    QCommandLineOption dataRootOption(QStringList() << "d" << "dataRoot",
+                                      QCoreApplication::translate("main", "GTFS static feed"),
+                                      QCoreApplication::translate("main", "path to feed"));
+    QCommandLineOption serverPortOption(QStringList() << "p" << "serverPort",
+                                        QCoreApplication::translate("main", "Port on which to receive requests"),
+                                        QCoreApplication::translate("main", "port number"));
+    QCommandLineOption realTimeOption(QStringList() << "r" << "realTimeData",
+                                      QCoreApplication::translate("main", "Real-time (GTFS) data path"),
+                                      QCoreApplication::translate("main", "URL or local path"));
+
+    parser.addOption(dataRootOption);
+    parser.addOption(serverPortOption);
+    parser.addOption(realTimeOption);
     parser.process(a);
 
-    const QStringList args = parser.positionalArguments();
-    QString databaseRootPath = args.at(0);
+    QString databaseRootPath;
+    if (parser.isSet(dataRootOption)) {
+        databaseRootPath = parser.value(dataRootOption);
+    } else {
+        qDebug() << "Must have a data root path";
+        return 1;
+    }
+
+    qint32 portNum = 5000;  // Open on port 5000 by default
+    if (parser.isSet(serverPortOption)) {
+        portNum = parser.value(serverPortOption).toInt();
+    }
+
+    QString realTimePath;
+    if (parser.isSet(realTimeOption)) {
+        realTimePath = parser.value(realTimeOption);
+    }
 
     /*
      * Primary Application Data Load and Server Connection Setup
-     *
-     *
      */
-
-    ServeGTFS gtfsRequestServer(databaseRootPath);
+    ServeGTFS gtfsRequestServer(databaseRootPath, realTimePath);
     gtfsRequestServer.displayDebugging();
 
     /*
-     * BEGIN LISTENING FOR CONNECTIONS
-     *
-     *
-     * Port 5000 from any IP address ... why not?
+     * Real-Time Data Acquisition (if requested)
      */
-    if (gtfsRequestServer.listen(QHostAddress::Any, 5000)) {
+    //TODO: Use constructor...
+
+    /*
+     * BEGIN LISTENING FOR CONNECTIONS
+     */
+    if (gtfsRequestServer.listen(QHostAddress::Any, portNum)) {
         qDebug() << "SERVER HAS BEEN STARTED";
     } else {
         qCritical() << gtfsRequestServer.errorString();
