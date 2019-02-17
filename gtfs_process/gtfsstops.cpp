@@ -66,7 +66,7 @@ void Stops::connectTripRoute(const QString &StopID,
     tripStopSeqInfo tssi;
     tssi.sortTime    = sortTime;
     tssi.tripID      = TripID;
-    tssi.tripStopSeq = TripSequence;
+    tssi.tripStopIndex = TripSequence;
     this->stopsDb[StopID].stopTripsRoutes[RouteID].push_back(tssi);
 }
 

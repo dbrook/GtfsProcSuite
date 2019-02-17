@@ -12,7 +12,7 @@ namespace GTFS {
 
 typedef struct {
     QString tripID;
-    qint32  tripStopSeq;
+    qint32  tripStopIndex;
     qint32  sortTime;
 } tripStopSeqInfo;
 

@@ -2,6 +2,8 @@
 
 #include <QDebug>
 
+#include <QTimeZone>
+
 #include <fstream>
 
 namespace GTFS {
@@ -60,40 +62,75 @@ RealTimeTripUpdate::~RealTimeTripUpdate()
     // The default constructor **should** be enough
 }
 
-quint64 RealTimeTripUpdate::getFeedTime() const
+QDateTime RealTimeTripUpdate::getFeedTime() const
 {
-    return _tripUpdate.header().timestamp();
+    return QDateTime::fromSecsSinceEpoch(_tripUpdate.header().timestamp());
 }
 
-bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id) const
+bool RealTimeTripUpdate::tripExists(const QString &trip_id) const
 {
-    if (_cancelledTrips.contains(trip_id)) {
+    if (_activeTrips.contains(trip_id)) {
+        return true;
+    }
+    if (_addedTrips.contains(trip_id)) {
         return true;
     }
     return false;
 }
 
-void RealTimeTripUpdate::getAddedTrips(const QString &route_id, QVector<QString> &addedTrips) const
+bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id, const QDate &serviceDay) const
 {
+    if (_cancelledTrips.contains(trip_id)) {
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_cancelledTrips[trip_id]);
+        const QString startDate = QString::fromStdString(entity.trip_update().trip().start_date());
+        const QString reqServDay = serviceDay.toString("yyyyMMdd");
+        if (startDate == reqServDay) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void RealTimeTripUpdate::getAddedTripsServingStop(const QString &stop_id,
+                                                  QMap<QString, QVector<QPair<QString, qint32>>> &addedTrips) const
+{
+    // TODO: This can be made more efficient by using the already-created vector of _addedTrips ???
     for (qint32 recIdx = 0; recIdx < _tripUpdate.entity_size(); ++recIdx) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(recIdx);
         QString qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
-        transit_realtime::TripDescriptor_ScheduleRelationship
-                tripType = entity.trip_update().trip().schedule_relationship();
+        const transit_realtime::TripUpdate desc = entity.trip_update();
+        transit_realtime::TripDescriptor_ScheduleRelationship tripType = desc.trip().schedule_relationship();
 
-        if (tripType == transit_realtime::TripDescriptor_ScheduleRelationship_ADDED && qRouteId == route_id) {
-            QString routeAddedTrip = QString::fromStdString(entity.id());
-            addedTrips.push_back(routeAddedTrip);
+        // Loop on all stops if the trip is added, try to find the stop_id so we can add the route+trip to the vector
+        if (tripType == transit_realtime::TripDescriptor_ScheduleRelationship_ADDED) {
+            for (qint32 stopTimeIdx = 0; stopTimeIdx < entity.trip_update().stop_time_update_size(); ++stopTimeIdx) {
+                const transit_realtime::TripUpdate_StopTimeUpdate &stu = desc.stop_time_update(stopTimeIdx);
+                const QString rtStopId = QString::fromStdString(stu.stop_id());
+                if (rtStopId == stop_id) {
+                    QString trip_id = QString::fromStdString(desc.trip().trip_id());
+                    QPair<QString, qint32> routeAddedTrip(trip_id, stu.stop_sequence());
+                    addedTrips[qRouteId].push_back(routeAddedTrip);
+                }
+            }
         }
     }
 }
 
-bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id, const QString &operDateDMY) const
+const QString RealTimeTripUpdate::getFinalStopIdForAddedTrip(const QString &trip_id)
+{
+    qint64 recIdx = _addedTrips[trip_id];
+    const transit_realtime::FeedEntity &entity = _tripUpdate.entity(recIdx);
+    qint64 lastStopTimeIdx = entity.trip_update().stop_time_update_size() - 1;
+    return QString::fromStdString(entity.trip_update().stop_time_update(lastStopTimeIdx).stop_id());
+}
+
+bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id, const QDate &operDate) const
 {
     if (_activeTrips.contains(trip_id)) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_activeTrips[trip_id]);
         const QString startDate = QString::fromStdString(entity.trip_update().trip().start_date());
-        if (startDate == operDateDMY) {
+        const QString serviceDate = operDate.toString("yyyyMMdd");
+        if (startDate == serviceDate) {
             return true;
         }
     }
@@ -123,14 +160,20 @@ bool RealTimeTripUpdate::tripServesStop(const QString &stop_id, const QString &t
     return false;
 }
 
-bool RealTimeTripUpdate::tripSkipsStop(const QString &stop_id, const QString &trip_id, qint64 stopSeq) const
+bool RealTimeTripUpdate::tripSkipsStop(const QString &stop_id,
+                                       const QString &trip_id,
+                                       qint64         stopSeq,
+                                       const QDate   &serviceDay) const
 {
     /*
      * See if the stop is specifically skipped (based on a normally-schedule route)
      */
     if (_skippedStops.contains(stop_id)) {
         for (const QPair<QString, quint32> &stopList : _skippedStops[stop_id]) {
-            if (stopList.first == trip_id && stopList.second == stopSeq) {
+            const QString startDate =
+                    QString::fromStdString(_tripUpdate.entity(_activeTrips[trip_id]).trip_update().trip().start_date());
+            const QString svcDate   = serviceDay.toString("yyyyMMdd");
+            if (stopList.first == trip_id && stopList.second == stopSeq && startDate == svcDate) {
                 return true;
             }
         }
@@ -139,19 +182,68 @@ bool RealTimeTripUpdate::tripSkipsStop(const QString &stop_id, const QString &tr
 }
 
 bool RealTimeTripUpdate::tripStopActualTime(const QString &trip_id, qint64 stopSeq,
-                                            qint64 &realArrTime, qint64 &realDepTime) const
+                                            QDateTime &realArrTimeUTC, QDateTime &realDepTimeUTC) const
 {
     // Assume that the trip id and stop-sequence are valid
-    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(_activeTrips[trip_id]).trip_update();
+    qint64 entityIdx;
+    if (_activeTrips.contains(trip_id)) {
+        entityIdx = _activeTrips[trip_id];
+    } else if (_addedTrips.contains(trip_id)) {
+        entityIdx = _addedTrips[trip_id];
+    } else {
+        return false;
+    }
+
+    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(entityIdx).trip_update();
     for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
         const transit_realtime::TripUpdate_StopTimeUpdate stu = tri.stop_time_update(stopTimeIdx);
         if (stu.stop_sequence() == stopSeq) {
-            realArrTime = stu.arrival().time();
-            realDepTime = stu.departure().time();
+            if (stu.arrival().time() != 0)
+                realArrTimeUTC = QDateTime::fromSecsSinceEpoch(stu.arrival().time(), QTimeZone::utc());
+            if (stu.departure().time() != 0)
+                realDepTimeUTC = QDateTime::fromSecsSinceEpoch(stu.departure().time(), QTimeZone::utc());
             return true;
         }
     }
     return false;
+}
+
+void RealTimeTripUpdate::fillStopTimesForTrip(const QString             &tripID,
+                                              QString                   &route_id,
+                                              QVector<rtStopTimeUpdate> &stopTimes) const
+{
+    // We can determine which vector to loop over to fill route_id and stopTimes
+    qint32 tripUpdateEntity;
+    if (_addedTrips.contains(tripID))
+        tripUpdateEntity = _addedTrips[tripID];
+    else if (_activeTrips.contains(tripID))
+        tripUpdateEntity = _activeTrips[tripID];
+    else
+        return;
+
+    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
+
+    // Route
+    route_id = QString::fromStdString(tri.trip().route_id());
+
+    // Stop Times
+    for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
+        rtStopTimeUpdate stu;
+        stu.stopSequence = tri.stop_time_update(stopTimeIdx).stop_sequence();
+        stu.stopID       = QString::fromStdString(tri.stop_time_update(stopTimeIdx).stop_id());
+        if (tri.stop_time_update(stopTimeIdx).arrival().time() != 0)
+            stu.arrTime = QDateTime::fromSecsSinceEpoch(tri.stop_time_update(stopTimeIdx).arrival().time(),
+                                                        QTimeZone::utc());
+        else
+            stu.arrTime = QDateTime();
+        if (tri.stop_time_update(stopTimeIdx).departure().time() != 0)
+            stu.depTime = QDateTime::fromSecsSinceEpoch(tri.stop_time_update(stopTimeIdx).departure().time(),
+                                                        QTimeZone::utc());
+        else
+            stu.depTime = QDateTime();
+
+        stopTimes.push_back(stu);
+    }
 }
 
 bool RealTimeTripUpdate::stopValidForTrip(qint32 tripUpdateEntity, const QString &stop_id, qint64 stopSequence) const

@@ -60,18 +60,6 @@ RealTimeTripUpdate *RealTimeGateway::getActiveFeed()
     }
 }
 
-quint64 RealTimeGateway::activeFeedTime()
-{
-    RealTimeDataRepo currentSide = activeBuffer();
-    if (currentSide == SIDE_A) {
-        return _sideA->getFeedTime();
-    } else if (currentSide == SIDE_B) {
-        return _sideB->getFeedTime();
-    }
-    // Not running
-    return 0;
-}
-
 /*
  * Singleton Pattern Requirements
  */

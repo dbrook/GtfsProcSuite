@@ -15,7 +15,8 @@ HEADERS += \
     $$PWD/gtfstrip.h \
     $$PWD/gtfsstoptimes.h \
     $$PWD/gtfsstops.h \
-    $$PWD/gtfsfrequencies.h
+    $$PWD/gtfsfrequencies.h \
+    $$PWD/tripstopreconciler.h
 
 SOURCES += \
     $$PWD/gtfsstatus.cpp \
@@ -26,6 +27,7 @@ SOURCES += \
     $$PWD/gtfstrip.cpp \
     $$PWD/gtfsstoptimes.cpp \
     $$PWD/gtfsstops.cpp \
-    $$PWD/gtfsfrequencies.cpp
+    $$PWD/gtfsfrequencies.cpp \
+    $$PWD/tripstopreconciler.cpp
 
 LIBS += -lcsv

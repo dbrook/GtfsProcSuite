@@ -43,7 +43,7 @@ private:
      *
      * (TODO: Insert details of message contents)
      */
-    void tripStopsDisplay(QString tripID, QJsonObject &resp);
+    void tripStopsDisplay(QString tripID, bool useRealTime, QJsonObject &resp);
 
     /*
      * The "TSR" request handler - Trips Serving Route
@@ -110,7 +110,11 @@ private:
      * If it's preferred (and with stops covered by a myriad of confusing routes it might be), you can instead request
      * to show at most X future stops within the previous + current + next operating day using maxTripsPerRoute != 0.
      */
-    void nextTripsAtStop(QString stopID, qint32 futureMinutes, qint32 maxTripsPerRoute, QJsonObject &resp);
+    void nextTripsAtStop(QString      stopID,
+                         qint32       futureMinutes,
+                         qint32       maxTripsPerRoute,
+                         bool         realTimeOnly,
+                         QJsonObject &resp);
 
     /*
      * The SNT request handler - Stops with No Trips
@@ -118,8 +122,6 @@ private:
      * Response Format: JSON
      */
     void stopsNoTrips(QJsonObject &resp);
-
-
 
     /*
      * Date decoder / helper

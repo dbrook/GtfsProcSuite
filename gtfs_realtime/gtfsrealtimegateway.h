@@ -35,9 +35,6 @@ public:
     // Retrieve the active feed (returns NULL if we are in the DISABLED mode)
     RealTimeTripUpdate *getActiveFeed();
 
-    // Testing: return time of active feed
-    quint64 activeFeedTime();
-
 signals:
 
 public slots:

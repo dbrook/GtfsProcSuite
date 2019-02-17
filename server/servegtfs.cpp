@@ -42,8 +42,6 @@ ServeGTFS::ServeGTFS(QString dbRootPath, QString realTimePath, QObject *parent) 
     GTFS::RealTimeGateway &rtData = GTFS::RealTimeGateway::inst();
     rtData.setRealTimeFeedPath(realTimePath);
     rtData.refetchData();
-
-    qDebug() << "What time is the real-time data? " << rtData.activeFeedTime();
 }
 
 ServeGTFS::~ServeGTFS()

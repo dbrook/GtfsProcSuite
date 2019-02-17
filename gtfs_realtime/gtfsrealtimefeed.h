@@ -6,11 +6,20 @@
 #include <QMap>
 #include <QPair>
 #include <QString>
+#include <QDate>
+#include <QDateTime>
 
 // And of course have a space for the protobuf
 #include "gtfs-realtime.pb.h"
 
 namespace GTFS {
+
+typedef struct {
+    qint64    stopSequence;
+    QString   stopID;
+    QDateTime depTime;
+    QDateTime arrTime;
+} rtStopTimeUpdate;
 
 class RealTimeTripUpdate : public QObject
 {
@@ -23,29 +32,43 @@ public:
      * General status functions / diagnostics
      */
     // Time of feed (in seconds since UNIX epoch - UTC)
-    quint64 getFeedTime() const;
+    QDateTime getFeedTime() const;
 
     /*
      * Stop-Route-Trip-Time calculation functions
      */
-    // Is the trip cancelled based on the real-time data?
-    bool tripIsCancelled(const QString &trip_id) const;
+    // Trip exists in either the added or running trip arrays
+    bool tripExists(const QString &trip_id) const;
 
-    // List the trip_ids which are added for the route (populates 'addedTrips' with new-found trips)
-    void getAddedTrips(const QString &route_id, QVector<QString> &addedTrips) const;
+    // Is the trip cancelled based on the real-time data?
+    bool tripIsCancelled(const QString &trip_id, const QDate &serviceDay) const;
+
+    // List the trip_ids which serve a stop_id (populates 'addedTrips' with new-found trips) across all added stops
+    // We map all relevant routes to a vector of trips that serve the requested stop_id
+    void getAddedTripsServingStop(const QString &stop_id, QMap<QString,
+                                  QVector<QPair<QString, qint32>>> &addedTrips) const;
+
+    // Figure out where an added trip is headed since no way to lookup headsign for a trip not in the static feed
+    const QString getFinalStopIdForAddedTrip(const QString &trip_id);
 
     // Is the trip (that came from the static feed) actually running?
-    bool scheduledTripIsRunning(const QString &trip_id, const QString &operDateDMY) const;
+    bool scheduledTripIsRunning(const QString &trip_id, const QDate &operDateDMY) const;
 
     // Will the trip actually serve the stop?
     bool tripServesStop(const QString &stop_id, const QString &trip_id, qint64 stopSeq) const;
 
     // Was the trip-update to specifically skip the stop?
-    bool tripSkipsStop(const QString &stop_id, const QString &trip_id, qint64 stopSeq) const;
+    bool tripSkipsStop(const QString &stop_id, const QString &trip_id, qint64 stopSeq, const QDate &serviceDay) const;
 
     // What is the actual time of arrival? (Returns realArr/DepTime as seconds-since-UNIX-epoch in UTC - 64-bit)
     // Returns a FALSE if the trip and stopseq combination was not found in the data
-    bool tripStopActualTime(const QString &trip_id, qint64 stopSeq, qint64 &realArrTime, qint64 &realDepTime) const;
+    // Unused values will come back as 0 ... probably
+    bool tripStopActualTime(const QString &trip_id, qint64 stopSeq,
+                            QDateTime &realArrTimeUTC, QDateTime &realDepTimeUTC) const;
+
+    // Fill an array of all the stop times for a requested real-time trip_id
+    // Passes back route_id and stopTimes
+    void fillStopTimesForTrip(const QString &tripID, QString &route_id, QVector<rtStopTimeUpdate> &stopTimes) const;
 
 signals:
 
