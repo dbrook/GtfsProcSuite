@@ -139,6 +139,9 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                         }
 
                         tripRecord.realTimeDataAvail = true;
+                    } else {
+                        // No time was found for the stop in this trip ... probably the trip already passed the stop
+                        tripRecord.tripStatus = IRRELEVANT;
                     }
                 }
 

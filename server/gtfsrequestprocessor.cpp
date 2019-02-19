@@ -89,6 +89,8 @@ void GtfsRequestProcessor::run()
         stopsNoTrips(respJson);
     } else if (! userApp.compare("RTR", Qt::CaseInsensitive)) {
         tripStopsDisplay(userReq, true, respJson);
+    } else if (! userApp.compare("RDS", Qt::CaseInsensitive)) {
+        realtimeDataStatus(respJson);
     } else {
         // Return ERROR 1: Unknown request (userApp)
         SystemResponse = "{\"error\":\"1\",\"user_string\":\"" + this->request + "\"}";
@@ -588,12 +590,11 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
     GTFS::DataGateway::inst().incrementHandledRequests();
 
     // Prepare for tripStopLoader
-//    QDate serviceDate        = QDate::currentDate();
+    QDate serviceDate        = QDate::currentDate();
     QTimeZone agencyTimezone = GTFS::DataGateway::inst().getStatus()->getAgencyTZ();;
-//    QDateTime agencyTime     = QDateTime::currentDateTimeUtc().toTimeZone(agencyTimezone);
-    QDate serviceDate        = QDate(2019, 2, 8);
-    QDateTime agencyTime     = QDateTime(serviceDate, QTime(17, 21, 37), agencyTimezone);
-
+    QDateTime agencyTime     = QDateTime::currentDateTimeUtc().toTimeZone(agencyTimezone);
+//    QDate serviceDate        = QDate(2019, 2, 8);
+//    QDateTime agencyTime     = QDateTime(serviceDate, QTime(17, 21, 37), agencyTimezone);
     QDateTime beforeProcess  = QDateTime::currentDateTimeUtc().toTimeZone(agencyTimezone);
 
     // Real time processing
@@ -731,6 +732,57 @@ void GtfsRequestProcessor::stopsNoTrips(QJsonObject &resp)
     }
 
     resp["stops"] = stopArray;
+}
+
+void GtfsRequestProcessor::realtimeDataStatus(QJsonObject &resp)
+{
+    const GTFS::Status    *data       = GTFS::DataGateway::inst().getStatus();
+    GTFS::RealTimeGateway &rg         = GTFS::RealTimeGateway::inst();
+    QDateTime              currUTC    = QDateTime::currentDateTimeUtc();
+    QDateTime              currAgency = currUTC.toTimeZone(data->getAgencyTZ());
+
+    resp["message_type"]  = "RDS";   // Indicate it is a status message
+    resp["error"]         = 0;
+    resp["message_time"]  = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+
+    resp["seconds_to_next_fetch"]    = rg.secondsToFetch();
+
+    QString activeSideStr, inactiveSideStr;
+    GTFS::RealTimeDataRepo    active = rg.activeBuffer();
+    GTFS::RealTimeTripUpdate *rTrips = rg.getActiveFeed();
+    if (active == GTFS::SIDE_A) {
+        activeSideStr   = "A";
+        inactiveSideStr = "B";
+    } else if (active == GTFS::SIDE_B) {
+        activeSideStr   = "B";
+        inactiveSideStr = "A";
+    } else {
+        activeSideStr = inactiveSideStr = "N/A";
+    }
+
+    if (rTrips == NULL) {
+        resp["active_side"] = activeSideStr;
+    } else {
+        // Active and inactive data information
+        QDateTime activeFeedTime        = rTrips->getFeedTime();
+        resp["active_side"]             = activeSideStr;
+        resp["active_age_sec"]          = activeFeedTime.secsTo(currUTC);
+        resp["active_feed_time"]        = activeFeedTime.toString("ddMMMyyyy hh:mm:ss t");
+        resp["active_download_ms"]      = rTrips->getDownloadTimeMSec();
+        resp["active_integration_ms"]   = rTrips->getIntegrationTimeMSec();
+
+        // Cancelled Trips
+
+
+        // Added Trips
+
+
+        // Running Trips
+
+    }
+
+    // Note how long query took
+    resp["proc_time_ms"] = currUTC.msecsTo(QDateTime::currentDateTimeUtc());
 }
 
 void fillUnifiedTripDetailsForArray(const QString                                   &tripID,

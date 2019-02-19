@@ -124,6 +124,15 @@ private:
     void stopsNoTrips(QJsonObject &resp);
 
     /*
+     * The "RDS" request handler - Realtime Data Status (if available)
+     *
+     * Response format: JSON
+     *
+     * (TODO: Insert details of message contents)
+     */
+    void realtimeDataStatus(QJsonObject &resp);
+
+    /*
      * Date decoder / helper
      *
      * Translates "Y" into a QDate of yesterday

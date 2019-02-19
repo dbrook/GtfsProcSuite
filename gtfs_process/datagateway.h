@@ -7,7 +7,6 @@
 #include "gtfstrip.h"
 #include "gtfsstoptimes.h"
 #include "gtfsstops.h"
-#include "gtfsfrequencies.h"
 
 #include <QObject>
 #include <QMutex>
@@ -80,7 +79,6 @@ private:
     GTFS::Status       *_status;
     GTFS::Routes       *_routes;
     GTFS::OperatingDay *_opDay;
-    GTFS::Frequencies  *_frequencies;
     GTFS::Trips        *_trips;
     GTFS::StopTimes    *_stopTimes;
     GTFS::Stops        *_stops;

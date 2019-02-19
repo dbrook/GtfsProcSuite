@@ -7,6 +7,7 @@
 // GTFS RealTime Data
 #include "gtfsrealtimegateway.h"
 
+#include <QThread>
 #include <QDebug>
 
 ServeGTFS::ServeGTFS(QString dbRootPath, QString realTimePath, QObject *parent) : TcpServer(parent)
@@ -23,10 +24,6 @@ ServeGTFS::ServeGTFS(QString dbRootPath, QString realTimePath, QObject *parent) 
     data.initStopTimes();                // Fill the stop_times.txt data
     data.initStops();                    // Fill the stops.txt data
 
-    // Dynamically-generate trips and stop times based on the frequency database if it is present
-    data.initFrequencies();
-    data.createFrequencyTrips();
-
     // Post-Processing of Data Load
     data.linkTripsRoutes();              // Associate all the trips to the routes they serve
     data.linkStopsTripsRoutes();         // Associate all possible TripIDs + RouteIDs to every stop served (and sort)
@@ -42,6 +39,12 @@ ServeGTFS::ServeGTFS(QString dbRootPath, QString realTimePath, QObject *parent) 
     GTFS::RealTimeGateway &rtData = GTFS::RealTimeGateway::inst();
     rtData.setRealTimeFeedPath(realTimePath);
     rtData.refetchData();
+
+    // The real-time processor must be able to independently download new realtime protobuf files
+    QThread *rtThread = new QThread;
+    GTFS::RealTimeGateway::inst().moveToThread(rtThread);
+    connect(rtThread, SIGNAL(started()), &GTFS::RealTimeGateway::inst(), SLOT(dataRetrievalLoop()));
+    rtThread->start();
 }
 
 ServeGTFS::~ServeGTFS()

@@ -2,7 +2,8 @@
 #define GTFSREALTIMEGATEWAY_H
 
 #include <QObject>
-#include <QThread>
+#include <QDateTime>
+#include <QUrl>
 #include <QMutex>
 
 #include "gtfsrealtimefeed.h"
@@ -26,11 +27,14 @@ public:
     // Store the path from which to grab new protobuf data
     void setRealTimeFeedPath(const QString &realTimeFeedPath);
 
-    // Single Fetch-and-Stop -- for debugging with local files
-    void refetchData();
+    // How long until the next fetch?
+    qint32 secondsToFetch() const;
 
     // Query the active feed
     RealTimeDataRepo activeBuffer();
+
+    // Switch over the active feed side
+    void setActiveFeed(RealTimeDataRepo nextSide);
 
     // Retrieve the active feed (returns NULL if we are in the DISABLED mode)
     RealTimeTripUpdate *getActiveFeed();
@@ -38,6 +42,11 @@ public:
 signals:
 
 public slots:
+    // Single Fetch-and-Stop -- This should probably be made private!
+    void refetchData();
+
+    // Infinite loop to fetch new data
+    void dataRetrievalLoop();
 
 private:
     // Singleton Pattern Requirements
@@ -49,8 +58,9 @@ private:
     // Dataset Members
     QMutex              _lock_activeSide;    // Prevent messing up the active side 'pointer'
     RealTimeDataRepo    _activeSide;         // Atomic indicator to denote data which is both active and ready
-    QThread             _fetcherProcessor;   // Data Fetching and Processing thread
-    QString             _dataPath;
+    QString             _dataPathLocal;
+    QUrl                _dataPathRemote;
+    QDateTime           _nextFetchTimeUTC;
     RealTimeTripUpdate *_sideA;
     RealTimeTripUpdate *_sideB;
 };

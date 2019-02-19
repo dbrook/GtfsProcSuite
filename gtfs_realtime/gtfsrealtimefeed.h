@@ -26,6 +26,7 @@ class RealTimeTripUpdate : public QObject
     Q_OBJECT
 public:
     explicit RealTimeTripUpdate(const QString &rtPath, QObject *parent = nullptr);
+    explicit RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, QObject *parent = nullptr);
     virtual ~RealTimeTripUpdate();
 
     /*
@@ -33,6 +34,14 @@ public:
      */
     // Time of feed (in seconds since UNIX epoch - UTC)
     QDateTime getFeedTime() const;
+
+    // Time it took to download (milliseconds)
+    void setDownloadTimeMSec(qint32 downloadTime);
+    qint32 getDownloadTimeMSec() const;
+
+    // Time it took to integrate the feed (milliseconds)
+    void setIntegrationTimeMSec(qint32 integrationTime);
+    qint32 getIntegrationTimeMSec() const;
 
     /*
      * Stop-Route-Trip-Time calculation functions
@@ -54,9 +63,6 @@ public:
     // Is the trip (that came from the static feed) actually running?
     bool scheduledTripIsRunning(const QString &trip_id, const QDate &operDateDMY) const;
 
-    // Will the trip actually serve the stop?
-    bool tripServesStop(const QString &stop_id, const QString &trip_id, qint64 stopSeq) const;
-
     // Was the trip-update to specifically skip the stop?
     bool tripSkipsStop(const QString &stop_id, const QString &trip_id, qint64 stopSeq, const QDate &serviceDay) const;
 
@@ -76,12 +82,6 @@ public slots:
 
 private:
     /*
-     * Private Functions
-     */
-    // Determine if a stop-id is in the specified trip_id
-    bool stopValidForTrip(qint32 tripUpdateEntity, const QString &stop_id, qint64 stopSequence) const;
-
-    /*
      * Data Members
      */
     transit_realtime::FeedMessage   _tripUpdate;     // Hold the raw protobuf here, but it is not optimized for reading
@@ -92,6 +92,9 @@ private:
 
     // Stop-IDs which have been skipped by any number of trips
     QMap<QString, QVector<QPair<QString, quint32>>> _skippedStops;
+
+    qint32 _downloadTimeMSec;
+    qint32 _integrationTimeMSec;
 };
 
 } // namespace GTFS

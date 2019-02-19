@@ -12,6 +12,10 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath, QObject *parent) :
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+    qDebug() << "GTFS-Realtime : LOCAL DEBUGGING MODE";
+
+    QDateTime startUTC = QDateTime::currentDateTimeUtc();
+
     std::fstream pbfstream(rtPath.toUtf8(), std::ios::in | std::ios::binary);
     _tripUpdate.ParseFromIstream(&pbfstream);
 
@@ -51,20 +55,85 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath, QObject *parent) :
         }
     }
 
-    qDebug() << "Added " << _addedTrips.size() << " bonus trips";
-    qDebug() << "Added " << _cancelledTrips.size() << " removed trips";
-    qDebug() << "Added " << _activeTrips.size() << " running trips";
-    qDebug() << "Number of stop_id skipped at least once: " << _skippedStops.size();
+    setIntegrationTimeMSec(startUTC.msecsTo(QDateTime::currentDateTimeUtc()));
+}
+
+RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, QObject *parent) : QObject(parent)
+{
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+    qDebug() << "GTFS-Realtime : LIVE REAL DATA";
+
+    QDateTime startUTC = QDateTime::currentDateTimeUtc();
+
+    _tripUpdate.ParseFromArray(gtfsRealTimeData, gtfsRealTimeData.size());
+    qDebug() << "LIVE Protobuf: " << _tripUpdate.ByteSize() << " bytes" << endl;
+
+    // Will probabably want to make helper function for this, but for now let's just make it work!
+    qDebug() << "Processing _tripUpdate.entity_size() = " << _tripUpdate.entity_size() << "real-time records.";
+
+    for (qint32 recIdx = 0; recIdx < _tripUpdate.entity_size(); ++recIdx) {
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(recIdx);
+
+        if (entity.trip_update().trip().schedule_relationship() ==
+            transit_realtime::TripDescriptor_ScheduleRelationship_ADDED) {
+            QString tripAdded = QString::fromStdString(entity.id());
+            _addedTrips[tripAdded] = recIdx;
+        } else if (entity.trip_update().trip().schedule_relationship() ==
+            transit_realtime::TripDescriptor_ScheduleRelationship_CANCELED) {
+            QString tripCancelled = QString::fromStdString(entity.id());
+            _cancelledTrips[tripCancelled] = recIdx;
+        } else {
+            QString tripRealTime = QString::fromStdString(entity.id());
+            _activeTrips[tripRealTime] = recIdx;
+
+            // For active trips which are scheduled, there is a chance that individual stops have been removed from
+            // the trip (running express / run-as-directed / etc.) so we should scan the stop_time_updates!
+            for (qint32 stopTimeIdx = 0; stopTimeIdx < entity.trip_update().stop_time_update_size(); ++stopTimeIdx) {
+                const transit_realtime::TripUpdate_StopTimeUpdate &stopTime = entity.trip_update().
+                                                                              stop_time_update(stopTimeIdx);
+                if (stopTime.schedule_relationship() ==
+                    transit_realtime::TripUpdate_StopTimeUpdate_ScheduleRelationship_SKIPPED) {
+                    QString qStopId = QString::fromStdString(stopTime.stop_id());
+                    QPair<QString, quint32> qTripId(QString::fromStdString(entity.id()), stopTime.stop_sequence());
+
+                    _skippedStops[qStopId].push_back(qTripId);
+                }
+            }
+        }
+    }
+
+    setIntegrationTimeMSec(startUTC.msecsTo(QDateTime::currentDateTimeUtc()));
 }
 
 RealTimeTripUpdate::~RealTimeTripUpdate()
 {
-    // The default constructor **should** be enough
+    // The default destructor **should** be enough
 }
 
 QDateTime RealTimeTripUpdate::getFeedTime() const
 {
     return QDateTime::fromSecsSinceEpoch(_tripUpdate.header().timestamp());
+}
+
+void RealTimeTripUpdate::setDownloadTimeMSec(qint32 downloadTime)
+{
+    _downloadTimeMSec = downloadTime;
+}
+
+qint32 RealTimeTripUpdate::getDownloadTimeMSec() const
+{
+    return _downloadTimeMSec;
+}
+
+void RealTimeTripUpdate::setIntegrationTimeMSec(qint32 integrationTime)
+{
+    _integrationTimeMSec = integrationTime;
+}
+
+qint32 RealTimeTripUpdate::getIntegrationTimeMSec() const
+{
+    return _integrationTimeMSec;
 }
 
 bool RealTimeTripUpdate::tripExists(const QString &trip_id) const
@@ -94,23 +163,18 @@ bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id, const QDate &se
 void RealTimeTripUpdate::getAddedTripsServingStop(const QString &stop_id,
                                                   QMap<QString, QVector<QPair<QString, qint32>>> &addedTrips) const
 {
-    // TODO: This can be made more efficient by using the already-created vector of _addedTrips ???
-    for (qint32 recIdx = 0; recIdx < _tripUpdate.entity_size(); ++recIdx) {
-        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(recIdx);
+    for (const QString &tripID : _addedTrips.keys()) {
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_addedTrips[tripID]);
         QString qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
         const transit_realtime::TripUpdate desc = entity.trip_update();
-        transit_realtime::TripDescriptor_ScheduleRelationship tripType = desc.trip().schedule_relationship();
 
-        // Loop on all stops if the trip is added, try to find the stop_id so we can add the route+trip to the vector
-        if (tripType == transit_realtime::TripDescriptor_ScheduleRelationship_ADDED) {
-            for (qint32 stopTimeIdx = 0; stopTimeIdx < entity.trip_update().stop_time_update_size(); ++stopTimeIdx) {
-                const transit_realtime::TripUpdate_StopTimeUpdate &stu = desc.stop_time_update(stopTimeIdx);
-                const QString rtStopId = QString::fromStdString(stu.stop_id());
-                if (rtStopId == stop_id) {
-                    QString trip_id = QString::fromStdString(desc.trip().trip_id());
-                    QPair<QString, qint32> routeAddedTrip(trip_id, stu.stop_sequence());
-                    addedTrips[qRouteId].push_back(routeAddedTrip);
-                }
+        for (qint32 stopTimeIdx = 0; stopTimeIdx < entity.trip_update().stop_time_update_size(); ++stopTimeIdx) {
+            const transit_realtime::TripUpdate_StopTimeUpdate &stu = desc.stop_time_update(stopTimeIdx);
+            const QString rtStopId = QString::fromStdString(stu.stop_id());
+            if (rtStopId == stop_id) {
+                QString trip_id = QString::fromStdString(desc.trip().trip_id());
+                QPair<QString, qint32> routeAddedTrip(trip_id, stu.stop_sequence());
+                addedTrips[qRouteId].push_back(routeAddedTrip);
             }
         }
     }
@@ -131,29 +195,6 @@ bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id, const QD
         const QString startDate = QString::fromStdString(entity.trip_update().trip().start_date());
         const QString serviceDate = operDate.toString("yyyyMMdd");
         if (startDate == serviceDate) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool RealTimeTripUpdate::tripServesStop(const QString &stop_id, const QString &trip_id, qint64 stopSeq) const
-{
-    /*
-     * Added routes had nothing to begin with, so we cannot be sure stops normally served were specifically skipped,
-     * therefore we will look through the added trips to see if we can find the stop + sequence within...
-     */
-
-    // First find the requested trip from the active trips
-    if (_activeTrips.contains(trip_id)) {
-        if (stopValidForTrip(_activeTrips[trip_id], stop_id, stopSeq)) {
-            return true;
-        }
-    }
-
-    // If we didn't find it in the active trips, maybe it was in the added trips
-    if (_addedTrips.contains(trip_id)) {
-        if (stopValidForTrip(_addedTrips[trip_id], stop_id, stopSeq)) {
             return true;
         }
     }
@@ -244,24 +285,6 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString             &tripID,
 
         stopTimes.push_back(stu);
     }
-}
-
-bool RealTimeTripUpdate::stopValidForTrip(qint32 tripUpdateEntity, const QString &stop_id, qint64 stopSequence) const
-{
-    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
-
-    // Loop through the stop-times of the discovered trip
-    for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
-        const transit_realtime::TripUpdate_StopTimeUpdate stu = tri.stop_time_update(stopTimeIdx);
-
-        // TODO: This could be inefficient, we should probably make more higher-order realtime data with QString
-        const QString qStopId = QString::fromStdString(stu.stop_id());
-
-        if (stu.stop_sequence() == stopSequence && qStopId == stop_id) {
-            return true;
-        }
-    }
-    return false;
 }
 
 } // namespace GTFS

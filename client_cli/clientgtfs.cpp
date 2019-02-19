@@ -736,6 +736,44 @@ void ClientGtfs::repl()
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
+        else if (respObj["message_type"] == "RDS") {
+            // Scalable column width determination
+            qint32 totalCol = this->disp.getCols();
+            totalCol -= 1;                // Spacer
+            qint32 c1 = totalCol * 0.50;  // Stop ID
+            qint32 c2 = totalCol - c1;    // Remaining space to the stop-name
+
+            this->disp.clearTerm();
+
+            // Standard Response Header
+            screen << "GTFS Realtime Data Status"
+                   << qSetFieldWidth(this->disp.getCols() - 25)
+                   << respObj["message_time"].toString()
+                   << qSetFieldWidth(0) << endl << endl;
+
+            screen.setFieldAlignment(QTextStream::AlignLeft);
+
+            // Mutual Exclusion
+            screen << "[ Mutual Exclusion ]" << endl
+                   << "Active Side  . . . " << respObj["active_side"].toString() << endl
+                   << "Data Age . . . . . " << respObj["active_age_sec"].toInt() << " s" << endl
+                   << "Feed Time  . . . . " << respObj["active_feed_time"].toString() << endl
+                   << "Download Time  . . " << respObj["active_download_ms"].toInt() << " ms" << endl
+                   << "Integ Time . . . . " << respObj["active_integration_ms"].toInt() << " ms" << endl
+                   << "Next Fetch In  . . " << respObj["seconds_to_next_fetch"].toInt() << " s" << endl
+                   << endl << endl;
+
+
+            screen << qSetFieldWidth(c1) << "TRIP-ID"   << qSetFieldWidth(1) << " "
+                   << qSetFieldWidth(c2) << "ROUTE-ID"  << qSetFieldWidth(1) << endl;
+
+            // Loop on all the routes
+            //QJsonArray stops = respObj["stops"].toArray();
+
+            screen << endl << "Query took " << respObj["proc_time_ms"].toInt() << " ms" << endl << endl;
+            screen.setFieldAlignment(QTextStream::AlignRight);
+        }
+
         // Probably some kind of error condition, just respond in kind
         else {
             screen << endl << "No handler for the request: " << endl << responseStr << endl;
