@@ -590,8 +590,8 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
     GTFS::DataGateway::inst().incrementHandledRequests();
 
     // Prepare for tripStopLoader
-    QDate serviceDate        = QDate::currentDate();
     QTimeZone agencyTimezone = GTFS::DataGateway::inst().getStatus()->getAgencyTZ();;
+    QDate     serviceDate    = QDate::currentDate();
     QDateTime agencyTime     = QDateTime::currentDateTimeUtc().toTimeZone(agencyTimezone);
 //    QDate serviceDate        = QDate(2019, 2, 8);
 //    QDateTime agencyTime     = QDateTime(serviceDate, QTime(17, 21, 37), agencyTimezone);

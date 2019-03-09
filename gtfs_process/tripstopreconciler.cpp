@@ -140,8 +140,11 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 
                         tripRecord.realTimeDataAvail = true;
                     } else {
-                        // No time was found for the stop in this trip ... probably the trip already passed the stop
-                        tripRecord.tripStatus = IRRELEVANT;
+                        // No time was found for the stop in this trip ... probably the trip already passed the stop?
+                        // TODO: Actually, this is not a guarantee, a real-time trip could be so far in the future that
+                        //       it is only partially defined. We should probably only mark a trip-stop record as
+                        //       invalid if it is within a specified time range (to be coded, probably want as input op?
+//                        tripRecord.tripStatus = IRRELEVANT;
                     }
                 }
 
