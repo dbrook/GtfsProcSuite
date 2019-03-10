@@ -1,5 +1,5 @@
 /*
- * This file comes from VoidRealms: http://www.voidrealms.com/
+ * This file comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/
  */
 
 #include "tcpconnection.h"
@@ -22,7 +22,8 @@ void TcpConnection::setSocket(QTcpSocket *socket)
     connect(m_socket,&QTcpSocket::readyRead, this, &TcpConnection::readyRead);
     connect(m_socket,&QTcpSocket::bytesWritten, this, &TcpConnection::bytesWritten);
     connect(m_socket,&QTcpSocket::stateChanged, this, &TcpConnection::stateChanged);
-    connect(m_socket,static_cast<void (QTcpSocket::*)(QAbstractSocket::SocketError)>(&QTcpSocket::error),this,&TcpConnection::error);
+    connect(m_socket,static_cast<void (QTcpSocket::*)(QAbstractSocket::SocketError)>(&QTcpSocket::error),
+            this, &TcpConnection::error);
 
 }
 

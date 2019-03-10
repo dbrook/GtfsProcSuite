@@ -1,5 +1,24 @@
-#include "datagateway.h"
+/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
 
+#include "datagateway.h"
 #include "qdebug.h"
 
 namespace GTFS {
@@ -129,14 +148,14 @@ void DataGateway::linkTripsRoutes()
     _routes->sortRouteTrips();
 }
 
-const Status                              *DataGateway::getStatus()      {return _status;}
-const QMap<QString, GTFS::RouteRec>       *DataGateway::getRoutesDB()    {return &_routes->getRoutesDB();}
-const QMap<QString, TripRec>              *DataGateway::getTripsDB()     {return &_trips->getTripsDB();}
-const QMap<QString, QVector<StopTimeRec>> *DataGateway::getStopTimesDB() {return &_stopTimes->getStopTimesDB();}
-const QMap<QString, StopRec>              *DataGateway::getStopsDB()     {return &_stops->getStopDB();}
-const QMap<QString, QVector<QString>>     *DataGateway::getParentsDB()   {return &_stops->getParentStationDB();}
-const OperatingDay                        *DataGateway::getServiceDB()   {return _opDay;}
-void  DataGateway::setStatusLoadFinishTimeUTC()                          {_status->setLoadFinishTimeUTC();}
+const Status         *DataGateway::getStatus()      {return _status;}
+const RouteData      *DataGateway::getRoutesDB()    {return &_routes->getRoutesDB();}
+const TripData       *DataGateway::getTripsDB()     {return &_trips->getTripsDB();}
+const StopTimeData   *DataGateway::getStopTimesDB() {return &_stopTimes->getStopTimesDB();}
+const StopData       *DataGateway::getStopsDB()     {return &_stops->getStopDB();}
+const ParentStopData *DataGateway::getParentsDB()   {return &_stops->getParentStationDB();}
+const OperatingDay   *DataGateway::getServiceDB()   {return _opDay;}
+void  DataGateway::setStatusLoadFinishTimeUTC()     {_status->setLoadFinishTimeUTC();}
 
 qint64 DataGateway::incrementHandledRequests()
 {

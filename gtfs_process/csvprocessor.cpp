@@ -1,5 +1,21 @@
 /*
- * Code to interface with libcsv
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
  */
 
 #include "csvprocessor.h"
@@ -16,25 +32,27 @@
 
 namespace GTFS {
 
-// The bulk of this information comes from libcsv example(s)
-// It's horribly OS-specific and nasty, it will have to do for now ... got myself in way over my head here :-(
-
-// TODO: Implement in purely Qt / C++?
-
+/*
+ * localRecordHolder stores each result from the libcsv callback
+ */
 QVector<QString> localRecordHolder;
 
+/*
+ * cb1 is used to store each individual segment of a CSV file line (i.e. "the text between the commas")
+ */
 void cb1 (void *s, size_t i, void *outdata) {
     (void)i;
     (void)outdata;
 
     QString parsedItem = static_cast<char*>(s);
-//    qDebug() << parsedItem;
     localRecordHolder.append(parsedItem);
 }
 
+/*
+ * cb2 is used to store the group of individual cb1 data into a single 'record'
+ */
 void cb2 (int c, void *outdata) {
     (void)c;
-//    qDebug() << "End of line: " << c;
 
     // Fill in the caller's vector with a new set of data
     QVector<QVector<QString>> *callerVec = static_cast<QVector<QVector<QString>> *>(outdata);
@@ -44,7 +62,9 @@ void cb2 (int c, void *outdata) {
     localRecordHolder.clear();
 }
 
-
+/*
+ * CsvProcess opens a CSV file and sends it to libcsv for processing
+ */
 void CsvProcess(QString filename, QVector<QVector<QString>> *callerVec)
 {
     char                buf[2048];
@@ -86,13 +106,3 @@ void CsvProcess(QString filename, QVector<QVector<QString>> *callerVec)
 }
 
 }
-
-
-/*
- size_t csv_parse(struct csv_parser *p,
-                  const void *s,
-                  size_t len,
-                  void (*cb1)(void *, size_t, void *),
-                  void (*cb2)(int, void *),
-                  void *data);
-*/

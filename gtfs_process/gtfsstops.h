@@ -1,3 +1,23 @@
+/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
+
 #ifndef GTFSSTOPS_H
 #define GTFSSTOPS_H
 
@@ -6,7 +26,6 @@
 #include <QString>
 #include <QVector>
 #include <QPair>
-
 
 namespace GTFS {
 
@@ -23,26 +42,33 @@ typedef struct {
     float   stop_lat;
     float   stop_lon;
     QString parent_station;
-    /*
-     * There are several more feeds which are not mandatory (nor are interesting here), so we will skip them for now
-     */
 
-    // Computed Data (from other fields/links)
-    // String(routeID)->(Vector(Pair(tripID,tripIDStopSequence)))
+    // All the trips serving an individual stop_id (for quicker trip-stop processing at runtime)
     QMap<QString, QVector<tripStopSeqInfo>> stopTripsRoutes;
 } StopRec;
 
+// Map for all stops. String represents the stop_id.
+typedef QMap<QString, StopRec> StopData;
+
+// Map for all parent stops. String represents the parent_station, and the vector within is the list of child stop_ids
+typedef QMap<QString, QVector<QString>> ParentStopData;
+
+/*
+ * GTFS::Stops is a wrapper around the GTFS feed's stops.txt file
+ */
 class Stops : public QObject
 {
     Q_OBJECT
 public:
+    // Constructor
     explicit Stops(const QString dataRootPath, QObject *parent = nullptr);
 
+    // Returns the number of records loaded pertaining to the stops.txt file
     qint64 getStopsDBSize() const;
 
     // Database retrieval function
-    const QMap<QString, StopRec> &getStopDB() const;
-    const QMap<QString, QVector<QString>> &getParentStationDB() const;
+    const StopData &getStopDB() const;
+    const ParentStopData &getParentStationDB() const;
 
     // Association Builder (to link all the trips that service each stop for quick lookups)
     // Note the notion of "sortTime" = stop's departure time > stop's arrival time > trip's first departure time
@@ -67,9 +93,8 @@ private:
                               qint8 &parentStationPos);
 
     // Stop database
-    // The addressing element of the stop is the stop_id (primary key)
-    QMap<QString, StopRec>          stopsDb;
-    QMap<QString, QVector<QString>> parentStopDb;
+    StopData       stopsDb;
+    ParentStopData parentStopDb;
 };
 
 } // Namespace GTFS

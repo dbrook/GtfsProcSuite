@@ -1,3 +1,23 @@
+/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
+
 #ifndef GTFSREALTIMEFEED_H
 #define GTFSREALTIMEFEED_H
 
@@ -21,6 +41,21 @@ typedef struct {
     QDateTime arrTime;
 } rtStopTimeUpdate;
 
+/*
+ * RealTimeTripUpdate is the main interface to the GTFS Realtime feed information. This class Qt-ifies the ProtoBuf
+ * data so that it is quicker to search and provide useful real-time trip data to which the static feeds can be
+ * compared.
+ *
+ * The client can either:
+ *  1) Send actual bytes of the realTimeData using the response from the real-time data server, or
+ *  2) with a fixed static file, just specify the local filesystem path (this is helpful for debugging)
+ *
+ * The current GTFS RealTime data supported is the Trip Updates, which include information on:
+ *  - Actual stop arrival/departure times
+ *  - Cancelled trips
+ *  - Added trips (+all the stops they serve, since there would otherwise be no basis from which to compare)
+ *  - Individual stop_ids which are skipped by running trips
+ */
 class RealTimeTripUpdate : public QObject
 {
     Q_OBJECT

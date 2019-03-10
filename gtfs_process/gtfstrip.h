@@ -1,3 +1,23 @@
+/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
+
 #ifndef GTFSTRIP_H
 #define GTFSTRIP_H
 
@@ -9,7 +29,7 @@
 namespace GTFS {
 
 typedef struct {
-    QString trip_id;        // Primary data key, needed by StopTimes
+//    QString trip_id;        // Primary data key, needed by StopTimes
     QString route_id;       // The route on which this trip operates
     QString service_id;     // Needed to see which day(s) trip is active
     QString trip_headsign;  // Note this is optional
@@ -18,18 +38,24 @@ typedef struct {
      */
 } TripRec;
 
+// Map for all stop-times. String represents the trip_id, the vector is all the stops in sequence .
+typedef QMap<QString, TripRec> TripData;
+
+/*
+ * GTFS::Trips is a wrapper around the GTFS Feed's trips.txt file
+ */
 class Trips : public QObject
 {
     Q_OBJECT
 public:
+    // Constructor
     explicit Trips(const QString dataRootPath, QObject *parent = nullptr);
 
+    // Returns the number of records loaded that pertain to the trips.txt file
     qint64 getTripsDBSize() const;
 
-    const QMap<QString, TripRec> &getTripsDB() const;
-
-    // Make the database aware of any newly-created TripIds that were forced due to frequencies.txt being present
-    qint64 duplicateTripNewId(const QString &baseTripId, const QVector<QString> &newTripIds);
+    // Database retrieval function
+    const TripData &getTripsDB() const;
 
 private:
     // Determine the order of the 'interesting' fields within the trip database
@@ -40,7 +66,7 @@ private:
                               qint8 &headsignPos);
 
     // Trip Database
-    QMap<QString, TripRec> tripDb;
+    TripData tripDb;
 };
 
 } // Namespace GTFS

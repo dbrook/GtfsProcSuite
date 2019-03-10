@@ -1,5 +1,5 @@
 /*
- * This file comes from VoidRealms: http://www.voidrealms.com/
+ * This file comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/
  */
 
 #ifndef TCPSERVER_H

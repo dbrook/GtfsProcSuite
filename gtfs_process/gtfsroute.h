@@ -1,3 +1,23 @@
+/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
+
 #ifndef GTFSROUTE_H
 #define GTFSROUTE_H
 
@@ -9,7 +29,7 @@
 
 namespace GTFS {
 
-// We do not really need all the records so let's save some space
+// To save space we only use the required subset of route records
 typedef struct {
 //  QString  route_id;          // Primary Key, we don't need to define this here
     qint32   agency_id;
@@ -24,15 +44,24 @@ typedef struct {
     QMap<QString, qint32> stopService;      // Holds all the stops served by the route across all trips (+frequency)
 } RouteRec;
 
+// Map for all routes. String represents the route_id.
+typedef QMap<QString, RouteRec> RouteData;
+
+/*
+ * GTFS::Routes is a wrapper around a GTFS feed's routes.txt data
+ */
 class Routes : public QObject
 {
     Q_OBJECT
 public:
+    // Constructor
     explicit Routes(const QString dataRootPath, QObject *parent = nullptr);
 
+    // Returns the number of records stored that pertain to routes.txt
     qint64 getRoutesDBSize() const;
 
-    const QMap<QString, RouteRec> &getRoutesDB() const;
+    // Read-only access to the Routes data
+    const RouteData &getRoutesDB() const;
 
     // Association Builder (to make lookups quicker at the expense of horrendous memory usage!)
     void connectTrip(const QString &routeID, const QString &tripID, const qint32 fstDepTime, const qint32 fstArrTime);
@@ -58,7 +87,7 @@ private:
                                qint8 &textColorPos);
 
     // Route Database
-    QMap<QString, RouteRec> routeDb;
+    RouteData routeDb;
 };
 
 }  // Namespace GTFS

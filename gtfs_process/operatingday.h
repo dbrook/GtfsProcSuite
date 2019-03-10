@@ -1,3 +1,23 @@
+/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
+
 #ifndef OPERATINGDAY_H
 #define OPERATINGDAY_H
 
@@ -30,23 +50,46 @@ typedef struct {
     qint8    exception_type;    // 1 == service added for CalDateRec::date, 2 == service removed for CalDateRec::date
 } CalDateRec;
 
+/*
+ * GTFS::OperatingDay is a wrapper around both calendar.txt and calendar_dates.txt from the GTFS Feed
+ */
 class OperatingDay : public QObject
 {
     Q_OBJECT
 public:
+    // Constructor
     explicit OperatingDay(const QString dataRootPath, QObject *parent = nullptr);
 
+    // Returns the number of records loaded relating to the date processing
     qint64 getCalendarAndDatesDBSize() const;
 
     /*
-     * This is the primary interaction with the OperatingDay.
-     *
      * Function will return true if the service specified is running on the date specified.
      *
      * It first scans the date exceptions (holidays) as defined in calendar_dates.txt. If the date is not found on
      * this initial scan, then we will return based on the day-of-week determined by the current date.
      */
-    bool serviceRunning(QDate serviceDate, QString serviceName) const;
+    bool serviceRunning(QDate serviceDate, QString serviceName)/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
+
+ const;
 
     /*
      * Get a list of days (of the week) for which the serviceName is active

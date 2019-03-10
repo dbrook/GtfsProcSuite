@@ -1,3 +1,23 @@
+/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
+
 #ifndef GTFSSTOPTIMES_H
 #define GTFSSTOPTIMES_H
 
@@ -9,7 +29,6 @@
 namespace GTFS {
 
 typedef struct {
-//    QString trip_id;          Trip ID is the primary key
     qint32  stop_sequence;
     QString stop_id;
     qint32  arrival_time;     // in seconds relative to local noon of the operating day (can exceed 12-hours!)
@@ -29,16 +48,24 @@ typedef struct {
     QString stop_headsign;
 } StopTimeRec;
 
+// Map for all stop-times. String represents the trip_id, the vector is all the stops in sequence .
+typedef QMap<QString, QVector<StopTimeRec>> StopTimeData;
 
+/*
+ * GTFS::StopTimes is a wrapper around the GTFS Feed's stop_times.txt file
+ */
 class StopTimes : public QObject
 {
     Q_OBJECT
 public:
+    // Constructor
     explicit StopTimes(const QString dataRootPath, QObject *parent = nullptr);
 
+    // Returns the size of the data associated to stop_times
     qint64 getStopTimesDBSize() const;
 
-    const QMap<QString, QVector<StopTimeRec>> &getStopTimesDB() const;
+    // Database retrieval
+    const StopTimeData &getStopTimesDB() const;
 
     // Duplicate a Trip ID using offsets (headways) between two times
     // (this is our hack to make frequencies.txt work without too much of a fuss..)
@@ -69,11 +96,8 @@ private:
 
     bool operator <(const StopTimeRec &strec) const;
 
-
     // Stop Times Database
-    // This one is tricky, we have unique trips, but several entries for them, so we must be able to address
-    // them with this hybrid "map of vectors" thing.
-    QMap<QString, QVector<StopTimeRec>> stopTimeDb;
+    StopTimeData stopTimeDb;
 };
 
 } // Namespace GTFS

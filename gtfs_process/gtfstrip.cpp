@@ -1,3 +1,23 @@
+/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
+
 #include "gtfstrip.h"
 #include "csvprocessor.h"
 
@@ -17,7 +37,6 @@ Trips::Trips(const QString dataRootPath, QObject *parent) : QObject(parent)
 
     for (int l = 1; l < dataStore.size(); ++l) {
         TripRec trip;
-        trip.trip_id       = dataStore.at(l).at(tripIdPos);
         trip.route_id      = dataStore.at(l).at(routeIdPos);
         trip.service_id    = dataStore.at(l).at(serviceIdPos);
         trip.trip_headsign = (headsignPos != -1) ? dataStore.at(l).at(headsignPos) : "";
@@ -31,22 +50,9 @@ qint64 Trips::getTripsDBSize() const
     return this->tripDb.size();
 }
 
-const QMap<QString, TripRec> &Trips::getTripsDB() const
+const TripData &Trips::getTripsDB() const
 {
     return this->tripDb;
-}
-
-qint64 Trips::duplicateTripNewId(const QString &baseTripId, const QVector<QString> &newTripIds)
-{
-    // Copy all the required details from the base trip_id into the new one, except the name, of course
-    for (const QString &ntid : newTripIds) {
-        TripRec newTrip;
-        newTrip.route_id = tripDb[baseTripId].route_id;
-        newTrip.service_id = tripDb[baseTripId].service_id;
-        newTrip.trip_headsign = tripDb[baseTripId].trip_headsign;
-        newTrip.trip_id = ntid;
-        tripDb[ntid] = newTrip;
-    }
 }
 
 void Trips::tripsCSVOrder(const QVector<QString> csvHeader,

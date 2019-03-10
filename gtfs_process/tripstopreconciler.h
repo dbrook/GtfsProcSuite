@@ -1,3 +1,23 @@
+/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2019, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
+
 #ifndef TRIPSTOPRECONCILER_H
 #define TRIPSTOPRECONCILER_H
 
@@ -5,10 +25,6 @@
 #include "gtfsrealtimegateway.h"
 
 #include <QObject>
-//#include <QMap>
-//#include <QVector>
-//#include <QDateTime>
-//#include <QDate>
 
 namespace GTFS {
 
@@ -64,6 +80,12 @@ typedef struct {
     QVector<StopRecoTripRec> tripRecos;  // Vector of trips serving the stop for this route
 } StopRecoRouteRec;
 
+
+/*
+ * GTFS::TripStopReconciler is an abstraction layer to the GTFS::DataGateway to specifically process the upcoming
+ * service a stop_id. Depending on the available data / style of request, it will return data regarding the upcoming
+ * trips serving a stop from GTFS Realtime and/or GTFS Static feeds either based on a time range or purely # of trips.
+ */
 class TripStopReconciler : public QObject
 {
     Q_OBJECT
@@ -141,12 +163,12 @@ private:
     /*
      * GTFS Static Database Handles
      */
-    const Status                              *sStatus;
-    const OperatingDay                        *sService;
-    const QMap<QString, StopRec>              *sStops;
-    const QMap<QString, RouteRec>             *sRoutes;
-    const QMap<QString, TripRec>              *sTripDB;
-    const QMap<QString, QVector<StopTimeRec>> *sStopTimes;
+    const Status       *sStatus;
+    const OperatingDay *sService;
+    const StopData     *sStops;
+    const RouteData    *sRoutes;
+    const TripData     *sTripDB;
+    const StopTimeData *sStopTimes;
 
     /*
      * GTFS Realtime Feed Handle
