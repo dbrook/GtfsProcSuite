@@ -192,7 +192,7 @@ void GtfsRequestProcessor::availableRoutes(QJsonObject &resp)
 
     // Fill all routes associated
     const GTFS::RouteData *routes = GTFS::DataGateway::inst().getRoutesDB();
-    for (const QString routeID : routes->keys()) {
+    for (const QString &routeID : routes->keys()) {
         QJsonObject singleRouteJSON;
         singleRouteJSON["id"]         = routeID;
         singleRouteJSON["agency_id"]  = (*routes)[routeID].agency_id;
@@ -240,6 +240,7 @@ void GtfsRequestProcessor::tripStopsDisplay(QString tripID, bool useRealTime, QJ
         resp["route_id"]     = (*tripDB)[tripID].route_id;
         resp["trip_id"]      = tripID;
         resp["headsign"]     = (*tripDB)[tripID].trip_headsign;
+        resp["short_name"]   = (*tripDB)[tripID].trip_short_name;
         resp["service_id"]   = (*tripDB)[tripID].service_id;
         resp["operate_days"] = serviceDB->serializeOpDays((*tripDB)[tripID].service_id);
 
@@ -317,8 +318,10 @@ void GtfsRequestProcessor::tripStopsDisplay(QString tripID, bool useRealTime, QJ
         const GTFS::StopData *stops = GTFS::DataGateway::inst().getStopsDB();
         resp["route_id"]         = route_id;
         resp["trip_id"]          = tripID;
+        resp["short_name"]       = (*tripDB)[tripID].trip_short_name;
         resp["route_short_name"] = (*routes)[(*tripDB)[tripID].route_id].route_short_name;
         resp["route_long_name"]  = (*routes)[(*tripDB)[tripID].route_id].route_long_name;
+        resp["vehicle"]          = realTimeProc->getOperatingVehicle(tripID);
 
         for (const GTFS::rtStopTimeUpdate &rtsu : stopTimes) {
             QJsonObject singleStopJSON;
@@ -361,7 +364,7 @@ void GtfsRequestProcessor::tripsServingRoute(QString routeID, QDate onlyDate, QJ
         resp["route_long_name"]  = (*routes)[routeID].route_long_name;
         resp["service_date"]     = onlyDate.toString("ddd dd-MMM-yyyy");
 
-        for (const QPair<QString, qint32> tripIDwTime : (*routes)[routeID].trips) {
+        for (const QPair<QString, qint32> &tripIDwTime : (*routes)[routeID].trips) {
             // Loop on each route that serves the stop
             QString tripID    = tripIDwTime.first;
             QString serviceID = (*tripDB)[tripID].service_id;
@@ -433,7 +436,7 @@ void GtfsRequestProcessor::tripsServingStop(QString stopID, QDate onlyDate, QJso
         resp["parent_sta"]   = (*stops)[stopID].parent_station;
         resp["service_date"] = onlyDate.toString("ddd dd-MMM-yyyy");
 
-        for (const QString routeID : (*stops)[stopID].stopTripsRoutes.keys()) {
+        for (const QString &routeID : (*stops)[stopID].stopTripsRoutes.keys()) {
             QJsonObject singleRouteJSON;
             QJsonArray routeTripArray;
 
@@ -638,6 +641,9 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
     resp["stop_name"] = tripStopLoader.getStopName();
     resp["stop_desc"] = tripStopLoader.getStopDesciption();
 
+    // Be able to fetch Trip ID details
+    const GTFS::TripData *tripDB = GTFS::DataGateway::inst().getTripsDB();
+
     // Populate the valid upcoming routes with trips for the stop_id requested
     QJsonArray  stopRouteArray;
     QMap<QString, GTFS::StopRecoRouteRec> tripsForStopByRouteID;
@@ -665,6 +671,7 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
 
             QJsonObject stopTripItem;
             stopTripItem["trip_id"]         = rts.tripID;
+            stopTripItem["short_name"]      = (*tripDB)[rts.tripID].trip_short_name;
             stopTripItem["dep_time"]        = rts.schDepTime.isNull() ? "-" : rts.schDepTime.toString("ddd hh:mm");
             stopTripItem["arr_time"]        = rts.schArrTime.isNull() ? "-" : rts.schArrTime.toString("ddd hh:mm");
             stopTripItem["wait_time_sec"]   = rts.waitTimeSec;
@@ -820,6 +827,7 @@ void fillUnifiedTripDetailsForArray(const QString            &tripID,
     singleStopJSON["headsign"]      = ((*stopTimes)[tripID].at(stopTripIdx).stop_headsign != "")
                                          ? (*stopTimes)[tripID].at(stopTripIdx).stop_headsign
                                          : (*tripDB)[tripID].trip_headsign;
+    singleStopJSON["short_name"]    = (*tripDB)[tripID].trip_short_name;
     singleStopJSON["drop_off_type"] = (*stopTimes)[tripID].at(stopTripIdx).drop_off_type;
     singleStopJSON["pickup_type"]   = (*stopTimes)[tripID].at(stopTripIdx).pickup_type;
 

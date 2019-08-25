@@ -74,6 +74,7 @@ void Display::displayWelcome()
            << endl
            << "[ System Information ]" << endl
            << "SDS: Backend system and data load status" << endl
+           << "RDS: GTFS Real-Time data retrieval status" << endl
            << "RTE: Routes available from the data set" << endl
            << "SSR: List of all stops served by a single route" << endl
            << "SNT: List all stops that have no trips (diagnostic)" << endl
@@ -83,6 +84,7 @@ void Display::displayWelcome()
            << "TSR: List of trips serving a route_id" << endl
            << "TSS: List of trips serving a stop_id" << endl
            << "TRI: List all the stops served by a trip_id" << endl
+           << "RTR: List the real-time data of an active trip_id" << endl
            << endl
            << "[ Data Lookup for Specific Date ]" << endl
            << "TRD: List of trips serving a route_id on a date" << endl

@@ -30,9 +30,10 @@ namespace GTFS {
 
 typedef struct {
 //    QString trip_id;        // Primary data key, needed by StopTimes
-    QString route_id;       // The route on which this trip operates
-    QString service_id;     // Needed to see which day(s) trip is active
-    QString trip_headsign;  // Note this is optional
+    QString route_id;         // The route on which this trip operates
+    QString service_id;       // Needed to see which day(s) trip is active
+    QString trip_headsign;    // OPTIONAL: Almost always filled, this is what the vehicle destination usually is
+    QString trip_short_name;  // OPTIONAL: Sometimes used to indicate an easier-to-grok label like the "Train Number"
     /*
      * There are several additional fields here but we are ignoring them for the time being
      */
@@ -63,7 +64,8 @@ private:
                               qint8 &routeIdPos,
                               qint8 &tripIdPos,
                               qint8 &serviceIdPos,
-                              qint8 &headsignPos);
+                              qint8 &headsignPos,
+                              qint8 &tripShortNamePos);
 
     // Trip Database
     TripData tripDb;

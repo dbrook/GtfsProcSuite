@@ -32,7 +32,7 @@ void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath)
     }
 }
 
-qint32 RealTimeGateway::secondsToFetch() const
+qint64 RealTimeGateway::secondsToFetch() const
 {
     return QDateTime::currentDateTimeUtc().secsTo(_nextFetchTimeUTC);
 }

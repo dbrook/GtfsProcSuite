@@ -32,14 +32,15 @@ Trips::Trips(const QString dataRootPath, QObject *parent) : QObject(parent)
     // Read the feed information
     qDebug() << "Starting Trip Process";
     CsvProcess((dataRootPath + "/trips.txt").toUtf8(), &dataStore);
-    qint8 routeIdPos, tripIdPos, serviceIdPos, headsignPos;
-    tripsCSVOrder(dataStore.at(0), routeIdPos, tripIdPos, serviceIdPos, headsignPos);
+    qint8 routeIdPos, tripIdPos, serviceIdPos, headsignPos, tripShortNamePos;
+    tripsCSVOrder(dataStore.at(0), routeIdPos, tripIdPos, serviceIdPos, headsignPos, tripShortNamePos);
 
     for (int l = 1; l < dataStore.size(); ++l) {
         TripRec trip;
-        trip.route_id      = dataStore.at(l).at(routeIdPos);
-        trip.service_id    = dataStore.at(l).at(serviceIdPos);
-        trip.trip_headsign = (headsignPos != -1) ? dataStore.at(l).at(headsignPos) : "";
+        trip.route_id        = dataStore.at(l).at(routeIdPos);
+        trip.service_id      = dataStore.at(l).at(serviceIdPos);
+        trip.trip_headsign   = (headsignPos != -1) ? dataStore.at(l).at(headsignPos) : "";
+        trip.trip_short_name = (tripShortNamePos != -1) ? dataStore.at(l).at(tripShortNamePos) : "";
 
         this->tripDb[dataStore.at(l).at(tripIdPos)] = trip;
     }
@@ -56,7 +57,11 @@ const TripData &Trips::getTripsDB() const
 }
 
 void Trips::tripsCSVOrder(const QVector<QString> csvHeader,
-                          qint8 &routeIdPos, qint8 &tripIdPos, qint8 &serviceIdPos, qint8 &headsignPos)
+                          qint8 &routeIdPos,
+                          qint8 &tripIdPos,
+                          qint8 &serviceIdPos,
+                          qint8 &headsignPos,
+                          qint8 &tripShortNamePos)
 {
     routeIdPos = tripIdPos = serviceIdPos = headsignPos = -1;
     qint8 position = 0;
@@ -70,6 +75,8 @@ void Trips::tripsCSVOrder(const QVector<QString> csvHeader,
             serviceIdPos = position;
         } else if (item == "trip_headsign") {
             headsignPos = position;
+        } else if (item == "trip_short_name") {
+            tripShortNamePos = position;
         }
         ++position;
     }

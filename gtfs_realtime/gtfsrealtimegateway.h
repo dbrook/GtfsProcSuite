@@ -28,7 +28,7 @@ public:
     void setRealTimeFeedPath(const QString &realTimeFeedPath);
 
     // How long until the next fetch?
-    qint32 secondsToFetch() const;
+    qint64 secondsToFetch() const;
 
     // Query the active feed
     RealTimeDataRepo activeBuffer();

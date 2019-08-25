@@ -111,6 +111,9 @@ public:
     // Passes back route_id and stopTimes
     void fillStopTimesForTrip(const QString &tripID, QString &route_id, QVector<rtStopTimeUpdate> &stopTimes) const;
 
+    // Retrieve operating vehicle information
+    const QString getOperatingVehicle(const QString &tripID) const;
+
 signals:
 
 public slots:
@@ -121,15 +124,15 @@ private:
      */
     transit_realtime::FeedMessage   _tripUpdate;     // Hold the raw protobuf here, but it is not optimized for reading
 
-    QMap<QString, qint32>           _cancelledTrips; // Track cancelled trips with associated entity idx
-    QMap<QString, qint32>           _addedTrips;     // Trips running which do not correspond to the GTFS Static data
-    QMap<QString, qint32>           _activeTrips;    // Trips running with real-time data (to replace schedule times)
+    QMap<QString, qint64>           _cancelledTrips; // Track cancelled trips with associated entity idx
+    QMap<QString, qint64>           _addedTrips;     // Trips running which do not correspond to the GTFS Static data
+    QMap<QString, qint64>           _activeTrips;    // Trips running with real-time data (to replace schedule times)
 
     // Stop-IDs which have been skipped by any number of trips
     QMap<QString, QVector<QPair<QString, quint32>>> _skippedStops;
 
-    qint32 _downloadTimeMSec;
-    qint32 _integrationTimeMSec;
+    qint64 _downloadTimeMSec;
+    qint64 _integrationTimeMSec;
 };
 
 } // namespace GTFS
