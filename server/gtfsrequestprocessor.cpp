@@ -356,13 +356,17 @@ void GtfsRequestProcessor::tripsServingRoute(QString routeID, QDate onlyDate, QJ
     const GTFS::RouteData *routes = GTFS::DataGateway::inst().getRoutesDB();
 
     if (routes->contains(routeID)) {
-        const GTFS::TripData     *tripDB = GTFS::DataGateway::inst().getTripsDB();
-        const GTFS::OperatingDay *svc    = GTFS::DataGateway::inst().getServiceDB();
+        const GTFS::TripData     *tripDB      = GTFS::DataGateway::inst().getTripsDB();
+        const GTFS::StopTimeData *stopTimesDB = GTFS::DataGateway::inst().getStopTimesDB();
+        const GTFS::StopData     *stopDB      = GTFS::DataGateway::inst().getStopsDB();
+        const GTFS::OperatingDay *svc         = GTFS::DataGateway::inst().getServiceDB();
 
         resp["route_id"]         = routeID;
         resp["route_short_name"] = (*routes)[routeID].route_short_name;
         resp["route_long_name"]  = (*routes)[routeID].route_long_name;
         resp["service_date"]     = onlyDate.toString("ddd dd-MMM-yyyy");
+        resp["route_color"]      = (*routes)[routeID].route_color;
+        resp["route_text_color"] = (*routes)[routeID].route_text_color;
 
         for (const QPair<QString, qint32> &tripIDwTime : (*routes)[routeID].trips) {
             // Loop on each route that serves the stop
@@ -384,7 +388,18 @@ void GtfsRequestProcessor::tripsServingRoute(QString routeID, QDate onlyDate, QJ
             singleStopJSON["supplements_other_days"] = svc->serviceAddedOnOtherDates(serviceID);
             singleStopJSON["exceptions_present"]     = svc->serviceRemovedOnDates(serviceID);
 
-            // Since it is the beginning of the trip's time that will be displayed, we assume it's not -1
+            // More flexible operating day information
+            bool mon, tue, wed, thu, fri, sat, sun = false;
+            svc->booleanOpDays(serviceID, mon, tue, wed, thu, fri, sat, sun);
+            singleStopJSON["op_mon"] = mon;
+            singleStopJSON["op_tue"] = tue;
+            singleStopJSON["op_wed"] = wed;
+            singleStopJSON["op_thu"] = thu;
+            singleStopJSON["op_fri"] = fri;
+            singleStopJSON["op_sat"] = sat;
+            singleStopJSON["op_sun"] = sun;
+
+            // First Departure of Trip
             if (onlyDate.isNull()) {
                 QTime localNoon    = QTime(12, 0, 0);
                 QTime firstStopDep = localNoon.addSecs(tripIDwTime.second);
@@ -393,8 +408,30 @@ void GtfsRequestProcessor::tripsServingRoute(QString routeID, QDate onlyDate, QJ
                 QDateTime localNoon(onlyDate, QTime(12, 0, 0), data->getAgencyTZ());
                 QDateTime firstStopDep = localNoon.addSecs(tripIDwTime.second);
                 singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
-                singleStopJSON["dst_on"] = firstStopDep.isDaylightTime();
+                singleStopJSON["first_stop_dst_on"] = firstStopDep.isDaylightTime();
             }
+
+            // First StopID of Trip (trips do not always begin at a terminal and just relying on headsign is thus evil!)
+            const GTFS::StopTimeRec &firstStop = (*stopTimesDB)[tripID].first();
+            singleStopJSON["first_stop_id"]   = firstStop.stop_id;
+            singleStopJSON["first_stop_name"] = (*stopDB)[firstStop.stop_id].stop_name;
+
+            // Last Arrival of Trip
+            const GTFS::StopTimeRec &lastStop = (*stopTimesDB)[tripID].last();
+            if (onlyDate.isNull()) {
+                QTime localNoon    = QTime(12, 0, 0);
+                QTime firstStopDep = localNoon.addSecs(lastStop.arrival_time);
+                singleStopJSON["last_stop_arrival"] = firstStopDep.toString("hh:mm");
+            } else {
+                QDateTime localNoon(onlyDate, QTime(12, 0, 0), data->getAgencyTZ());
+                QDateTime lastStopArr = localNoon.addSecs(lastStop.arrival_time);
+                singleStopJSON["last_stop_arrival"] = lastStopArr.toString("hh:mm");
+                singleStopJSON["last_stop_dst_on"] = lastStopArr.isDaylightTime();
+            }
+
+            // Last StopID of Trip
+            singleStopJSON["last_stop_id"]   = lastStop.stop_id;
+            singleStopJSON["last_stop_name"] = (*stopDB)[lastStop.stop_id].stop_name;
 
             routeTripArray.push_back(singleStopJSON);
         }
@@ -443,6 +480,8 @@ void GtfsRequestProcessor::tripsServingStop(QString stopID, QDate onlyDate, QJso
             singleRouteJSON["route_id"]         = routeID;
             singleRouteJSON["route_short_name"] = (*routes)[routeID].route_short_name;
             singleRouteJSON["route_long_name"]  = (*routes)[routeID].route_long_name;
+            singleRouteJSON["route_color"]      = (*routes)[routeID].route_color;
+            singleRouteJSON["route_text_color"] = (*routes)[routeID].route_text_color;
 
             for (qint32 tripLoopIdx = 0;
                  tripLoopIdx < (*stops)[stopID].stopTripsRoutes[routeID].length();
@@ -531,6 +570,8 @@ void GtfsRequestProcessor::stationDetailsDisplay(QString stopID, QJsonObject &re
             singleRouteJSON["route_id"]         = routeID;
             singleRouteJSON["route_short_name"] = (*routes)[routeID].route_short_name;
             singleRouteJSON["route_long_name"]  = (*routes)[routeID].route_long_name;
+            singleRouteJSON["route_color"]      = (*routes)[routeID].route_color;
+            singleRouteJSON["route_text_color"] = (*routes)[routeID].route_text_color;
             stopRouteArray.push_back(singleRouteJSON);
         }
         resp["routes"] = stopRouteArray;
@@ -841,6 +882,17 @@ void fillUnifiedTripDetailsForArray(const QString            &tripID,
         singleStopJSON["operate_days_condensed"] = svc->shortSerializeOpDays(serviceID);
         singleStopJSON["supplements_other_days"] = svc->serviceAddedOnOtherDates(serviceID);
         singleStopJSON["exceptions_present"]     = svc->serviceRemovedOnDates(serviceID);
+
+        // More flexible operating day information
+        bool mon, tue, wed, thu, fri, sat, sun = false;
+        svc->booleanOpDays(serviceID, mon, tue, wed, thu, fri, sat, sun);
+        singleStopJSON["op_mon"] = mon;
+        singleStopJSON["op_tue"] = tue;
+        singleStopJSON["op_wed"] = wed;
+        singleStopJSON["op_thu"] = thu;
+        singleStopJSON["op_fri"] = fri;
+        singleStopJSON["op_sat"] = sat;
+        singleStopJSON["op_sun"] = sun;
     }
 
     // Fill the time of service. Note that it could be distinct from the countdown when we have no scheduled time(s)!

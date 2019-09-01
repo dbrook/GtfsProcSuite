@@ -96,6 +96,8 @@ public:
      */
     QString serializeOpDays     (const QString &serviceName) const;
     QString shortSerializeOpDays(const QString &serviceName) const;
+    void    booleanOpDays       (const QString &serviceName,
+                                 bool &mon, bool &tue, bool &wed, bool &thu, bool &fri, bool &sat, bool &sun) const;
 
     /*
      * Get a list of dates for which extra service was added for a service_id

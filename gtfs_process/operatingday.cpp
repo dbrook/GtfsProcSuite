@@ -219,6 +219,42 @@ QString OperatingDay::shortSerializeOpDays(const QString &serviceName) const
     return days;
 }
 
+void OperatingDay::booleanOpDays(const QString &serviceName,
+                                 bool &mon, bool &tue, bool &wed, bool &thu, bool &fri, bool &sat, bool &sun) const
+{
+    CalendarRec serviceCal = this->calendarDb[serviceName];
+
+    // Fill each operating day in individually
+    if (serviceCal.monday)
+        mon = true;
+    else
+        mon = false;
+    if (serviceCal.tuesday)
+        tue = true;
+    else
+        tue = false;
+    if (serviceCal.wednesday)
+        wed = true;
+    else
+        wed = false;
+    if (serviceCal.thursday)
+        thu = true;
+    else
+        thu = false;
+    if (serviceCal.friday)
+        fri = true;
+    else
+        fri = false;
+    if (serviceCal.saturday)
+        sat = true;
+    else
+        sat = false;
+    if (serviceCal.sunday)
+        sun = true;
+    else
+        sun = false;
+}
+
 QString OperatingDay::serializeAddedServiceDates(const QString &serviceName) const
 {
     QString calDates;
