@@ -28,10 +28,9 @@
 
 ClientGtfs::ClientGtfs(QObject *parent) : QObject(parent), disp()
 {
-    disp.displayWelcome();
 }
 
-bool ClientGtfs::startConnection(QString hostname, int port, int userTimeout)
+bool ClientGtfs::startConnection(QString hostname, quint16 port, int userTimeout)
 {
     // Start talking to the server to hold open a connection
     // Should be automatically cleaned by destructor
@@ -50,9 +49,44 @@ bool ClientGtfs::startConnection(QString hostname, int port, int userTimeout)
     return true;
 }
 
+void ClientGtfs::once()
+{
+    QTextStream screen(stdout);
+    QTextStream stdinquery(stdin);
+    stdinquery.skipWhiteSpace();
+    QString query = stdinquery.readLine(1024);
+    QString response;
+
+    // Assume here that the script / client knows what they're doing, so send the request to the server
+    QByteArray serverRequest = query.toUtf8();
+    this->commSocket.write(serverRequest);
+
+    // Socket communication is a pain, so there is "an understanding" with the server that a newline character
+    // indicates the end of a transmission, read text off the socket until a newline is found.
+    while (1) {
+        // Wait for response (15 seconds)
+        if (! this->commSocket.waitForReadyRead(15000)) {
+            this->disp.showError(this->commSocket.errorString());
+            break;
+        }
+
+        QString tempRespStr = QString(this->commSocket.readAll());
+        response += tempRespStr;
+        //qDebug() << "==> " << responseStr;
+        if (response.indexOf('\n') != -1) {
+            break;
+        }
+    }
+
+    // Dump the JSON response to standard output
+    screen << response;
+}
+
 void ClientGtfs::repl()
 {
     QTextStream screen(stdout);
+
+    disp.displayWelcome();
 
     while (1) {
         screen << "% ";

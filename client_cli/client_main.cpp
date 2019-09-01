@@ -55,8 +55,13 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Begin processing user commands
-    client.repl();
+    if (args.size() == 2) {
+        // Begin processing user commands if interactive mode specified
+        client.repl();
+    } else {
+        // Or the user specified an application and is expecting an instant response (no REPL desired)
+        client.once();
+    }
 
     //
     return 0;
