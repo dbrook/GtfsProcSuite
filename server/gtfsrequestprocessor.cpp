@@ -744,10 +744,11 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
                 else if (tripStat == GTFS::CANCEL)
                     statusString = "CNCL";
 
-                realTimeData["status"]         = statusString;
-                realTimeData["actual_time"]    = rts.realTimeActual.toString("ddd hh:mm");
-                realTimeData["offset_seconds"] = rts.realTimeOffsetSec;
-                stopTripItem["realtime_data"]  = realTimeData;
+                realTimeData["status"]           = statusString;
+                realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd hh:mm");
+                realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd hh:mm");
+                realTimeData["offset_seconds"]   = rts.realTimeOffsetSec;
+                stopTripItem["realtime_data"]    = realTimeData;
             }
 
             stopTrips.push_back(stopTripItem);

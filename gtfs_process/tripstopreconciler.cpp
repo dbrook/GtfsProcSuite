@@ -124,16 +124,16 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                                                          predictedArr, predictedDep))
                     {
                         if (!predictedArr.isNull())
-                            tripRecord.realTimeActual = predictedArr.toTimeZone(_agencyTime.timeZone());
-                        else if (!predictedDep.isNull())
-                            tripRecord.realTimeActual = predictedDep.toTimeZone(_agencyTime.timeZone());
+                            tripRecord.realTimeArrival   = predictedArr.toTimeZone(_agencyTime.timeZone());
+                        if (!predictedDep.isNull())
+                            tripRecord.realTimeDeparture = predictedDep.toTimeZone(_agencyTime.timeZone());
 
-                        if (!tripRecord.schArrTime.isNull() && !predictedArr.isNull()) {
-                            tripRecord.realTimeOffsetSec = tripRecord.schArrTime.secsTo(predictedArr);
-                            tripRecord.waitTimeSec       = _agencyTime.secsTo(predictedArr);
-                        } else if (!tripRecord.schDepTime.isNull() && !predictedDep.isNull()) {
+                        if (!tripRecord.schDepTime.isNull() && !predictedDep.isNull()) {
                             tripRecord.realTimeOffsetSec = tripRecord.schDepTime.secsTo(predictedDep);
                             tripRecord.waitTimeSec       = _agencyTime.secsTo(predictedDep);
+                        } else if (!tripRecord.schArrTime.isNull() && !predictedArr.isNull()) {
+                            tripRecord.realTimeOffsetSec = tripRecord.schArrTime.secsTo(predictedArr);
+                            tripRecord.waitTimeSec       = _agencyTime.secsTo(predictedArr);
                         }
 
                         // Time-based statuses (arriving/early/late/on-time)
@@ -189,13 +189,19 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                 // Calculate wait time and actual departure/arrivals if available
                 QDateTime prArrTime, prDepTime;
                 if (rActiveFeed->tripStopActualTime(tripAndIndex.first, tripAndIndex.second, prArrTime, prDepTime)) {
-                    // We have to have at least one time?
-                    if (!prArrTime.isNull())
-                        tripRecord.realTimeActual = prArrTime.toTimeZone(_agencyTime.timeZone());
-                    else if (!prDepTime.isNull())
-                        tripRecord.realTimeActual = prDepTime.toTimeZone(_agencyTime.timeZone());
-                    // Countdown
-                    tripRecord.waitTimeSec = _agencyTime.secsTo(tripRecord.realTimeActual);
+                    // We have to have at least one time
+                    if (!prDepTime.isNull()) {
+                        tripRecord.realTimeDeparture = prDepTime.toTimeZone(_agencyTime.timeZone());
+
+                        // Fill in the countdown until departure initially ...
+                        tripRecord.waitTimeSec = _agencyTime.secsTo(tripRecord.realTimeDeparture);
+                    }
+                    if (!prArrTime.isNull()) {
+                        tripRecord.realTimeArrival = prArrTime.toTimeZone(_agencyTime.timeZone());
+
+                        // ... but we will always prefer the countdown time to show the time until vehicle arrival
+                        tripRecord.waitTimeSec = _agencyTime.secsTo(tripRecord.realTimeArrival);
+                    }
                 }
 
                 // Dumb hack to figure out where the train is going (will not properly match the "headsign" field!)
@@ -208,8 +214,9 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
         }
 
         // Sort the vector by the service time (order of importance: arrival time THEN departure time)
-        // RealTime trips may have their actual time modified by so much that the scheduling order breaks down
-        // This is much more common on some systems/routes than others
+        // RealTime trips may have their actual time modified by so much that the scheduling order breaks down.
+        // This is much more common on some systems/routes than others. As this application is primarily used to show
+        // countdown / wait timers, we will prefer sorting based on actual times and adjust the output as needed.
         for (const QString &routeID : routeTrips.keys())
             std::sort(routeTrips[routeID].tripRecos.begin(),
                       routeTrips[routeID].tripRecos.end(),
@@ -309,14 +316,21 @@ void TripStopReconciler::invalidateTrips(const QString &routeID, QMap<QString, S
         if ((tripRecord.tripStatus == SCHEDULE   && _agencyTime > stopTime) ||
             (tripRecord.tripStatus == NOSCHEDULE && _agencyTime > tripRecord.schSortTime))
             tripRecord.tripStatus = IRRELEVANT;
-        else if (_realTimeMode)
-            // With realtime data available, don't "irrelevant-ify" cancelled or skipped stops (might be interesting)
-            if (tripRecord.tripStatus == ON_TIME || tripRecord.tripStatus == LATE    ||
-                tripRecord.tripStatus == EARLY   || tripRecord.tripStatus == DEPART  ||
-                tripRecord.tripStatus == BOARD   || tripRecord.tripStatus == ARRIVE)
-                if ((_agencyTime.secsTo(tripRecord.realTimeActual) < -60) ||
-                    (_lookaheadMins != 0 && tripRecord.realTimeActual > _lookaheadTime))
+        else if (_realTimeMode) {
+            // With realtime data available, don't "irrelevant-ify" skipped stops (might be interesting to show)
+            // We won't get rid of trips immediately, let them live for a few minutes before expunging from view.
+            if (tripRecord.tripStatus == ON_TIME || tripRecord.tripStatus == LATE   ||
+                tripRecord.tripStatus == EARLY   || tripRecord.tripStatus == DEPART ||
+                tripRecord.tripStatus == BOARD   || tripRecord.tripStatus == ARRIVE   )
+                if ((_agencyTime.secsTo(tripRecord.realTimeArrival) < -60) ||
+                    (_lookaheadMins != 0 && tripRecord.realTimeArrival > _lookaheadTime))
                     tripRecord.tripStatus = IRRELEVANT;
+
+            // The excpetion is for cancelled trips, which can show for 15 minutes past the scheduled departure
+            if (tripRecord.tripStatus == CANCEL)
+                if (_agencyTime.secsTo(tripRecord.realTimeDeparture) > -900)
+                    tripRecord.tripStatus = IRRELEVANT;
+        }
 
         // If we didn't mark the trip as irrelevant, then it shall count against the maxTripsForRoute
         if (tripRecord.tripStatus != IRRELEVANT)
@@ -353,7 +367,11 @@ bool TripStopReconciler::arrivalThenDepartureSortRealTime(StopRecoTripRec &left,
         leftSort = left.schSortTime;
     } else {
         // Everything else should have real time data available for sorting
-        leftSort = left.realTimeActual;
+        // Give preference for arrival time, but for trips that begin, it might be unreliable, so fallback to departure
+        if (!left.realTimeArrival.isNull())
+            leftSort = left.realTimeArrival;
+        else
+            leftSort = left.realTimeDeparture;
     }
 
     if (right.tripStatus == SCHEDULE || right.tripStatus == CANCEL  ||
@@ -366,7 +384,11 @@ bool TripStopReconciler::arrivalThenDepartureSortRealTime(StopRecoTripRec &left,
         rightSort = right.schSortTime;
     } else {
         // Everything else should have real time data available for sorting
-        rightSort = right.realTimeActual;
+        // Give preference for arrival time, but for trips that begin, it might be unreliable, so fallback to departure
+        if (!right.realTimeArrival.isNull())
+            rightSort = right.realTimeArrival;
+        else
+            rightSort = right.realTimeDeparture;
     }
 
     return leftSort < rightSort;

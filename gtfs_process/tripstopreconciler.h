@@ -55,7 +55,8 @@ typedef struct {
     qint64       realTimeOffsetSec;   // Schedule deviation (if a real-time recommendation with a static counterpart)
     TripRecStat  tripStatus;          // * See above *
     QDate        tripServiceDate;     // Date of service that the trip is from
-    QDateTime    realTimeActual;      // Arrival Time (if possible, else it is the Departure) from the real-time data
+    QDateTime    realTimeArrival;     // Arrival Time (if possible, else it is null) from the real-time data
+    QDateTime    realTimeDeparture;   // Departure Time (if possible, else it is null) from the real-time data
     QDateTime    schDepTime;          // Departure time from the static data
     QDateTime    schArrTime;          // Arrival time from the static data
     QDateTime    schSortTime;         // In the absence of the dep/arr times in the database, we use the 'sort time'

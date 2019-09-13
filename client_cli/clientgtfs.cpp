@@ -715,7 +715,7 @@ void ClientGtfs::repl()
                                        << qSetFieldWidth(1) << " " << qSetFieldWidth(c7) << " "
                                        << qSetFieldWidth(1) << " " << qSetFieldWidth(0);
                             } else {
-                                screen << qSetFieldWidth(c5+c6+1) << rt["actual_time"].toString()
+                                screen << qSetFieldWidth(c5+c6+1) << rt["actual_arrival"].toString()
                                        << qSetFieldWidth(1)       << " "
                                        << qSetFieldWidth(c7)      << waitTimeMin
                                        << qSetFieldWidth(1)       << " ";
