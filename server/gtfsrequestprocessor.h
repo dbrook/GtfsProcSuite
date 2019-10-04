@@ -141,6 +141,7 @@ private:
                          qint32       futureMinutes,
                          qint32       maxTripsPerRoute,
                          bool         realTimeOnly,
+                         bool         combinedFormat,
                          QJsonObject &resp);
 
     /*
@@ -158,6 +159,16 @@ private:
      * (TODO: Insert details of message contents)
      */
     void realtimeDataStatus(QJsonObject &resp);
+
+    /*
+     * The "RTI" request handler - Realtime Trip Information (if available)
+     *
+     * Response format: JSON
+     *
+     * The Real-Time Trip Information (grouped into added trips, operating trips (that also exist in static feed),
+     * and the cancelled trips)
+     */
+    void realtimeTripInformation(QJsonObject &resp);
 
     /*
      * Date decoder / helper

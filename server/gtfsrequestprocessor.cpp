@@ -46,6 +46,9 @@ static void fillUnifiedTripDetailsForArray(const QString            &tripID,
                                            qint64                    waitTimeSec,
                                            QJsonObject              &singleStopJSON);
 
+// Sort trips by wait-time
+static inline void swap(QJsonValueRef left, QJsonValueRef right);
+
 GtfsRequestProcessor::GtfsRequestProcessor(QString userRequest) : request(userRequest)
 {
 
@@ -96,19 +99,33 @@ void GtfsRequestProcessor::run()
         if (futureMinutes < 0) {
             // Requesting a maximum number of future trips per route
             // (cap at 72-hours so we can see today + tomorrow even through hopefully all of its after-midnight trips)
-            nextTripsAtStop(remainingReq, 4320, futureMinutes * -1, false, respJson);
+            nextTripsAtStop(remainingReq, 4320, futureMinutes * -1, false, false, respJson);
         } else {
             // Requesting future trips for a time range, no limit on occurrences
-            nextTripsAtStop(remainingReq, futureMinutes, 0, false, respJson);
+            nextTripsAtStop(remainingReq, futureMinutes, 0, false, false, respJson);
+        }
+    } else if (! userApp.compare("NCF", Qt::CaseInsensitive)) {
+        QString remainingReq;
+        qint32 futureMinutes = determineMinuteRange(userReq, remainingReq);
+        if (futureMinutes < 0) {
+            // Requesting a maximum number of future trips per route
+            // (cap at 72-hours so we can see today + tomorrow even through hopefully all of its after-midnight trips)
+            nextTripsAtStop(remainingReq, 4320, futureMinutes * -1, false, true, respJson);
+        } else {
+            // Requesting future trips for a time range, no limit on occurrences
+            nextTripsAtStop(remainingReq, futureMinutes, 0, false, true, respJson);
         }
     } else if (! userApp.compare("NXR", Qt::CaseInsensitive)) {
-        nextTripsAtStop(userReq, 4320, 0, true, respJson);
+        // Just like "NEX" but ONLY with realtime recommendations
+        nextTripsAtStop(userReq, 4320, 0, true, false, respJson);
     } else if (! userApp.compare("SNT", Qt::CaseInsensitive)) {
         stopsNoTrips(respJson);
     } else if (! userApp.compare("RTR", Qt::CaseInsensitive)) {
         tripStopsDisplay(userReq, true, respJson);
     } else if (! userApp.compare("RDS", Qt::CaseInsensitive)) {
         realtimeDataStatus(respJson);
+    } else if (! userApp.compare("RTI", Qt::CaseInsensitive)) {
+        realtimeTripInformation(respJson);
     } else {
         // Return ERROR 1: Unknown request (userApp)
         SystemResponse = "{\"error\":\"1\",\"user_string\":\"" + this->request + "\"}";
@@ -646,6 +663,7 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
                                            qint32       futureMinutes,
                                            qint32       maxTripsPerRoute,
                                            bool         realTimeOnly,
+                                           bool         combinedFormat,
                                            QJsonObject &resp)
 {
     // Inform global status that a request was received
@@ -666,7 +684,11 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
         rtData = true;
 
     // Boilerplate response details
-    resp["message_type"] = "NEX";
+    if (!combinedFormat) {
+        resp["message_type"] = "NEX";
+    } else {
+        resp["message_type"] = "NCF";
+    }
     resp["error"]        = 0;
     resp["message_time"] = agencyTime.toString("dd-MMM-yyyy hh:mm:ss t");
 
@@ -690,72 +712,142 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
     QMap<QString, GTFS::StopRecoRouteRec> tripsForStopByRouteID;
     tripStopLoader.getTripsByRoute(tripsForStopByRouteID);
 
-    // Loop over the responses to fill in the JSON responses
-    for (const QString &routeID : tripsForStopByRouteID.keys()) {
-        QJsonObject singleRouteJSON;
-        singleRouteJSON["route_id"]         = routeID;
-        singleRouteJSON["route_short_name"] = tripsForStopByRouteID[routeID].shortRouteName;
-        singleRouteJSON["route_long_name"]  = tripsForStopByRouteID[routeID].longRouteName;
-        singleRouteJSON["route_color"]      = tripsForStopByRouteID[routeID].routeColor;
-        singleRouteJSON["route_text_color"] = tripsForStopByRouteID[routeID].routeTextColor;
+    // Sorted-by-route - expanded detail mode
+    if (!combinedFormat) {
+        for (const QString &routeID : tripsForStopByRouteID.keys()) {
+            QJsonObject singleRouteJSON;
+            singleRouteJSON["route_id"]         = routeID;
+            singleRouteJSON["route_short_name"] = tripsForStopByRouteID[routeID].shortRouteName;
+            singleRouteJSON["route_long_name"]  = tripsForStopByRouteID[routeID].longRouteName;
+            singleRouteJSON["route_color"]      = tripsForStopByRouteID[routeID].routeColor;
+            singleRouteJSON["route_text_color"] = tripsForStopByRouteID[routeID].routeTextColor;
 
-        // Fetch the trips
-        QJsonArray stopTrips;
-        for (const GTFS::StopRecoTripRec &rts : tripsForStopByRouteID[routeID].tripRecos) {
-            GTFS::TripRecStat tripStat = rts.tripStatus;
+            // Fetch the trips
+            QJsonArray stopTrips;
+            for (const GTFS::StopRecoTripRec &rts : tripsForStopByRouteID[routeID].tripRecos) {
+                GTFS::TripRecStat tripStat = rts.tripStatus;
 
-            if (tripStat == GTFS::IRRELEVANT)
-                continue;
+                if (tripStat == GTFS::IRRELEVANT)
+                    continue;
 
-            if (realTimeOnly && (tripStat == GTFS::SCHEDULE || tripStat == GTFS::NOSCHEDULE))
-                continue;
+                if (realTimeOnly && (tripStat == GTFS::SCHEDULE || tripStat == GTFS::NOSCHEDULE))
+                    continue;
 
-            QJsonObject stopTripItem;
-            stopTripItem["trip_id"]         = rts.tripID;
-            stopTripItem["short_name"]      = (*tripDB)[rts.tripID].trip_short_name;
-            stopTripItem["dep_time"]        = rts.schDepTime.isNull() ? "-" : rts.schDepTime.toString("ddd hh:mm");
-            stopTripItem["arr_time"]        = rts.schArrTime.isNull() ? "-" : rts.schArrTime.toString("ddd hh:mm");
-            stopTripItem["wait_time_sec"]   = rts.waitTimeSec;
-            stopTripItem["headsign"]        = rts.headsign;
-            stopTripItem["pickup_type"]     = rts.pickupType;
-            stopTripItem["drop_off_type"]   = rts.dropoffType;
-            stopTripItem["trip_begins"]     = rts.beginningOfTrip;
-            stopTripItem["trip_terminates"] = rts.endOfTrip;
+                QJsonObject stopTripItem;
+                stopTripItem["trip_id"]         = rts.tripID;
+                stopTripItem["short_name"]      = (*tripDB)[rts.tripID].trip_short_name;
+                stopTripItem["dep_time"]        = rts.schDepTime.isNull() ? "-" : rts.schDepTime.toString("ddd hh:mm");
+                stopTripItem["arr_time"]        = rts.schArrTime.isNull() ? "-" : rts.schArrTime.toString("ddd hh:mm");
+                stopTripItem["wait_time_sec"]   = rts.waitTimeSec;
+                stopTripItem["headsign"]        = rts.headsign;
+                stopTripItem["pickup_type"]     = rts.pickupType;
+                stopTripItem["drop_off_type"]   = rts.dropoffType;
+                stopTripItem["trip_begins"]     = rts.beginningOfTrip;
+                stopTripItem["trip_terminates"] = rts.endOfTrip;
 
-            if (rts.realTimeDataAvail) {
-                QJsonObject realTimeData;
-                QString statusString;
-                if (tripStat == GTFS::ARRIVE)
-                    statusString = "ARRV";
-                else if (tripStat == GTFS::BOARD)
-                    statusString = "BRDG";
-                else if (tripStat == GTFS::DEPART)
-                    statusString = "DPRT";
-                else if (tripStat == GTFS::ON_TIME)
-                    statusString = "ONTM";
-                else if (tripStat == GTFS::LATE)
-                    statusString = "LATE";
-                else if (tripStat == GTFS::EARLY)
-                    statusString = "ERLY";
-                else if (tripStat == GTFS::SUPPLEMENT)
-                    statusString = "SPLM";
-                else if (tripStat == GTFS::SKIP)
-                    statusString = "SKIP";
-                else if (tripStat == GTFS::CANCEL)
-                    statusString = "CNCL";
+                if (rts.realTimeDataAvail) {
+                    QJsonObject realTimeData;
+                    QString statusString;
+                    if (tripStat == GTFS::ARRIVE)
+                        statusString = "ARRV";
+                    else if (tripStat == GTFS::BOARD)
+                        statusString = "BRDG";
+                    else if (tripStat == GTFS::DEPART)
+                        statusString = "DPRT";
+                    else if (tripStat == GTFS::ON_TIME)
+                        statusString = "ONTM";
+                    else if (tripStat == GTFS::LATE)
+                        statusString = "LATE";
+                    else if (tripStat == GTFS::EARLY)
+                        statusString = "ERLY";
+                    else if (tripStat == GTFS::SUPPLEMENT)
+                        statusString = "SPLM";
+                    else if (tripStat == GTFS::SKIP)
+                        statusString = "SKIP";
+                    else if (tripStat == GTFS::CANCEL)
+                        statusString = "CNCL";
 
-                realTimeData["status"]           = statusString;
-                realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd hh:mm");
-                realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd hh:mm");
-                realTimeData["offset_seconds"]   = rts.realTimeOffsetSec;
-                stopTripItem["realtime_data"]    = realTimeData;
+                    realTimeData["status"]           = statusString;
+                    realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd hh:mm");
+                    realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd hh:mm");
+                    realTimeData["offset_seconds"]   = rts.realTimeOffsetSec;
+                    stopTripItem["realtime_data"]    = realTimeData;
+                }
+
+                stopTrips.push_back(stopTripItem);
             }
 
-            stopTrips.push_back(stopTripItem);
+            singleRouteJSON["trips"] = stopTrips;
+            stopRouteArray.push_back(singleRouteJSON);
+        }
+    }
+
+    // Combined Format mode
+    else {
+        for (const QString &routeID : tripsForStopByRouteID.keys()) {
+            QJsonArray stopTrips;
+            for (const GTFS::StopRecoTripRec &rts : tripsForStopByRouteID[routeID].tripRecos) {
+                QJsonObject stopTripJSON;
+                stopTripJSON["route_id"]         = routeID;
+                stopTripJSON["route_short_name"] = tripsForStopByRouteID[routeID].shortRouteName;
+                stopTripJSON["route_long_name"]  = tripsForStopByRouteID[routeID].longRouteName;
+                stopTripJSON["route_color"]      = tripsForStopByRouteID[routeID].routeColor;
+                stopTripJSON["route_text_color"] = tripsForStopByRouteID[routeID].routeTextColor;
+
+                GTFS::TripRecStat tripStat = rts.tripStatus;
+
+                if ((tripStat == GTFS::IRRELEVANT) ||
+                    (realTimeOnly && (tripStat == GTFS::SCHEDULE || tripStat == GTFS::NOSCHEDULE)))
+                    continue;
+
+                stopTripJSON["trip_id"]         = rts.tripID;
+                stopTripJSON["short_name"]      = (*tripDB)[rts.tripID].trip_short_name;
+                stopTripJSON["dep_time"]        = rts.schDepTime.isNull() ? "-" : rts.schDepTime.toString("ddd hh:mm");
+                stopTripJSON["arr_time"]        = rts.schArrTime.isNull() ? "-" : rts.schArrTime.toString("ddd hh:mm");
+                stopTripJSON["wait_time_sec"]   = rts.waitTimeSec;
+                stopTripJSON["headsign"]        = rts.headsign;
+                stopTripJSON["pickup_type"]     = rts.pickupType;
+                stopTripJSON["drop_off_type"]   = rts.dropoffType;
+                stopTripJSON["trip_begins"]     = rts.beginningOfTrip;
+                stopTripJSON["trip_terminates"] = rts.endOfTrip;
+
+                if (rts.realTimeDataAvail) {
+                    QJsonObject realTimeData;
+                    QString statusString;
+                    if (tripStat == GTFS::ARRIVE)
+                        statusString = "ARRV";
+                    else if (tripStat == GTFS::BOARD)
+                        statusString = "BRDG";
+                    else if (tripStat == GTFS::DEPART)
+                        statusString = "DPRT";
+                    else if (tripStat == GTFS::ON_TIME)
+                        statusString = "ONTM";
+                    else if (tripStat == GTFS::LATE)
+                        statusString = "LATE";
+                    else if (tripStat == GTFS::EARLY)
+                        statusString = "ERLY";
+                    else if (tripStat == GTFS::SUPPLEMENT)
+                        statusString = "SPLM";
+                    else if (tripStat == GTFS::SKIP)
+                        statusString = "SKIP";
+                    else if (tripStat == GTFS::CANCEL)
+                        statusString = "CNCL";
+
+                    realTimeData["status"]           = statusString;
+                    realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd hh:mm");
+                    realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd hh:mm");
+                    realTimeData["offset_seconds"]   = rts.realTimeOffsetSec;
+                    stopTripJSON["realtime_data"]    = realTimeData;
+                }
+
+                stopRouteArray.push_back(stopTripJSON);
+            }
         }
 
-        singleRouteJSON["trips"] = stopTrips;
-        stopRouteArray.push_back(singleRouteJSON);
+        // Display in order of the wait time
+        std::sort(stopRouteArray.begin(), stopRouteArray.end(), [](const QJsonValue &v1, const QJsonValue &v2) {
+            return v1["wait_time_sec"].toInt() < v2["wait_time_sec"].toInt();
+        });
     }
 
     // Attach the route list
@@ -837,15 +929,61 @@ void GtfsRequestProcessor::realtimeDataStatus(QJsonObject &resp)
         resp["active_feed_time"]        = activeFeedTime.toString("ddMMMyyyy hh:mm:ss t");
         resp["active_download_ms"]      = rTrips->getDownloadTimeMSec();
         resp["active_integration_ms"]   = rTrips->getIntegrationTimeMSec();
+    }
+
+    // Note how long query took
+    resp["proc_time_ms"] = currUTC.msecsTo(QDateTime::currentDateTimeUtc());
+}
+
+void GtfsRequestProcessor::realtimeTripInformation(QJsonObject &resp)
+{
+    const GTFS::Status    *data       = GTFS::DataGateway::inst().getStatus();
+    GTFS::RealTimeGateway &rg         = GTFS::RealTimeGateway::inst();
+    QDateTime              currUTC    = QDateTime::currentDateTimeUtc();
+    QDateTime              currAgency = currUTC.toTimeZone(data->getAgencyTZ());
+
+    resp["message_type"]  = "RTI";   // Indicate it is a trip-containing message
+    resp["error"]         = 0;
+    resp["message_time"]  = currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+
+    QMap<QString, QVector<QString> > addedRouteTrips, activeRouteTrips, cancelledRouteTrips;
+    GTFS::RealTimeTripUpdate *rTrips = rg.getActiveFeed();
+
+    if (rTrips != NULL) {
+        rTrips->getAllTripsWithPredictions(addedRouteTrips, activeRouteTrips, cancelledRouteTrips);
 
         // Cancelled Trips
-
+        QJsonObject cancelledCollection;
+        for (const QString &routeID : cancelledRouteTrips.keys()) {
+            QJsonArray cancelledRoute;
+            for (const QString &tripID : cancelledRouteTrips[routeID]) {
+                cancelledRoute.push_back(tripID);
+            }
+            cancelledCollection[routeID] = cancelledRoute;
+        }
+        resp["cancelled_trips"] = cancelledCollection;
 
         // Added Trips
+        QJsonObject addedCollection;
+        for (const QString &routeID : addedRouteTrips.keys()) {
+            QJsonArray addedRoute;
+            for (const QString &tripID : addedRouteTrips[routeID]) {
+                addedRoute.push_back(tripID);
+            }
+            addedCollection[routeID] = addedRoute;
+        }
+        resp["added_trips"] = addedCollection;
 
-
-        // Running Trips
-
+        // Active-Scheduled Trips
+        QJsonObject activeCollection;
+        for (const QString &routeID : activeRouteTrips.keys()) {
+            QJsonArray activeRoute;
+            for (const QString &tripID : activeRouteTrips[routeID]) {
+                activeRoute.push_back(tripID);
+            }
+            activeCollection[routeID] = activeRoute;
+        }
+        resp["active_trips"] = activeCollection;
     }
 
     // Note how long query took
@@ -965,6 +1103,14 @@ void fillUnifiedTripDetailsForArray(const QString            &tripID,
     } else {
         singleStopJSON["trip_begins"] = false;
     }
+}
+
+static inline void swap(QJsonValueRef left, QJsonValueRef right)
+{
+    // This seems horrible!
+    QJsonValue temp(left);
+    left  = QJsonValue(right);
+    right = temp;
 }
 
 QDate GtfsRequestProcessor::determineServiceDay(const QString &userReq, QString &remUserQuery)

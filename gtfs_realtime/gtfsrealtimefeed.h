@@ -114,6 +114,11 @@ public:
     // Retrieve operating vehicle information
     const QString getOperatingVehicle(const QString &tripID) const;
 
+    // Get a map of routes with lists of trips with prediction information
+    void getAllTripsWithPredictions(QMap<QString, QVector<QString>> &addedRouteTrips,
+                                    QMap<QString, QVector<QString>> &activeRouteTrips,
+                                    QMap<QString, QVector<QString>> &cancelledRouteTrips) const;
+
 signals:
 
 public slots:

@@ -321,4 +321,27 @@ const QString RealTimeTripUpdate::getOperatingVehicle(const QString &tripID) con
     return QString::fromStdString(tri.vehicle().label());
 }
 
+void RealTimeTripUpdate::getAllTripsWithPredictions(QMap<QString, QVector<QString> > &addedRouteTrips,
+                                                    QMap<QString, QVector<QString> > &activeRouteTrips,
+                                                    QMap<QString, QVector<QString> > &cancelledRouteTrips) const
+{
+    for (const QString &tripID : _addedTrips.keys()) {
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_addedTrips[tripID]);
+        QString qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        addedRouteTrips[qRouteId].push_back(tripID);
+    }
+
+    for (const QString &tripID : _activeTrips.keys()) {
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_activeTrips[tripID]);
+        QString qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        activeRouteTrips[qRouteId].push_back(tripID);
+    }
+
+    for (const QString &tripID : _cancelledTrips.keys()) {
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_cancelledTrips[tripID]);
+        QString qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        cancelledRouteTrips[qRouteId].push_back(tripID);
+    }
+}
+
 } // namespace GTFS
