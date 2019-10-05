@@ -216,6 +216,20 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                     }
                 }
 
+                // Trip has an arrival time, so we can mark a trip as arriving withing 30 seconds
+                if (!prArrTime.isNull() && _agencyTime.secsTo(prArrTime) < 30)
+                    tripRecord.tripStatus = ARRIVE;
+
+                // Trip has already departed but still shows up in the feed
+                if (!prDepTime.isNull() && _agencyTime > prDepTime)
+                    tripRecord.tripStatus = DEPART;
+
+                // Trip is boarding (current time is between the drop-off and pickup - requires both times))
+                if (!prArrTime.isNull() && !prDepTime.isNull()) {
+                    if (_agencyTime >= prArrTime && _agencyTime < prDepTime)
+                        tripRecord.tripStatus = BOARD;
+                }
+
                 // Dumb hack to figure out where the train is going (will not properly match the "headsign" field!)
                 const QString finalStopID = rActiveFeed->getFinalStopIdForAddedTrip(tripRecord.tripID);
                 qDebug() << "Final Stop for tripID " << tripRecord.tripID << " is: " << finalStopID;
@@ -332,13 +346,21 @@ void TripStopReconciler::invalidateTrips(const QString &routeID, QMap<QString, S
 
         // With realtime data available, don't "irrelevant-ify" skipped stops (might be interesting to show)
         // We won't get rid of trips immediately, let them live for a few minutes before expunging from view.
-        else if (_realTimeMode) {
+        else if (tripRecord.realTimeDataAvail) {
             if (tripRecord.tripStatus == ON_TIME || tripRecord.tripStatus == LATE   ||
                 tripRecord.tripStatus == EARLY   || tripRecord.tripStatus == DEPART ||
-                tripRecord.tripStatus == BOARD   || tripRecord.tripStatus == ARRIVE   )
-                if ((_agencyTime.secsTo(tripRecord.realTimeArrival) < -60) ||
-                    (_lookaheadMins != 0 && tripRecord.realTimeArrival > _lookaheadTime))
+                tripRecord.tripStatus == BOARD   || tripRecord.tripStatus == ARRIVE ||
+                tripRecord.tripStatus == SUPPLEMENT) {
+                if (!tripRecord.realTimeArrival.isNull() &&
+                    ((_agencyTime.secsTo(tripRecord.realTimeArrival) < -60) ||
+                     (_lookaheadMins != 0 && tripRecord.realTimeArrival > _lookaheadTime))) {
                     tripRecord.tripStatus = IRRELEVANT;
+                } else if (!tripRecord.realTimeDeparture.isNull() &&
+                         ((_agencyTime.secsTo(tripRecord.realTimeDeparture) < -60) ||
+                          (_lookaheadMins != 0 && tripRecord.realTimeDeparture > _lookaheadTime))) {
+                    tripRecord.tripStatus = IRRELEVANT;
+                }
+            }
 
             // The excpetion is for cancelled trips, which can show for 15 minutes past the scheduled departure
             if (tripRecord.tripStatus == CANCEL)
