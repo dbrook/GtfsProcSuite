@@ -32,7 +32,7 @@ Trips::Trips(const QString dataRootPath, QObject *parent) : QObject(parent)
     // Read the feed information
     qDebug() << "Starting Trip Process";
     CsvProcess((dataRootPath + "/trips.txt").toUtf8(), &dataStore);
-    qint8 routeIdPos, tripIdPos, serviceIdPos, headsignPos, tripShortNamePos;
+    qint8 routeIdPos, tripIdPos, serviceIdPos, headsignPos, tripShortNamePos = -1;
     tripsCSVOrder(dataStore.at(0), routeIdPos, tripIdPos, serviceIdPos, headsignPos, tripShortNamePos);
 
     for (int l = 1; l < dataStore.size(); ++l) {

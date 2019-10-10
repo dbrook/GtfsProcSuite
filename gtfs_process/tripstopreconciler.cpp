@@ -128,12 +128,12 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                         if (!predictedDep.isNull())
                             tripRecord.realTimeDeparture = predictedDep.toTimeZone(_agencyTime.timeZone());
 
-                        if (!tripRecord.schDepTime.isNull() && !predictedDep.isNull()) {
-                            tripRecord.realTimeOffsetSec = tripRecord.schDepTime.secsTo(predictedDep);
-                            tripRecord.waitTimeSec       = _agencyTime.secsTo(predictedDep);
-                        } else if (!tripRecord.schArrTime.isNull() && !predictedArr.isNull()) {
+                        if (!tripRecord.schArrTime.isNull() && !predictedArr.isNull()) {
                             tripRecord.realTimeOffsetSec = tripRecord.schArrTime.secsTo(predictedArr);
                             tripRecord.waitTimeSec       = _agencyTime.secsTo(predictedArr);
+                        } else if (!tripRecord.schDepTime.isNull() && !predictedDep.isNull()) {
+                            tripRecord.realTimeOffsetSec = tripRecord.schDepTime.secsTo(predictedDep);
+                            tripRecord.waitTimeSec       = _agencyTime.secsTo(predictedDep);
                         }
 
                         // Time-based statuses (arriving/early/late/on-time)
