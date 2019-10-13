@@ -62,7 +62,7 @@ void GtfsRequestProcessor::run()
     QJsonObject respJson;
     QString SystemResponse;
 
-    qDebug() << "GtfsRequestProcessor: Answering on thread " << this;
+//    qDebug() << "GtfsRequestProcessor: Answering on thread " << this;
 
     // The first three chars are assumed to be that of the application request
     QString userApp = request.left(3);  // 3-digit application code

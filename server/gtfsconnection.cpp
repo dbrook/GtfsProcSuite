@@ -28,12 +28,12 @@ GtfsConnection::GtfsConnection(QObject *parent) : TcpConnection(parent)
 {
     // Start with only 2 threads so as not to blow things up
     QThreadPool::globalInstance()->setMaxThreadCount(2);
-    qDebug() << "GtfsConnection " << this << " created";
+//    qDebug() << "GtfsConnection " << this << " created";
 }
 
 GtfsConnection::~GtfsConnection()
 {
-    qDebug() << "GtfsConnection " << this << " destroyed";
+//    qDebug() << "GtfsConnection " << this << " destroyed";
 }
 
 void GtfsConnection::requestApplication(QString applicationRequest)
@@ -49,12 +49,12 @@ void GtfsConnection::requestApplication(QString applicationRequest)
 
 void GtfsConnection::connected()
 {
-    qDebug() << "GtfsConnection " << this << " connected";
+//    qDebug() << "GtfsConnection " << this << " connected";
 }
 
 void GtfsConnection::disconnected()
 {
-    qDebug() << "GtfsConnection " << this << " disconnected";
+//    qDebug() << "GtfsConnection " << this << " disconnected";
 }
 
 void GtfsConnection::readyRead()
@@ -63,7 +63,7 @@ void GtfsConnection::readyRead()
         return;
     }
 
-    qDebug() << "GtfsConnection " << this << " ReadyRead: " << m_socket;
+//    qDebug() << "GtfsConnection " << this << " ReadyRead: " << m_socket;
 
     // Let's print the query sent in to the local debug
     QByteArray socketInput = m_socket->readAll();
@@ -81,7 +81,7 @@ void GtfsConnection::bytesWritten(qint64 bytes)
         return;
     }
 
-    qDebug() << "GtfsConnection " << this << " BytesWritten: " << m_socket;
+//    qDebug() << "GtfsConnection " << this << " BytesWritten: " << m_socket;
 }
 
 void GtfsConnection::taskResult(QString userResponse)
@@ -92,10 +92,10 @@ void GtfsConnection::taskResult(QString userResponse)
 
 void GtfsConnection::stateChanged(QAbstractSocket::SocketState socketState)
 {
-    qDebug() << "GtfsConnection " << this << " stateChanged " << socketState;
+//    qDebug() << "GtfsConnection " << this << " stateChanged " << socketState;
 }
 
 void GtfsConnection::error(QAbstractSocket::SocketError socketError)
 {
-    qDebug() << "GtfsConnection " << this << " error " << m_socket << socketError;
+//    qDebug() << "GtfsConnection " << this << " error " << m_socket << socketError;
 }

@@ -70,7 +70,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 {
     // Retrieve all the trips that could service the stop (from yesterday, today, and tomorrow service days)
     for (const QString &routeID : (*sStops)[_stopID].stopTripsRoutes.keys()) {
-        qDebug() << "Processing route id: " << routeID;
+//        qDebug() << "Processing route id: " << routeID;
         StopRecoRouteRec routeRecord;
         routeRecord.longRouteName  = (*sRoutes)[routeID].route_long_name;
         routeRecord.shortRouteName = (*sRoutes)[routeID].route_short_name;

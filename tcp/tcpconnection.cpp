@@ -6,12 +6,12 @@
 
 TcpConnection::TcpConnection(QObject *parent) : QObject(parent)
 {
-    qDebug() << this << "Created";
+//    qDebug() << this << "Created";
 }
 
 TcpConnection::~TcpConnection()
 {
-    qDebug() << this << "Destroyed";
+//    qDebug() << this << "Destroyed";
 }
 
 void TcpConnection::setSocket(QTcpSocket *socket)
@@ -36,19 +36,19 @@ QTcpSocket *TcpConnection::getSocket()
 void TcpConnection::connected()
 {
     if(!sender()) return;
-    qDebug() << this << " connected " << sender();
+//    qDebug() << this << " connected " << sender();
 }
 
 void TcpConnection::disconnected()
 {
     if(!sender()) return;
-    qDebug() << this << " disconnected " << getSocket();
+//    qDebug() << this << " disconnected " << getSocket();
 }
 
 void TcpConnection::readyRead()
 {
     if(!sender()) return;
-    qDebug() << this << " readyRead " << getSocket();
+//    qDebug() << this << " readyRead " << getSocket();
     QTcpSocket *socket = getSocket();
     if(!socket) return;
     socket->close();
@@ -57,18 +57,18 @@ void TcpConnection::readyRead()
 void TcpConnection::bytesWritten(qint64 bytes)
 {
     if(!sender()) return;
-    qDebug() << this << " bytesWritten " << getSocket() << " number of bytes = " << bytes;
+//    qDebug() << this << " bytesWritten " << getSocket() << " number of bytes = " << bytes;
 }
 
 void TcpConnection::stateChanged(QAbstractSocket::SocketState socketState)
 {
     if(!sender()) return;
-    qDebug() << this << " stateChanged " << getSocket() << " state = " << socketState;
+//    qDebug() << this << " stateChanged " << getSocket() << " state = " << socketState;
 }
 
 void TcpConnection::error(QAbstractSocket::SocketError socketError)
 {
     if(!sender()) return;
-    qDebug() << this << " error " << getSocket() << " error = " << socketError;
+//    qDebug() << this << " error " << getSocket() << " error = " << socketError;
 }
 
