@@ -766,6 +766,8 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
                         statusString = "SKIP";
                     else if (tripStat == GTFS::CANCEL)
                         statusString = "CNCL";
+                    else if (tripStat == GTFS::MISSING)
+                        statusString = "MSNG";
 
                     realTimeData["status"]           = statusString;
                     realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd hh:mm");
@@ -832,6 +834,8 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
                         statusString = "SKIP";
                     else if (tripStat == GTFS::CANCEL)
                         statusString = "CNCL";
+                    else if (tripStat == GTFS::MISSING)
+                        statusString = "MSNG";
 
                     realTimeData["status"]           = statusString;
                     realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd hh:mm");

@@ -43,7 +43,8 @@ typedef enum {
     BOARD,      // Trip is at the stop (current time is between arrival and departure time)
     ARRIVE,     // Trip is arriving at the stop_id (< 30 seconds)
     SKIP,       // Trip is skipping the stop_id
-    CANCEL      // Trip is cancelled and will not serve any stop (especially this one)
+    CANCEL,     // Trip is cancelled and will not serve any stop (especially this one)
+    MISSING     // Trip shows as operating but has no time associated for this stop_id
 } TripRecStat;
 
 /*
