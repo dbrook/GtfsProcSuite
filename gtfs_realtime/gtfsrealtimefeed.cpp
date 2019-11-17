@@ -301,6 +301,15 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString             &tripID,
         else
             stu.depTime = QDateTime();
 
+        // Indicate that the stop is skipped
+        if (tri.stop_time_update(stopTimeIdx).schedule_relationship() ==
+            transit_realtime::TripUpdate_StopTimeUpdate_ScheduleRelationship_SKIPPED) {
+            stu.stopSkipped = true;
+        } else {
+            stu.stopSkipped = false;
+        }
+
+        // Save the information for this trip
         stopTimes.push_back(stu);
     }
 }

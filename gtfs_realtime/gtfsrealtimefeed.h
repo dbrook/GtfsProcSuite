@@ -39,6 +39,7 @@ typedef struct {
     QString   stopID;
     QDateTime depTime;
     QDateTime arrTime;
+    bool      stopSkipped;
 } rtStopTimeUpdate;
 
 /*

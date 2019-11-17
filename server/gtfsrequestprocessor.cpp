@@ -349,6 +349,7 @@ void GtfsRequestProcessor::tripStopsDisplay(QString tripID, bool useRealTime, QJ
             singleStopJSON["stop_id"]   = rtsu.stopID;
             singleStopJSON["stop_name"] = (*stops)[rtsu.stopID].stop_name;
             singleStopJSON["sequence"]  = rtsu.stopSequence;
+            singleStopJSON["skipped"]   = rtsu.stopSkipped;
             tripStopArray.push_back(singleStopJSON);
         }
     }
@@ -773,6 +774,7 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
                     realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd hh:mm");
                     realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd hh:mm");
                     realTimeData["offset_seconds"]   = rts.realTimeOffsetSec;
+                    realTimeData["vehicle"]          = rts.vehicleRealTime;
                     stopTripItem["realtime_data"]    = realTimeData;
                 }
 
@@ -841,6 +843,7 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
                     realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd hh:mm");
                     realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd hh:mm");
                     realTimeData["offset_seconds"]   = rts.realTimeOffsetSec;
+                    realTimeData["vehicle"]          = rts.vehicleRealTime;
                     stopTripJSON["realtime_data"]    = realTimeData;
                 }
 

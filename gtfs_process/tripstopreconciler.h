@@ -69,6 +69,7 @@ typedef struct {
     qint32       stopTimesIndex;      // Offset index of stop into the stop_times table of the stop within the trip
     bool         beginningOfTrip;     // TRUE if the stop_id is at the beginning of the trip
     bool         endOfTrip;           // TRUE if the stop_id is at the end of the trip
+    QString      vehicleRealTime;     // Vehicle ID of an operating trip with real-time data
 } StopRecoTripRec;
 
 /*

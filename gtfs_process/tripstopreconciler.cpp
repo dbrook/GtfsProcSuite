@@ -100,6 +100,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
             for (StopRecoTripRec &tripRecord : routeTrips[routeID].tripRecos)
                 if (rActiveFeed->tripIsCancelled(tripRecord.tripID, tripRecord.tripServiceDate))
                 {
+//                    qDebug() << "Trip ID " << tripRecord.tripID << " is cancelled!";
                     tripRecord.tripStatus = CANCEL;
                     tripRecord.realTimeDataAvail = true;
                 }
@@ -164,6 +165,9 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                                 tripRecord.tripStatus = BOARD;
                         }
 
+                        // Vehicle id
+                        tripRecord.vehicleRealTime = rActiveFeed->getOperatingVehicle(tripRecord.tripID);
+
                         tripRecord.realTimeDataAvail = true;
                     } else {
                         // No time was found for the stop in this trip! There are two ways this is possible:
@@ -177,8 +181,9 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                         // Essentially, this means there should be a cutoff interval to do this removal. For the MBTA
                         // (the only reference platform so far) it seems to be times beyond 2 hours in the future.
                         // For a general case, assume 1 hour (3600 seconds) is the cutoff
-                        if ((!tripRecord.schArrTime.isNull() && _agencyTime.secsTo(tripRecord.schArrTime) < 3600) ||
-                            (!tripRecord.schDepTime.isNull() && _agencyTime.secsTo(tripRecord.schDepTime) < 3600)) {
+                        if ((tripRecord.tripStatus != SKIP) &&
+                            ((!tripRecord.schArrTime.isNull() && _agencyTime.secsTo(tripRecord.schArrTime) < 3600) ||
+                             (!tripRecord.schDepTime.isNull() && _agencyTime.secsTo(tripRecord.schDepTime) < 3600))) {
                             tripRecord.tripStatus = IRRELEVANT;
                         }
                     }
@@ -238,7 +243,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 
                 // Dumb hack to figure out where the train is going (will not properly match the "headsign" field!)
                 const QString finalStopID = rActiveFeed->getFinalStopIdForAddedTrip(tripRecord.tripID);
-                qDebug() << "Final Stop for tripID " << tripRecord.tripID << " is: " << finalStopID;
+//                qDebug() << "Final Stop for tripID " << tripRecord.tripID << " is: " << finalStopID;
                 tripRecord.headsign = (*sStops)[finalStopID].stop_name;
 
                 routeTrips[routeID].tripRecos.push_back(tripRecord);
@@ -369,9 +374,13 @@ void TripStopReconciler::invalidateTrips(const QString &routeID, QMap<QString, S
             }
 
             // The excpetion is for cancelled trips, which can show for 15 minutes past the scheduled departure
-            if (tripRecord.tripStatus == CANCEL)
-                if (_agencyTime.secsTo(tripRecord.realTimeDeparture) > -900)
+            if (tripRecord.tripStatus == CANCEL) {
+                if (!tripRecord.schArrTime.isNull() && _agencyTime.secsTo(tripRecord.schArrTime) < -600) {
                     tripRecord.tripStatus = IRRELEVANT;
+                } else if (!tripRecord.schDepTime.isNull() && _agencyTime.secsTo(tripRecord.schDepTime) < -600) {
+                    tripRecord.tripStatus = IRRELEVANT;
+                }
+            }
         }
 
         // If we didn't mark the trip as irrelevant, then it shall count against the maxTripsForRoute
