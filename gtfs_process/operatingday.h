@@ -47,7 +47,7 @@ typedef struct {
 typedef struct {
     QString  service_id;
     QDate    date;
-    qint8    exception_type;    // 1 == service added for CalDateRec::date, 2 == service removed for CalDateRec::date
+    qint16   exception_type;    // 1 == service added for CalDateRec::date, 2 == service removed for CalDateRec::date
 } CalDateRec;
 
 /*

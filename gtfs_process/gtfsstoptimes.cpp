@@ -46,8 +46,8 @@ StopTimes::StopTimes(const QString dataRootPath, QObject *parent) : QObject(pare
         stopTime.stop_id        = dataStore.at(l).at(stopIdPos);
         stopTime.arrival_time   = computeSecondsLocalNoonOffset(dataStore.at(l).at(arrTimePos));
         stopTime.departure_time = computeSecondsLocalNoonOffset(dataStore.at(l).at(depTimePos));
-        stopTime.drop_off_type  = (dropOffPos != -1)      ? dataStore.at(l).at(dropOffPos).toInt() : 0;
-        stopTime.pickup_type    = (pickupPos != -1)       ? dataStore.at(l).at(pickupPos).toInt()  : 0;
+        stopTime.drop_off_type  = (dropOffPos != -1)      ? dataStore.at(l).at(dropOffPos).toShort() : 0;
+        stopTime.pickup_type    = (pickupPos != -1)       ? dataStore.at(l).at(pickupPos).toShort()  : 0;
         stopTime.stop_headsign  = (stopHeadsignPos != -1) ? dataStore.at(l).at(stopHeadsignPos)    : "";
 
         this->stopTimeDb[dataStore.at(l).at(tripIdPos)].push_back(stopTime);
@@ -64,7 +64,7 @@ qint64 StopTimes::getStopTimesDBSize() const
 {
     qint64 items = 0;
 
-    for (const QVector<StopTimeRec> entry : this->stopTimeDb) {
+    for (const QVector<StopTimeRec> &entry : this->stopTimeDb) {
         items += entry.size();
     }
 
@@ -99,7 +99,7 @@ qint64 StopTimes::duplicateTripWithTimeRange(const QString &trip_id,
         generatedTrips.push_back(newTripId);
 
         // For each stop_time in the trip, we need to generate new times:
-        for (const StopTimeRec br : baseRecord) {
+        for (const StopTimeRec &br : baseRecord) {
             StopTimeRec nr;
             nr.drop_off_type  = br.drop_off_type;
             nr.pickup_type    = br.pickup_type;

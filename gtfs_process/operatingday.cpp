@@ -69,7 +69,7 @@ OperatingDay::OperatingDay(const QString dataRootPath, QObject *parent) : QObjec
         for (int l = 1; l < dataStore.size(); ++l) {
             CalDateRec cd;
             cd.service_id     = dataStore.at(l).at(idPos);
-            cd.exception_type = dataStore.at(l).at(exceptionPos).toInt();
+            cd.exception_type = dataStore.at(l).at(exceptionPos).toShort();
             cd.date           = QDate(dataStore.at(l).at(datePos).left  (4)   .toInt(),
                                       dataStore.at(l).at(datePos).midRef(4, 2).toInt(),
                                       dataStore.at(l).at(datePos).right (2)   .toInt());
@@ -82,7 +82,7 @@ qint64 OperatingDay::getCalendarAndDatesDBSize() const
 {
     qint64 sumOfRec = 0;
 
-    for (const QVector<CalDateRec> cdrec : this->calendarDateDb) {
+    for (const QVector<CalDateRec> &cdrec : this->calendarDateDb) {
         sumOfRec += cdrec.size();
     }
 

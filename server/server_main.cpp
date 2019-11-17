@@ -44,9 +44,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    qint32 portNum = 5000;  // Open on port 5000 by default
+    quint16 portNum = 5000;  // Open on port 5000 by default
     if (parser.isSet(serverPortOption)) {
-        portNum = parser.value(serverPortOption).toInt();
+        portNum = parser.value(serverPortOption).toUShort();
     }
 
     QString realTimePath;

@@ -12,12 +12,12 @@ namespace GTFS {
 
 RealTimeGateway &RealTimeGateway::inst()
 {
-    static RealTimeGateway *_instance = 0;
-    if (_instance == 0) {
+    static RealTimeGateway *_instance = nullptr;
+    if (_instance == nullptr) {
         _instance = new RealTimeGateway();
         _instance->_activeSide = DISABLED;
-        _instance->_sideA      = NULL;
-        _instance->_sideB      = NULL;
+        _instance->_sideA      = nullptr;
+        _instance->_sideB      = nullptr;
     }
     return *_instance;
 }
@@ -77,7 +77,7 @@ void RealTimeGateway::refetchData()
         // when it comes time to actually allocate into it again.
         nextSide = SIDE_A;
 
-        if (_sideA != NULL)
+        if (_sideA != nullptr)
             delete _sideA;
 
         if (!_dataPathLocal.isNull()) {
@@ -88,7 +88,7 @@ void RealTimeGateway::refetchData()
     } else if (currentSide == SIDE_A) {
         nextSide = SIDE_B;
 
-        if (_sideB != NULL)
+        if (_sideB != nullptr)
             delete _sideB;
 
         if (!_dataPathLocal.isNull()) {
@@ -132,7 +132,7 @@ RealTimeTripUpdate *RealTimeGateway::getActiveFeed()
     } else if (activeSide == SIDE_B) {
         return _sideB;
     } else {
-        return NULL;
+        return nullptr;
     }
 }
 

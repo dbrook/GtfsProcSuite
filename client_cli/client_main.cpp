@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     // send terminal characteristics so we can do some alignments
     ClientGtfs client;
 
-    if (!client.startConnection(serverHost, serverPort.toInt(), 5000)) {
+    if (!client.startConnection(serverHost, serverPort.toUShort(), 5000)) {
         return 1;
     }
 

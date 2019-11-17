@@ -36,7 +36,7 @@ void Display::reInitTerm()
     // Blow away whatever is present
     // From http://www.cplusplus.com/articles/4z18T05o
     int result;
-    setupterm(NULL, STDOUT_FILENO, &result);
+    setupterm(nullptr, STDOUT_FILENO, &result);
     if (result <= 0) {
         return;
     }

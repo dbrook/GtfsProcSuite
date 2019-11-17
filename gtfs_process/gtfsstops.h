@@ -39,8 +39,8 @@ typedef struct {
     // Data from File
     QString stop_name;
     QString stop_desc;
-    float   stop_lat;
-    float   stop_lon;
+    double  stop_lat;
+    double  stop_lon;
     QString parent_station;
 
     // All the trips serving an individual stop_id (for quicker trip-stop processing at runtime)

@@ -97,7 +97,7 @@ void Routes::sortRouteTrips()
 {
     // Scan through all the trips associated to this route (previously filled with connectTrip) so we can put them
     // in chronological order (based on the first departure time) with a helper sort function?
-    for (const QString routeID : this->routeDb.keys()) {
+    for (const QString &routeID : this->routeDb.keys()) {
 //        qDebug() << "Sorting Route: " << route.route_short_name << "::" << route.route_long_name;
         std::sort(this->routeDb[routeID].trips.begin(),
                   this->routeDb[routeID].trips.end(),

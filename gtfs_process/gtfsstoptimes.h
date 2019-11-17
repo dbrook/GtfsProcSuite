@@ -40,8 +40,8 @@ typedef struct {
     // These are stored as-is from the data: 0 = normal, 1 = not allowed, 2 = call agency first, 3 = arrange with driver
     // so it is up to the front-end to decide how/if to show this information (as this software is intended to be used
     // as more of a wait / countdown for service, the pickup types might be the most interesting
-    qint8   drop_off_type;
-    qint8   pickup_type;
+    qint16  drop_off_type;
+    qint16  pickup_type;
 
     // And another one just for fun: the each individual stop in a trip (i.e. one of these stop-time records) can have
     // a unique / standalone headsign just for it (independent of the overall journey)

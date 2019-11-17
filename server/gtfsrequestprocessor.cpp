@@ -311,7 +311,7 @@ void GtfsRequestProcessor::tripStopsDisplay(QString tripID, bool useRealTime, QJ
 
     // Process information for a real-time trip (if requested)
     GTFS::RealTimeTripUpdate *realTimeProc = GTFS::RealTimeGateway::inst().getActiveFeed();
-    if (useRealTime && realTimeProc != NULL) {
+    if (useRealTime && realTimeProc != nullptr) {
         if (!realTimeProc->tripExists(tripID)) {
             resp["error"] = 102;   // The trip ID doesn't exist in the real-time data feed
             return;
@@ -671,7 +671,7 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
     GTFS::DataGateway::inst().incrementHandledRequests();
 
     // Prepare for tripStopLoader
-    QTimeZone agencyTimezone = GTFS::DataGateway::inst().getStatus()->getAgencyTZ();;
+    QTimeZone agencyTimezone = GTFS::DataGateway::inst().getStatus()->getAgencyTZ();
     QDate     serviceDate    = QDate::currentDate();
     QDateTime agencyTime     = QDateTime::currentDateTimeUtc().toTimeZone(agencyTimezone);
 //    QDate serviceDate        = QDate(2019, 2, 8);
@@ -681,7 +681,7 @@ void GtfsRequestProcessor::nextTripsAtStop(QString      stopID,
     // Real time processing
     GTFS::RealTimeTripUpdate *realTimeProc = GTFS::RealTimeGateway::inst().getActiveFeed();
     bool rtData = false;
-    if (realTimeProc != NULL)
+    if (realTimeProc != nullptr)
         rtData = true;
 
     // Boilerplate response details
@@ -926,7 +926,7 @@ void GtfsRequestProcessor::realtimeDataStatus(QJsonObject &resp)
         activeSideStr = inactiveSideStr = "N/A";
     }
 
-    if (rTrips == NULL) {
+    if (rTrips == nullptr) {
         resp["active_side"] = activeSideStr;
     } else {
         // Active and inactive data information
@@ -956,7 +956,7 @@ void GtfsRequestProcessor::realtimeTripInformation(QJsonObject &resp)
     QMap<QString, QVector<QString> > addedRouteTrips, activeRouteTrips, cancelledRouteTrips;
     GTFS::RealTimeTripUpdate *rTrips = rg.getActiveFeed();
 
-    if (rTrips != NULL) {
+    if (rTrips != nullptr) {
         rTrips->getAllTripsWithPredictions(addedRouteTrips, activeRouteTrips, cancelledRouteTrips);
 
         // Cancelled Trips

@@ -35,7 +35,7 @@ namespace GTFS {
 /*
  * localRecordHolder stores each result from the libcsv callback
  */
-QVector<QString> localRecordHolder;
+static QVector<QString> localRecordHolder;
 
 /*
  * cb1 is used to store each individual segment of a CSV file line (i.e. "the text between the commas")
@@ -79,7 +79,7 @@ void CsvProcess(QString filename, QVector<QVector<QString>> *callerVec)
 
     infile = fopen(filename.toUtf8(), "rb");
 
-    if (infile == NULL) {
+    if (infile == nullptr) {
         qWarning() << "Bad file name: ERROR: " << filename;
         return;
     }

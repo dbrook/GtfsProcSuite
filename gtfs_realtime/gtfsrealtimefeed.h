@@ -72,12 +72,12 @@ public:
     QDateTime getFeedTime() const;
 
     // Time it took to download (milliseconds)
-    void setDownloadTimeMSec(qint32 downloadTime);
-    qint32 getDownloadTimeMSec() const;
+    void setDownloadTimeMSec(qint64 downloadTime);
+    qint64 getDownloadTimeMSec() const;
 
     // Time it took to integrate the feed (milliseconds)
-    void setIntegrationTimeMSec(qint32 integrationTime);
-    qint32 getIntegrationTimeMSec() const;
+    void setIntegrationTimeMSec(qint64 integrationTime);
+    qint64 getIntegrationTimeMSec() const;
 
     /*
      * Stop-Route-Trip-Time calculation functions
@@ -90,8 +90,8 @@ public:
 
     // List the trip_ids which serve a stop_id (populates 'addedTrips' with new-found trips) across all added stops
     // We map all relevant routes to a vector of trips that serve the requested stop_id
-    void getAddedTripsServingStop(const QString &stop_id, QMap<QString,
-                                  QVector<QPair<QString, qint32>>> &addedTrips) const;
+    void getAddedTripsServingStop(const QString &stop_id,
+                                  QMap<QString, QVector<QPair<QString, quint32>>> &addedTrips) const;
 
     // Figure out where an added trip is headed since no way to lookup headsign for a trip not in the static feed
     const QString getFinalStopIdForAddedTrip(const QString &trip_id);
@@ -130,9 +130,9 @@ private:
      */
     transit_realtime::FeedMessage   _tripUpdate;     // Hold the raw protobuf here, but it is not optimized for reading
 
-    QMap<QString, qint64>           _cancelledTrips; // Track cancelled trips with associated entity idx
-    QMap<QString, qint64>           _addedTrips;     // Trips running which do not correspond to the GTFS Static data
-    QMap<QString, qint64>           _activeTrips;    // Trips running with real-time data (to replace schedule times)
+    QMap<QString, qint32>           _cancelledTrips; // Track cancelled trips with associated entity idx
+    QMap<QString, qint32>           _addedTrips;     // Trips running which do not correspond to the GTFS Static data
+    QMap<QString, qint32>           _activeTrips;    // Trips running with real-time data (to replace schedule times)
 
     // Stop-IDs which have been skipped by any number of trips
     QMap<QString, QVector<QPair<QString, quint32>>> _skippedStops;

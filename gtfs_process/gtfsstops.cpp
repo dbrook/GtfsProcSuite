@@ -41,8 +41,8 @@ Stops::Stops(const QString dataRootPath, QObject *parent) : QObject(parent)
         StopRec stop;
         stop.stop_name      = dataStore.at(l).at(stopNamePos);
         stop.stop_desc      = dataStore.at(l).at(stopDescPos);
-        stop.stop_lat       = dataStore.at(l).at(stopLatPos).toFloat();
-        stop.stop_lon       = dataStore.at(l).at(stopLonPos).toFloat();
+        stop.stop_lat       = dataStore.at(l).at(stopLatPos).toDouble();
+        stop.stop_lon       = dataStore.at(l).at(stopLonPos).toDouble();
         stop.parent_station = dataStore.at(l).at(parentStationPos);
 
         this->stopsDb[dataStore.at(l).at(stopIdPos)] = stop;
@@ -59,7 +59,7 @@ qint64 Stops::getStopsDBSize() const
     qint64 itemCount = this->stopsDb.size();
 
     // ... and the parent-station mapping supplementary database
-    for (const QVector<QString> entry : this->parentStopDb) {
+    for (const QVector<QString> &entry : this->parentStopDb) {
         itemCount += entry.size();
     }
 

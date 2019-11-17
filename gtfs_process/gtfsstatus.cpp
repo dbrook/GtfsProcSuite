@@ -164,7 +164,7 @@ QDateTime Status::getLoadFinishTimeUTC() const
 
 void Status::setLoadFinishTimeUTC()
 {
-    loadFinishTimeUTC = QDateTime::currentDateTimeUtc();;
+    loadFinishTimeUTC = QDateTime::currentDateTimeUtc();
 }
 
 void Status::feedInfoCSVOrder(const QVector<QString> csvHeader,

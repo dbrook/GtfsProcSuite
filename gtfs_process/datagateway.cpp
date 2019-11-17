@@ -25,8 +25,8 @@ namespace GTFS {
 
 DataGateway &DataGateway::inst()
 {
-    static DataGateway *_instance = 0;
-    if (_instance == 0) {
+    static DataGateway *_instance = nullptr;
+    if (_instance == nullptr) {
         _instance = new DataGateway();
         _instance->handledRequests  = 0;
         _instance->stopsNoSortTimes = 0;

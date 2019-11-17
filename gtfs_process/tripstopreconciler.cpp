@@ -56,7 +56,7 @@ TripStopReconciler::TripStopReconciler(const QString &stop_id,
     if (_realTimeMode) {
         rActiveFeed = GTFS::RealTimeGateway::inst().getActiveFeed();
     } else {
-        rActiveFeed = NULL;
+        rActiveFeed = nullptr;
     }
 }
 
@@ -193,10 +193,10 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 
         // Add the 'added' trips (mark with SUPPLEMENT)
         // We first fill a separate compatible data structure which will then merge into the vector of trip-records
-        QMap<QString, QVector<QPair<QString, qint32>>> addedTrips;
+        QMap<QString, QVector<QPair<QString, quint32>>> addedTrips;
         rActiveFeed->getAddedTripsServingStop(_stopID, addedTrips);
         for (const QString &routeID : addedTrips.keys()) {
-            for (const QPair<QString, qint32> &tripAndIndex : addedTrips[routeID]) {
+            for (const QPair<QString, quint32> &tripAndIndex : addedTrips[routeID]) {
                 // Make a new tripRecord so we have a place to add current trip information
                 StopRecoTripRec tripRecord;
                 tripRecord.tripStatus = SUPPLEMENT;

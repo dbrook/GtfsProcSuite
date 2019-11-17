@@ -131,25 +131,26 @@ RealTimeTripUpdate::~RealTimeTripUpdate()
 
 QDateTime RealTimeTripUpdate::getFeedTime() const
 {
+    // ISSUE: Qt Framework expects an int64 but GTFS-Realtime Protobuf returns a uint64 for the timestamp
     return QDateTime::fromSecsSinceEpoch(_tripUpdate.header().timestamp());
 }
 
-void RealTimeTripUpdate::setDownloadTimeMSec(qint32 downloadTime)
+void RealTimeTripUpdate::setDownloadTimeMSec(qint64 downloadTime)
 {
     _downloadTimeMSec = downloadTime;
 }
 
-qint32 RealTimeTripUpdate::getDownloadTimeMSec() const
+qint64 RealTimeTripUpdate::getDownloadTimeMSec() const
 {
     return _downloadTimeMSec;
 }
 
-void RealTimeTripUpdate::setIntegrationTimeMSec(qint32 integrationTime)
+void RealTimeTripUpdate::setIntegrationTimeMSec(qint64 integrationTime)
 {
     _integrationTimeMSec = integrationTime;
 }
 
-qint32 RealTimeTripUpdate::getIntegrationTimeMSec() const
+qint64 RealTimeTripUpdate::getIntegrationTimeMSec() const
 {
     return _integrationTimeMSec;
 }
@@ -179,7 +180,7 @@ bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id, const QDate &se
 }
 
 void RealTimeTripUpdate::getAddedTripsServingStop(const QString &stop_id,
-                                                  QMap<QString, QVector<QPair<QString, qint32>>> &addedTrips) const
+                                                  QMap<QString, QVector<QPair<QString, quint32>>> &addedTrips) const
 {
     for (const QString &tripID : _addedTrips.keys()) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_addedTrips[tripID]);
@@ -191,7 +192,7 @@ void RealTimeTripUpdate::getAddedTripsServingStop(const QString &stop_id,
             const QString rtStopId = QString::fromStdString(stu.stop_id());
             if (rtStopId == stop_id) {
                 QString trip_id = QString::fromStdString(desc.trip().trip_id());
-                QPair<QString, qint32> routeAddedTrip(trip_id, stu.stop_sequence());
+                QPair<QString, quint32> routeAddedTrip(trip_id, stu.stop_sequence());
                 addedTrips[qRouteId].push_back(routeAddedTrip);
             }
         }
@@ -200,9 +201,9 @@ void RealTimeTripUpdate::getAddedTripsServingStop(const QString &stop_id,
 
 const QString RealTimeTripUpdate::getFinalStopIdForAddedTrip(const QString &trip_id)
 {
-    qint64 recIdx = _addedTrips[trip_id];
+    qint32 recIdx = _addedTrips[trip_id];
     const transit_realtime::FeedEntity &entity = _tripUpdate.entity(recIdx);
-    qint64 lastStopTimeIdx = entity.trip_update().stop_time_update_size() - 1;
+    qint32 lastStopTimeIdx = entity.trip_update().stop_time_update_size() - 1;
     return QString::fromStdString(entity.trip_update().stop_time_update(lastStopTimeIdx).stop_id());
 }
 
@@ -244,7 +245,7 @@ bool RealTimeTripUpdate::tripStopActualTime(const QString &trip_id, qint64 stopS
                                             QDateTime &realArrTimeUTC, QDateTime &realDepTimeUTC) const
 {
     // Assume that the trip id and stop-sequence are valid
-    qint64 entityIdx;
+    qint32 entityIdx;
     if (_activeTrips.contains(trip_id)) {
         entityIdx = _activeTrips[trip_id];
     } else if (_addedTrips.contains(trip_id)) {
