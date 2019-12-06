@@ -7,6 +7,7 @@ CONFIG -= app_bundle
 
 include("../gtfs_process/gtfs_process.pri")
 include("../gtfs_realtime/gtfs_realtime.pri")
+include("../gtfs_modules/gtfs_modules.pri")
 include("../tcp/tcp.pri")
 
 # The following define makes your compiler emit warnings if you use

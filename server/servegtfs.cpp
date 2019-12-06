@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -69,13 +69,14 @@ ServeGTFS::ServeGTFS(QString dbRootPath, QString realTimePath, QObject *parent) 
 
 ServeGTFS::~ServeGTFS()
 {
-    // TODO: Look into destructor needs (probably handled by QObject mechanism though
+    // TODO: Look into destructor needs (probably handled by QObject mechanism though)
+    // More often than not, this process will probably be killed, this really has no need for a graceful shutdown...
 }
 
 void ServeGTFS::displayDebugging() const
 {
     const GTFS::Status *data = GTFS::DataGateway::inst().getStatus();
-    qDebug() << "[ GTFS Static Data Information ]";
+    qDebug() << endl << "[ GTFS Static Data Information ]";
     qDebug() << "Recs Loaded . . . ." << data->getRecordsLoaded();
     qDebug() << "Server Start Time ." << data->getServerStartTimeUTC();
     qDebug() << "Feed Publisher  . ." << data->getPublisher();
@@ -88,7 +89,7 @@ void ServeGTFS::displayDebugging() const
 
 void ServeGTFS::incomingConnection(qintptr descriptor)
 {
-    qDebug() << "Discovered an incoming GTFS Request: " << descriptor;
+//    qDebug() << "Discovered an incoming GTFS Request: " << descriptor;
 
     GtfsConnection *connection = new GtfsConnection();
 

@@ -29,7 +29,7 @@ void TcpConnection::setSocket(QTcpSocket *socket)
 
 QTcpSocket *TcpConnection::getSocket()
 {
-    if(!sender()) return 0;
+    if(!sender()) return nullptr;
     return static_cast<QTcpSocket*>(sender());
 }
 
@@ -56,18 +56,24 @@ void TcpConnection::readyRead()
 
 void TcpConnection::bytesWritten(qint64 bytes)
 {
+    (void)bytes;
+
     if(!sender()) return;
 //    qDebug() << this << " bytesWritten " << getSocket() << " number of bytes = " << bytes;
 }
 
 void TcpConnection::stateChanged(QAbstractSocket::SocketState socketState)
 {
+    (void)socketState;
+
     if(!sender()) return;
 //    qDebug() << this << " stateChanged " << getSocket() << " state = " << socketState;
 }
 
 void TcpConnection::error(QAbstractSocket::SocketError socketError)
 {
+    (void)socketError;
+
     if(!sender()) return;
 //    qDebug() << this << " error " << getSocket() << " error = " << socketError;
 }

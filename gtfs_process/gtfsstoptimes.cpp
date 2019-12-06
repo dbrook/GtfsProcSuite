@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -33,7 +33,7 @@ StopTimes::StopTimes(const QString dataRootPath, QObject *parent) : QObject(pare
     QVector<QVector<QString>> dataStore;
 
     // Read in the feed information
-    qDebug() << "Starting Stop-Time Process";
+    qDebug() << "Starting Stop-Time Process...";
     CsvProcess((dataRootPath + "/stop_times.txt").toUtf8(), &dataStore);
     qint8 tripIdPos, stopSeqPos, stopIdPos, arrTimePos, depTimePos, dropOffPos, pickupPos, stopHeadsignPos;
     stopTimesCSVOrder(dataStore.at(0),
@@ -54,7 +54,7 @@ StopTimes::StopTimes(const QString dataRootPath, QObject *parent) : QObject(pare
     }
 
     // The stop times aren't always sorted by the squence number (stop_sequence)
-    qDebug() << "Sorting StopTimes by Sequence within each TripID";
+    qDebug() << "  Sort StopTimes by Sequence within each TripID...";
     for (auto entry : this->stopTimeDb.keys()) {
         std::sort(this->stopTimeDb[entry].begin(), this->stopTimeDb[entry].end(), StopTimes::compareByStopSequence);
     }

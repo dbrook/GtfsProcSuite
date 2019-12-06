@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -100,13 +100,13 @@ public:
      *  - Today (obvious...)
      *  - Tomorrow (in case the future minutes asked for exceeds the end of the day today
      */
-    explicit TripStopReconciler(const QString &stop_id,
-                                bool           realTimeProcess,
-                                QDate          serviceDate,
-                                QDateTime     &currAgencyTime,
-                                qint32         futureMinutes,
-                                qint32         maxTripsForRoute,
-                                QObject       *parent = nullptr);
+    explicit TripStopReconciler(const QString   &stop_id,
+                                bool             realTimeProcess,
+                                QDate            serviceDate,
+                                const QDateTime &currAgencyTime,
+                                qint32           futureMinutes,
+                                qint32           maxTripsForRoute,
+                                QObject         *parent = nullptr);
 
     /*
      * Core stop_id information retrieval

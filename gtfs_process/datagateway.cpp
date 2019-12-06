@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -187,6 +187,7 @@ DataGateway::~DataGateway()
     delete _opDay;
     delete _trips;
     delete _stopTimes;
+    delete _stops;
 }
 
 } // namespace GTFS

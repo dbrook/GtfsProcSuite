@@ -1,3 +1,23 @@
+/*
+ * GtfsProc_Server
+ * Copyright (C) 2018-2020, Daniel Brook
+ *
+ * This file is part of GtfsProc.
+ *
+ * GtfsProc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * GtfsProc is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with GtfsProc.
+ * If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See included LICENSE.txt file for full license.
+ */
+
 #include "gtfsrealtimegateway.h"
 
 #include <QDateTime>
@@ -44,12 +64,13 @@ void RealTimeGateway::dataRetrievalLoop()
     connect(dataTimer, SIGNAL(timeout()), SLOT(refetchData()));
 
     // Download data every 2 minutes (120000 ms)
+    // TODO: this should be made configurable with a command line argument
     dataTimer->start(120000);
 }
 
 void RealTimeGateway::refetchData()
 {
-    qDebug() << "Refetching realtime data...";
+    qDebug() << "  (RTTU) Refetching realtime data...";
 
     // We want to time how long the download
     qint64 start = QDateTime::currentMSecsSinceEpoch();
@@ -72,7 +93,7 @@ void RealTimeGateway::refetchData()
     RealTimeDataRepo currentSide = activeBuffer();
     RealTimeDataRepo nextSide    = DISABLED;
     if (currentSide == DISABLED || currentSide == SIDE_B) {
-        // This **should** be safe enough. Most transactions should take < 100 ms, so nothing should be using the
+        // This **should** be safe enough. Most transactions should take < 250 ms, so nothing should be using the
         // currently-inactive side by the time the next feth occurs. Therefore we will only delete the inactive side
         // when it comes time to actually allocate into it again.
         nextSide = SIDE_A;

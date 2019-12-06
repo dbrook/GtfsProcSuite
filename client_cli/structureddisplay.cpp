@@ -1,6 +1,6 @@
 /*
- * GtfsProc_Client
- * Copyright (C) 2018-2019, Daniel Brook
+ * GtfsProc_Server
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *

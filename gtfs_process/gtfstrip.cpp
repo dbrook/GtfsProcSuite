@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -30,7 +30,7 @@ Trips::Trips(const QString dataRootPath, QObject *parent) : QObject(parent)
     QVector<QVector<QString>> dataStore;
 
     // Read the feed information
-    qDebug() << "Starting Trip Process";
+    qDebug() << "Starting Trip Process...";
     CsvProcess((dataRootPath + "/trips.txt").toUtf8(), &dataStore);
     qint8 routeIdPos, tripIdPos, serviceIdPos, headsignPos, tripShortNamePos = -1;
     tripsCSVOrder(dataStore.at(0), routeIdPos, tripIdPos, serviceIdPos, headsignPos, tripShortNamePos);

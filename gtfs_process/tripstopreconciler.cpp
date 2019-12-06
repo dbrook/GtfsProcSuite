@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -25,13 +25,13 @@
 
 namespace GTFS {
 
-TripStopReconciler::TripStopReconciler(const QString &stop_id,
-                                       bool           realTimeProcess,
-                                       QDate          serviceDate,
-                                       QDateTime     &currAgencyTime,
-                                       qint32         futureMinutes,
-                                       qint32         maxTripsForRoute,
-                                       QObject       *parent)
+TripStopReconciler::TripStopReconciler(const QString   &stop_id,
+                                       bool             realTimeProcess,
+                                       QDate            serviceDate,
+                                       const QDateTime &currAgencyTime,
+                                       qint32           futureMinutes,
+                                       qint32           maxTripsForRoute,
+                                       QObject         *parent)
     : QObject(parent), _realTimeMode(realTimeProcess), _svcDate(serviceDate), _stopID(stop_id),
       _lookaheadMins(futureMinutes), _maxTripsPerRoute(maxTripsForRoute), _agencyTime(currAgencyTime)
 {
@@ -70,7 +70,6 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 {
     // Retrieve all the trips that could service the stop (from yesterday, today, and tomorrow service days)
     for (const QString &routeID : (*sStops)[_stopID].stopTripsRoutes.keys()) {
-//        qDebug() << "Processing route id: " << routeID;
         StopRecoRouteRec routeRecord;
         routeRecord.longRouteName  = (*sRoutes)[routeID].route_long_name;
         routeRecord.shortRouteName = (*sRoutes)[routeID].route_short_name;
@@ -279,7 +278,6 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
         // Ensure that the trip actually runs for this service day
         if (! sService->serviceRunning(serviceDay, (*sTripDB)[curTripId].service_id))
             continue;
-
         // Populate the trip-record with all the pertinent / necessary details
         StopRecoTripRec tripRec;
         tripRec.tripID          = curTripId;
@@ -384,8 +382,9 @@ void TripStopReconciler::invalidateTrips(const QString &routeID, QMap<QString, S
         }
 
         // If we didn't mark the trip as irrelevant, then it shall count against the maxTripsForRoute
-        if (tripRecord.tripStatus != IRRELEVANT)
+        if (tripRecord.tripStatus != IRRELEVANT) {
             ++nbTripsForRoute;
+        }
 
         // Mark trips as invalid if they are outside of the number of trips requested
         if (_maxTripsPerRoute != 0 && nbTripsForRoute > _maxTripsPerRoute) {

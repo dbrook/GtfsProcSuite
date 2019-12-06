@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -39,7 +39,7 @@ Status::Status(const QString dataRootPath, QObject *parent) : QObject(parent)
 
     // the feed_info.txt is [unfortunately] not required, so don't assume you have it
     if (QFileInfo(dataRootPath + "/feed_info.txt").exists()) {
-        qDebug() << "Starting Feed Information Gathering";
+        qDebug() << "Starting Feed Information Gathering...";
         // Read in the feed information
         CsvProcess((dataRootPath + "/feed_info.txt").toUtf8(), &dataStore);
         qint8 pubPos, urlPos, lanPos, verPos, sDatePos, eDatePos;

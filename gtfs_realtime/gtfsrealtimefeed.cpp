@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -80,15 +80,16 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, QObje
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    qDebug() << "GTFS-Realtime : LIVE REAL DATA";
+    qDebug() << "  (RTTU) GTFS-Realtime : FETCH LIVE REAL DATA";
 
     QDateTime startUTC = QDateTime::currentDateTimeUtc();
 
     _tripUpdate.ParseFromArray(gtfsRealTimeData, gtfsRealTimeData.size());
-    qDebug() << "LIVE Protobuf: " << _tripUpdate.ByteSize() << " bytes" << endl;
+    qDebug() << "  (RTTU) LIVE Protobuf: " << _tripUpdate.ByteSize() << " bytes";
 
     // Will probabably want to make helper function for this, but for now let's just make it work!
-    qDebug() << "Processing _tripUpdate.entity_size() = " << _tripUpdate.entity_size() << "real-time records.";
+    qDebug() << "  (RTTU) Processing _tripUpdate.entity_size() = " << _tripUpdate.entity_size() << "real-time records."
+             << endl;
 
     for (qint32 recIdx = 0; recIdx < _tripUpdate.entity_size(); ++recIdx) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(recIdx);

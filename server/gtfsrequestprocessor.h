@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -28,8 +28,6 @@
  * GtfsRequestProcessor implements a QRunnable to be executed from a threadpool when a request arrives at the
  * GtfsProc_Server. Upon decoding a request sent into run(), it calls the appropriate member function to hook into the
  * needed GTFS data feed(s) via the GTFS::DataGateway or via abstraction layers. The response data is encoded in JSON.
- *
- * TODO: It should be done exclusively through abstraction layers (but this will take time)
  */
 class GtfsRequestProcessor : public QObject , public QRunnable
 {
@@ -45,69 +43,6 @@ protected:
     void run();
 
 private:
-    /*
-     * The "SDS" request handler - System and Data Status
-     *
-     * Response format: JSON
-     *
-     * (TODO: Insert details of message contents)
-     */
-    void applicationStatus(QJsonObject &resp);
-
-    /*
-     * The "RTE" request handler - RouTEs belonging to agency/feed
-     *
-     * Response format: JSON
-     *
-     * (TODO: Insert details of message contents)
-     */
-    void availableRoutes(QJsonObject &resp);
-
-    /*
-     * The "TRI" request handler - TRIp information
-     *
-     * Response format: JSON
-     *
-     * (TODO: Insert details of message contents)
-     */
-    void tripStopsDisplay(QString tripID, bool useRealTime, QJsonObject &resp);
-
-    /*
-     * The "TSR" request handler - Trips Serving Route
-     *
-     * Response format: JSON
-     *
-     * (TODO: Insert details of message contents)
-     */
-    void tripsServingRoute(QString routeID, QDate onlyDate, QJsonObject &resp);
-
-    /*
-     * The "TSS" request handler - Trips Serving Route
-     *
-     * Response format: JSON
-     *
-     * (TODO: Insert details of message contents)
-     */
-    void tripsServingStop(QString stopID, QDate onlyDate, QJsonObject &resp);
-
-    /*
-     * The "STA" requestion handler - Station Details Display
-     *
-     * Response format: JSON
-     *
-     * (TODO: Insert details of message contents)
-     */
-    void stationDetailsDisplay(QString stopID, QJsonObject &resp);
-
-    /*
-     * The "SSR" request handler - Stops Served by Route
-     *
-     * Response format: JSON
-     *
-     * (TOOD: Intert details of the message contents)
-     */
-    void stopsServedByRoute(QString routeID, QJsonObject &resp);
-
     /*
      * The "NEX" request handler - Next Trips to Serve a Stop
      *
@@ -143,32 +78,6 @@ private:
                          bool         realTimeOnly,
                          bool         combinedFormat,
                          QJsonObject &resp);
-
-    /*
-     * The SNT request handler - Stops with No Trips
-     *
-     * Response Format: JSON
-     */
-    void stopsNoTrips(QJsonObject &resp);
-
-    /*
-     * The "RDS" request handler - Realtime Data Status (if available)
-     *
-     * Response format: JSON
-     *
-     * (TODO: Insert details of message contents)
-     */
-    void realtimeDataStatus(QJsonObject &resp);
-
-    /*
-     * The "RTI" request handler - Realtime Trip Information (if available)
-     *
-     * Response format: JSON
-     *
-     * The Real-Time Trip Information (grouped into added trips, operating trips (that also exist in static feed),
-     * and the cancelled trips)
-     */
-    void realtimeTripInformation(QJsonObject &resp);
 
     /*
      * Date decoder / helper

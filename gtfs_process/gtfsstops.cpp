@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -31,7 +31,7 @@ Stops::Stops(const QString dataRootPath, QObject *parent) : QObject(parent)
     QVector<QVector<QString>> dataStore;
 
     // Read feed information
-    qDebug() << "Starting Stops Information Process";
+    qDebug() << "Starting Stops Information Process...";
     CsvProcess((dataRootPath + "/stops.txt").toUtf8(), &dataStore);
     qint8 stopIdPos, stopNamePos, stopDescPos, stopLatPos, stopLonPos, parentStationPos;
     stopsCSVOrder(dataStore.at(0), stopIdPos, stopDescPos, stopNamePos, stopLatPos, stopLonPos, parentStationPos);

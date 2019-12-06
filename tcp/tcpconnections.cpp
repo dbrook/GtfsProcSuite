@@ -59,6 +59,8 @@ void TcpConnections::disconnected()
 
 void TcpConnections::error(QAbstractSocket::SocketError socketError)
 {
+    (void) socketError;
+
     if(!sender()) return;
 //    qDebug() << this << "error in socket" << sender() << " error = " << socketError;
 

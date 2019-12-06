@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2019, Daniel Brook
+ * Copyright (C) 2018-2020, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -32,17 +32,14 @@ Routes::Routes(const QString dataRootPath, QObject *parent) : QObject(parent)
     QVector<QVector<QString>> dataStore;
 
     // Read in the feed information
-    qDebug() << "Starting Route Process";
+    qDebug() << "Starting Route Process...";
     CsvProcess((dataRootPath + "/routes.txt").toUtf8(), &dataStore);
     qint8 idPos, agencyIdPos, shortNamePos, longNamePos, descPos, typePos, urlPos, colorPos, textColorPos;
     routesCSVOrder(dataStore.at(0),
                    idPos, agencyIdPos, shortNamePos, longNamePos, descPos, typePos, urlPos, colorPos, textColorPos);
 
-    // Ensure that we have a position for everything, this is probably what causes crashes
-    qDebug() << "idPos=" << idPos << " agencyIdPos=" << agencyIdPos << " shortNamePos=" << shortNamePos
-             << " longNamePos=" << longNamePos << " descPos=" << descPos << " typePos=" << typePos
-             << " urlPos=" << urlPos << " colorPos=" << colorPos << " textColorPos=" << textColorPos;
-
+    // Agencies have a really wide range of ways these data points could be filled, including not showing at all, so
+    // to be safe we just check them all against the default/not-found value of -1
     for (int l = 1; l < dataStore.size(); ++l) {
         RouteRec route;
         route.agency_id        = (agencyIdPos  != -1) ? dataStore.at(l).at(agencyIdPos).toInt() : 0;  // 0-by-default?
