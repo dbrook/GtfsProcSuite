@@ -7,6 +7,7 @@
 
 #include <QDebug>
 #include <QThreadPool>
+#include <QDateTime>
 
 GtfsConnection::GtfsConnection(QObject *parent) : TcpConnection(parent)
 {
@@ -52,7 +53,7 @@ void GtfsConnection::readyRead()
     // Let's print the query sent in to the local debug
     QByteArray socketInput = m_socket->readAll();
     QString qSocketInput = socketInput;
-    qDebug() << "User Query: " << qSocketInput;
+    qDebug() << "[" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd hh:mm:ss t") << "] " << qSocketInput;
 
     this->requestApplication(qSocketInput);
 }
