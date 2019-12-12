@@ -25,24 +25,25 @@
 
 namespace GTFS {
 
-TripStopReconciler::TripStopReconciler(const QString   &stop_id,
-                                       bool             realTimeProcess,
-                                       QDate            serviceDate,
-                                       const QDateTime &currAgencyTime,
-                                       qint32           futureMinutes,
-                                       qint32           maxTripsForRoute,
-                                       QObject         *parent)
+TripStopReconciler::TripStopReconciler(const QString            &stop_id,
+                                       bool                      realTimeProcess,
+                                       QDate                     serviceDate,
+                                       const QDateTime          &currAgencyTime,
+                                       qint32                    futureMinutes,
+                                       qint32                    maxTripsForRoute,
+                                       const Status             *status,
+                                       const OperatingDay       *services,
+                                       const StopData           *stopDB,
+                                       const RouteData          *routeDB,
+                                       const TripData           *tripDB,
+                                       const StopTimeData       *stopTimeDB,
+                                       const RealTimeTripUpdate *activeFeed,
+                                       QObject                  *parent)
     : QObject(parent), _realTimeMode(realTimeProcess), _svcDate(serviceDate), _stopID(stop_id),
-      _lookaheadMins(futureMinutes), _maxTripsPerRoute(maxTripsForRoute), _agencyTime(currAgencyTime)
+      _lookaheadMins(futureMinutes), _maxTripsPerRoute(maxTripsForRoute), _agencyTime(currAgencyTime),
+      sStatus(status), sService(services), sStops(stopDB), sRoutes(routeDB), sTripDB(tripDB), sStopTimes(stopTimeDB),
+      rActiveFeed(activeFeed)
 {
-    // Fill the static database headers
-    sStatus    = DataGateway::inst().getStatus();
-    sService   = DataGateway::inst().getServiceDB();
-    sStops     = DataGateway::inst().getStopsDB();
-    sRoutes    = DataGateway::inst().getRoutesDB();
-    sTripDB    = DataGateway::inst().getTripsDB();
-    sStopTimes = DataGateway::inst().getStopTimesDB();
-
     // Set the current time and other time-based parameters
     // First we will get the 3 days' worth of trips so we can start narrowing them down based on additional critera
     _svcYesterday  = _svcDate.addDays(-1);
@@ -51,13 +52,6 @@ TripStopReconciler::TripStopReconciler(const QString   &stop_id,
 
     // Determine what time it is now so we can determine: a) lookahead time, b) start cutoff time, c) TripRecStat value
     _lookaheadTime = _agencyTime.addSecs(_lookaheadMins * 60);
-
-    // Setup RealTime Process
-    if (_realTimeMode) {
-        rActiveFeed = GTFS::RealTimeGateway::inst().getActiveFeed();
-    } else {
-        rActiveFeed = nullptr;
-    }
 }
 
 bool TripStopReconciler::stopIdExists() const           {return sStops->contains(_stopID);}

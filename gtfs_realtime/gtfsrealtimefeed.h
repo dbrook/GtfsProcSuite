@@ -94,7 +94,7 @@ public:
                                   QMap<QString, QVector<QPair<QString, quint32>>> &addedTrips) const;
 
     // Figure out where an added trip is headed since no way to lookup headsign for a trip not in the static feed
-    const QString getFinalStopIdForAddedTrip(const QString &trip_id);
+    const QString getFinalStopIdForAddedTrip(const QString &trip_id) const;
 
     // Is the trip (that came from the static feed) actually running?
     bool scheduledTripIsRunning(const QString &trip_id, const QDate &operDateDMY) const;

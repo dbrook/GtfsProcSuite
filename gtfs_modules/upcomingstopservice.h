@@ -24,6 +24,11 @@
 #include "staticstatus.h"
 #include "gtfsrealtimegateway.h"
 #include "gtfstrip.h"
+#include "gtfsstatus.h"
+#include "gtfsstops.h"
+#include "gtfsstoptimes.h"
+#include "gtfsroute.h"
+#include "operatingday.h"
 
 namespace GTFS {
 
@@ -173,9 +178,15 @@ private:
     bool _combinedFormat;
     bool _realtimeOnly;
 
+    const Status       *_status;
+    const OperatingDay *_service;
+    const StopData     *_stops;
+    const RouteData    *_routes;
+    const TripData     *_tripDB;
+    const StopTimeData *_stopTimes;
+
     bool _rtData;
     const GTFS::RealTimeTripUpdate *_realTimeProc;
-    const GTFS::TripData *_tripDB;
 };
 
 }  // Namespace GTFS

@@ -200,7 +200,7 @@ void RealTimeTripUpdate::getAddedTripsServingStop(const QString &stop_id,
     }
 }
 
-const QString RealTimeTripUpdate::getFinalStopIdForAddedTrip(const QString &trip_id)
+const QString RealTimeTripUpdate::getFinalStopIdForAddedTrip(const QString &trip_id) const
 {
     qint32 recIdx = _addedTrips[trip_id];
     const transit_realtime::FeedEntity &entity = _tripUpdate.entity(recIdx);

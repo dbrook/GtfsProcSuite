@@ -51,13 +51,20 @@ UpcomingStopService::UpcomingStopService(QString stopID,
       _realtimeOnly     (realtimeOnly),
       _rtData           (false)
 {
-    // Populate data retrieval handles
+    // Realtime Data Determination
     _realTimeProc = GTFS::RealTimeGateway::inst().getActiveFeed();
     if (_realTimeProc != nullptr) {
         _rtData = true;
     }
 
-    _tripDB = GTFS::DataGateway::inst().getTripsDB();
+    // Static Datasets for the TripStopReconciler
+    _status    = GTFS::DataGateway::inst().getStatus();
+    _service   = GTFS::DataGateway::inst().getServiceDB();
+    _stops     = GTFS::DataGateway::inst().getStopsDB();
+    _routes    = GTFS::DataGateway::inst().getRoutesDB();
+    _stopTimes = GTFS::DataGateway::inst().getStopTimesDB();
+    _tripDB    = GTFS::DataGateway::inst().getTripsDB();
+
 }
 
 void UpcomingStopService::fillResponseData(QJsonObject &resp)
@@ -68,7 +75,14 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
                                             _serviceDate,
                                             getAgencyTime(),
                                             _futureMinutes,
-                                            _maxTripsPerRoute);
+                                            _maxTripsPerRoute,
+                                            _status,
+                                            _service,
+                                            _stops,
+                                            _routes,
+                                            _tripDB,
+                                            _stopTimes,
+                                            _realTimeProc);
 
     // The stop ID requested does not exist
     if (!tripStopLoader.stopIdExists()) {
@@ -157,6 +171,11 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
 
                 stopTrips.push_back(stopTripItem);
             }
+
+            // Sort trips by arrival time:
+            std::sort(stopTrips.begin(), stopTrips.end(), [](const QJsonValue &v1, const QJsonValue &v2) {
+                return v1["wait_time_sec"].toInt() < v2["wait_time_sec"].toInt();
+            });
 
             singleRouteJSON["trips"] = stopTrips;
             stopRouteArray.push_back(singleRouteJSON);

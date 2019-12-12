@@ -63,8 +63,8 @@ typedef struct {
     QDateTime    schSortTime;         // In the absence of the dep/arr times in the database, we use the 'sort time'
     qint64       waitTimeSec;         // Wait time (in seconds) until the stop_id is served
     QString      headsign;            // Text that is displayed on the front of the vehicle serving the stop
-    qint8        pickupType;          // Pickup Type straight from the GTFS static feed
-    qint8        dropoffType;         // Drop Off Type straight from the GTFS static feed
+    qint16       pickupType;          // Pickup Type straight from the GTFS static feed
+    qint16       dropoffType;         // Drop Off Type straight from the GTFS static feed
     qint32       stopSequenceNum;     // Stop Sequence within the trip (some trips can serve a stop_id multiple times!)
     qint32       stopTimesIndex;      // Offset index of stop into the stop_times table of the stop within the trip
     bool         beginningOfTrip;     // TRUE if the stop_id is at the beginning of the trip
@@ -100,13 +100,20 @@ public:
      *  - Today (obvious...)
      *  - Tomorrow (in case the future minutes asked for exceeds the end of the day today
      */
-    explicit TripStopReconciler(const QString   &stop_id,
-                                bool             realTimeProcess,
-                                QDate            serviceDate,
-                                const QDateTime &currAgencyTime,
-                                qint32           futureMinutes,
-                                qint32           maxTripsForRoute,
-                                QObject         *parent = nullptr);
+    explicit TripStopReconciler(const QString            &stop_id,
+                                bool                      realTimeProcess,
+                                QDate                     serviceDate,
+                                const QDateTime          &currAgencyTime,
+                                qint32                    futureMinutes,
+                                qint32                    maxTripsForRoute,
+                                const Status             *status,
+                                const OperatingDay       *services,
+                                const StopData           *stopDB,
+                                const RouteData          *routeDB,
+                                const TripData           *tripDB,
+                                const StopTimeData       *stopTimeDB,
+                                const RealTimeTripUpdate *activeFeed,
+                                QObject                  *parent = nullptr);
 
     /*
      * Core stop_id information retrieval
@@ -176,7 +183,7 @@ private:
     /*
      * GTFS Realtime Feed Handle
      */
-    RealTimeTripUpdate *rActiveFeed;
+    const RealTimeTripUpdate *rActiveFeed;
 };
 
 } // Namespace GTFS
