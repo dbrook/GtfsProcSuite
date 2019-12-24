@@ -30,7 +30,7 @@
 #include <QThread>
 #include <QDebug>
 
-ServeGTFS::ServeGTFS(QString dbRootPath, QString realTimePath, QObject *parent) : TcpServer(parent)
+ServeGTFS::ServeGTFS(QString dbRootPath, QString realTimePath, qint32 rtInterval, QObject *parent) : TcpServer(parent)
 {
     // Setup the global data access
     GTFS::DataGateway &data = GTFS::DataGateway::inst();
@@ -57,7 +57,7 @@ ServeGTFS::ServeGTFS(QString dbRootPath, QString realTimePath, QObject *parent) 
     }
 
     GTFS::RealTimeGateway &rtData = GTFS::RealTimeGateway::inst();
-    rtData.setRealTimeFeedPath(realTimePath);
+    rtData.setRealTimeFeedPath(realTimePath, rtInterval);
     rtData.refetchData();
 
     // The real-time processor must be able to independently download new realtime protobuf files

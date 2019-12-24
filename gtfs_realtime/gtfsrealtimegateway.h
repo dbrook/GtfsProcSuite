@@ -45,7 +45,7 @@ public:
     static RealTimeGateway &inst();
 
     // Store the path from which to grab new protobuf data
-    void setRealTimeFeedPath(const QString &realTimeFeedPath);
+    void setRealTimeFeedPath(const QString &realTimeFeedPath, qint32 refreshIntervalSec);
 
     // How long until the next fetch?
     qint64 secondsToFetch() const;
@@ -76,6 +76,7 @@ private:
     virtual ~RealTimeGateway();
 
     // Dataset Members
+    qint32              _refreshIntervalSec; // Time between each data refresh attempt (in seconds)
     QMutex              _lock_activeSide;    // Prevent messing up the active side 'pointer'
     RealTimeDataRepo    _activeSide;         // Atomic indicator to denote data which is both active and ready
     QString             _dataPathLocal;

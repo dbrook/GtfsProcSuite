@@ -37,7 +37,14 @@ class ServeGTFS : public TcpServer
 {
     Q_OBJECT
 public:
-    ServeGTFS(QString dbRootPath, QString realTimePath, QObject *parent = 0);
+    /*
+     * GTFS / TCP Server object, this persists through the entire process
+     *
+     * dbRootPath:   path to the folder containing all GTFS *.txt files as the static dataset
+     * realTimePath: path (local or URI) to the GTFS real-time data to supplement the processor
+     * rtInterval:   number of seconds to wait between each refresh of the real-time data feed
+     */
+    ServeGTFS(QString dbRootPath, QString realTimePath, qint32 rtInterval, QObject *parent = 0);
     virtual ~ServeGTFS();
 
     void displayDebugging() const;

@@ -42,7 +42,7 @@ RealTimeGateway &RealTimeGateway::inst()
     return *_instance;
 }
 
-void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath)
+void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath, qint32 refreshIntervalSec)
 {
     // TODO : Make this more robust!
     if (realTimeFeedPath.startsWith("http://") || realTimeFeedPath.startsWith("https://")) {
@@ -50,6 +50,8 @@ void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath)
     } else {
         _dataPathLocal = realTimeFeedPath;
     }
+
+    _refreshIntervalSec = refreshIntervalSec;
 }
 
 qint64 RealTimeGateway::secondsToFetch() const
@@ -63,9 +65,8 @@ void RealTimeGateway::dataRetrievalLoop()
     QTimer *dataTimer = new QTimer();
     connect(dataTimer, SIGNAL(timeout()), SLOT(refetchData()));
 
-    // Download data every 2 minutes (120000 ms)
-    // TODO: this should be made configurable with a command line argument
-    dataTimer->start(120000);
+    // Download interval setting
+    dataTimer->start(_refreshIntervalSec * 1000);
 }
 
 void RealTimeGateway::refetchData()
@@ -89,45 +90,62 @@ void RealTimeGateway::refetchData()
 
     qint64 end   = QDateTime::currentMSecsSinceEpoch();
 
-    // Place the data in the correct buffer
-    RealTimeDataRepo currentSide = activeBuffer();
-    RealTimeDataRepo nextSide    = DISABLED;
-    if (currentSide == DISABLED || currentSide == SIDE_B) {
-        // This **should** be safe enough. Most transactions should take < 250 ms, so nothing should be using the
-        // currently-inactive side by the time the next feth occurs. Therefore we will only delete the inactive side
-        // when it comes time to actually allocate into it again.
-        nextSide = SIDE_A;
-
-        if (_sideA != nullptr)
-            delete _sideA;
-
-        if (!_dataPathLocal.isNull()) {
-            _sideA = new RealTimeTripUpdate(_dataPathLocal);
-        } else {
-            _sideA = new RealTimeTripUpdate(GtfsRealTimePB);
-        }
-    } else if (currentSide == SIDE_A) {
-        nextSide = SIDE_B;
-
-        if (_sideB != nullptr)
-            delete _sideB;
-
-        if (!_dataPathLocal.isNull()) {
-            _sideB = new RealTimeTripUpdate(_dataPathLocal);
-        } else {
-            _sideB = new RealTimeTripUpdate(GtfsRealTimePB);
-        }
+    // An empty GtfsRealTimePB is either because of an error or no data available. Either way, it's an error.
+    // Simply force the active side to disabled but leave the rest alone. This should help the processor to not seek
+    // any realtime information, but will also prevent existing transactions not seg-fault. When good data is found,
+    // the processor will start populating SIDE_A per the logic below for non-empty data.
+    if (GtfsRealTimePB.isEmpty()) {
+        qDebug() << "  (RTTU) ERROR : Data feed was empty, setting active feed to DISABLED";
+        setActiveFeed(DISABLED);
+        return;
     }
 
-    if (nextSide == SIDE_A) {
-        _sideA->setDownloadTimeMSec(end - start);
-        setActiveFeed(SIDE_A);
-    } else if (nextSide == SIDE_B) {
-        _sideB->setDownloadTimeMSec(end - start);
-        setActiveFeed(SIDE_B);
+    // Non-empty data is considered valid: place the data in the correct buffer, then activate it when ready
+    try {
+        RealTimeDataRepo currentSide = activeBuffer();
+        RealTimeDataRepo nextSide    = DISABLED;
+        if (currentSide == DISABLED || currentSide == SIDE_B) {
+            // This **should** be safe enough. Most transactions should take < 250 ms, so nothing should be using the
+            // currently-inactive side by the time the next fetch occurs. Therefore only deleting the inactive side
+            // when it comes time to actually allocate into it again.
+            nextSide = SIDE_A;
+
+            if (_sideA != nullptr)
+                delete _sideA;
+
+            if (!_dataPathLocal.isNull()) {
+                _sideA = new RealTimeTripUpdate(_dataPathLocal);
+            } else {
+                _sideA = new RealTimeTripUpdate(GtfsRealTimePB);
+            }
+        } else if (currentSide == SIDE_A) {
+            nextSide = SIDE_B;
+
+            if (_sideB != nullptr)
+                delete _sideB;
+
+            if (!_dataPathLocal.isNull()) {
+                _sideB = new RealTimeTripUpdate(_dataPathLocal);
+            } else {
+                _sideB = new RealTimeTripUpdate(GtfsRealTimePB);
+            }
+        }
+
+        // Make the switch to the next side after the data is ingested
+        if (nextSide == SIDE_A) {
+            _sideA->setDownloadTimeMSec(end - start);
+            setActiveFeed(SIDE_A);
+        } else if (nextSide == SIDE_B) {
+            _sideB->setDownloadTimeMSec(end - start);
+            setActiveFeed(SIDE_B);
+        }
+    } catch (...) {
+        // If an exception is raised at any point, it should be considered the same as an empty dataset error
+        qDebug() << "  (RTTU) ERROR : Exception raised while ingesting realtime data, setting active feed to DISABLED";
+        setActiveFeed(DISABLED);
     }
 
-    _nextFetchTimeUTC = QDateTime::currentDateTimeUtc().addMSecs(120000);
+    _nextFetchTimeUTC = QDateTime::currentDateTimeUtc().addMSecs(_refreshIntervalSec * 1000);
 }
 
 RealTimeDataRepo RealTimeGateway::activeBuffer()

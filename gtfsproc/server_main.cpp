@@ -57,10 +57,14 @@ int main(int argc, char *argv[])
     QCommandLineOption realTimeOption(QStringList() << "r" << "realTimeData",
                                       QCoreApplication::translate("main", "Real-time (GTFS) data path"),
                                       QCoreApplication::translate("main", "URL or local path"));
+    QCommandLineOption realTimeRefresh(QStringList() << "u" << "realTimeUpdate",
+                                       QCoreApplication::translate("main", "Seconds between real-time data updates"),
+                                       QCoreApplication::translate("main", "nb. seconds"));
 
     parser.addOption(dataRootOption);
     parser.addOption(serverPortOption);
     parser.addOption(realTimeOption);
+    parser.addOption(realTimeRefresh);
     parser.process(a);
 
     QString databaseRootPath;
@@ -83,9 +87,17 @@ int main(int argc, char *argv[])
 
     /*
      * Primary Application Data Load and Server Connection Setup
-     * (Includes static dataset and real-time data)
+     * (Includes static dataset and real-time data, which by default will refresh every 2 minutes, and no more often
+     * then 30 seconds to prevent DDOSing the server)
      */
-    ServeGTFS gtfsRequestServer(databaseRootPath, realTimePath);
+    qint32 rtDataInterval = 120;
+    if (parser.isSet(realTimeRefresh)) {
+        rtDataInterval = parser.value(realTimeRefresh).toInt();
+        if (rtDataInterval < 30) {
+            rtDataInterval = 30;
+        }
+    }
+    ServeGTFS gtfsRequestServer(databaseRootPath, realTimePath, rtDataInterval);
     gtfsRequestServer.displayDebugging();
 
     /*
