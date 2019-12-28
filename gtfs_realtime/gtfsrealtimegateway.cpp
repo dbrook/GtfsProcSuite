@@ -94,7 +94,8 @@ void RealTimeGateway::refetchData()
     // Simply force the active side to disabled but leave the rest alone. This should help the processor to not seek
     // any realtime information, but will also prevent existing transactions not seg-fault. When good data is found,
     // the processor will start populating SIDE_A per the logic below for non-empty data.
-    if (GtfsRealTimePB.isEmpty()) {
+    // ... unless we have a local file, that is!
+    if (GtfsRealTimePB.isEmpty() && _dataPathLocal.isEmpty()) {
         qDebug() << "  (RTTU) ERROR : Data feed was empty, setting active feed to DISABLED";
         setActiveFeed(DISABLED);
         return;

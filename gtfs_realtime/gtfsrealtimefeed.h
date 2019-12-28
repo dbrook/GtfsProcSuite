@@ -71,6 +71,9 @@ public:
     // Time of feed (in seconds since UNIX epoch - UTC)
     QDateTime getFeedTime() const;
 
+    // Version of the GTFS-Realtime message
+    const QString getFeedGTFSVersion() const;
+
     // Time it took to download (milliseconds)
     void setDownloadTimeMSec(qint64 downloadTime);
     qint64 getDownloadTimeMSec() const;
@@ -105,12 +108,33 @@ public:
     // What is the actual time of arrival? (Returns realArr/DepTime as seconds-since-UNIX-epoch in UTC - 64-bit)
     // Returns a FALSE if the trip and stopseq combination was not found in the data
     // Unused values will come back as 0 ... probably
-    bool tripStopActualTime(const QString &trip_id, qint64 stopSeq,
-                            QDateTime &realArrTimeUTC, QDateTime &realDepTimeUTC) const;
+    //
+    // VERSION - COMPATIBILITY WARNING! Version 2 of GTFS-Realtime natively uses seconds-since-UNIX-epoch / UTC 64-bit,
+    // but Version 1 simply uses offsets, so this function does a version sanity check and then...:
+    //   Version 2 - compares the trip_id and stopSeq to propagate realArrTimeUTC/realDepTimeUTC
+    //   Version 1 - use trip_id, stop_id, schedArrTimeUTC, schedDepTimeUTC to compute realArrTimeUTC/realDepTimeUTC
+    bool tripStopActualTime(const QString   &trip_id,
+                            qint64           stopSeq,
+                            const QString   &stop_id,
+                            const QDateTime &schedArrTimeUTC,
+                            const QDateTime &schedDepTimeUTC,
+                            QDateTime       &realArrTimeUTC,
+                            QDateTime       &realDepTimeUTC) const;
 
     // Fill an array of all the stop times for a requested real-time trip_id
     // Passes back route_id and stopTimes
-    void fillStopTimesForTrip(const QString &tripID, QString &route_id, QVector<rtStopTimeUpdate> &stopTimes) const;
+    //
+    // VERSION - COMPATIBILITY WARNING! See note from tripStopActualTime above, the same problem exists for listing
+    // all the stop times of a tripID because with V1 data everything is done with offsets
+    //
+    // Use isRTVersion1 function to see if you need to send in an additional array with static feed
+    void fillStopTimesForTrip(const QString             &tripID,
+                              QString                   &route_id,
+                              QVector<rtStopTimeUpdate> &schedStopTimes,
+                              QVector<rtStopTimeUpdate> &stopTimes) const;
+
+    // Returns true if the realtime data within is version 1
+    bool isRTVersion1() const;
 
     // Retrieve operating vehicle information
     const QString getOperatingVehicle(const QString &tripID) const;
@@ -125,6 +149,13 @@ signals:
 public slots:
 
 private:
+    /*
+     * Helper functions
+     */
+    // Once data is ingested (either from a byte array from a URL or a local file's fstream), the process to ingest
+    // trip updates is the same and encapsulated in this function to prevent previous code duplication
+    void processUpdateDetails(const QDateTime &startProcTimeUTC);
+
     /*
      * Data Members
      */

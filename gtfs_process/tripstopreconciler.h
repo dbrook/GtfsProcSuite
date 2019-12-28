@@ -66,6 +66,7 @@ typedef struct {
     qint16       pickupType;          // Pickup Type straight from the GTFS static feed
     qint16       dropoffType;         // Drop Off Type straight from the GTFS static feed
     qint32       stopSequenceNum;     // Stop Sequence within the trip (some trips can serve a stop_id multiple times!)
+    QString      stopID;              // Stop ID of the stop in question
     qint32       stopTimesIndex;      // Offset index of stop into the stop_times table of the stop within the trip
     bool         beginningOfTrip;     // TRUE if the stop_id is at the beginning of the trip
     bool         endOfTrip;           // TRUE if the stop_id is at the end of the trip

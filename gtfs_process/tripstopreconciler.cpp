@@ -112,10 +112,22 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
         for (const QString &routeID : routeTrips.keys()) {
             for (StopRecoTripRec &tripRecord : routeTrips[routeID].tripRecos) {
                 if (rActiveFeed->scheduledTripIsRunning(tripRecord.tripID, tripRecord.tripServiceDate)) {
+                    // Scheduled trip arrival/departure converted to UTC for offset calculation standardization
+                    // TODO: this might be unnecessary, but for the sake of all the subsequent time maths, it makes
+                    //       more sense to leave the real-time library as "UTC-only" (for now at least)
+                    QDateTime schedArrUTC = tripRecord.schArrTime.toUTC();
+                    QDateTime schedDepUTC = tripRecord.schDepTime.toUTC();
+
+                    // Parameters filled by the "actual time" service (returned in UTC)
                     QDateTime predictedArr, predictedDep;
                     if ((tripRecord.tripStatus != SKIP && tripRecord.tripStatus != CANCEL) &&
-                         rActiveFeed->tripStopActualTime(tripRecord.tripID, tripRecord.stopSequenceNum,
-                                                         predictedArr, predictedDep))
+                         rActiveFeed->tripStopActualTime(tripRecord.tripID,
+                                                         tripRecord.stopSequenceNum,
+                                                         tripRecord.stopID,
+                                                         schedArrUTC,
+                                                         schedDepUTC,
+                                                         predictedArr,
+                                                         predictedDep))
                     {
                         if (!predictedArr.isNull())
                             tripRecord.realTimeArrival   = predictedArr.toTimeZone(_agencyTime.timeZone());
@@ -203,8 +215,16 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                 tripRecord.tripID          = tripAndIndex.first;
 
                 // Calculate wait time and actual departure/arrivals if available
+                // TODO: It is possible that Version 1 of GTFS-Realtime supports added trips, but I don't know...
+                //       In the future, this may have to be updated, for now we use nulls
                 QDateTime prArrTime, prDepTime;
-                if (rActiveFeed->tripStopActualTime(tripAndIndex.first, tripAndIndex.second, prArrTime, prDepTime)) {
+                if (rActiveFeed->tripStopActualTime(tripAndIndex.first,
+                                                    tripAndIndex.second,
+                                                    tripRecord.stopID,
+                                                    QDateTime(),
+                                                    QDateTime(),
+                                                    prArrTime,
+                                                    prDepTime)) {
                     // We have to have at least one time
                     if (!prDepTime.isNull()) {
                         tripRecord.realTimeDeparture = prDepTime.toTimeZone(_agencyTime.timeZone());
@@ -247,10 +267,13 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
         // RealTime trips may have their actual time modified by so much that the scheduling order breaks down.
         // This is much more common on some systems/routes than others. As this application is primarily used to show
         // countdown / wait timers, we will prefer sorting based on actual times and adjust the output as needed.
-        for (const QString &routeID : routeTrips.keys())
-            std::sort(routeTrips[routeID].tripRecos.begin(),
-                      routeTrips[routeID].tripRecos.end(),
-                      TripStopReconciler::arrivalThenDepartureSortRealTime);
+        //
+        // TODO: THIS CAN PROBABLY BE DELETED AS WE HAD TO END UP RE-SORTING EVERYTHING AFTER ANYWAY...
+        // UNCOMMENT THIS CODE IF THINGS START GETTING SORTED WEIRD
+//        for (const QString &routeID : routeTrips.keys())
+//            std::sort(routeTrips[routeID].tripRecos.begin(),
+//                      routeTrips[routeID].tripRecos.end(),
+//                      TripStopReconciler::arrivalThenDepartureSortRealTime);
 
         // Invalidate trips which fall outside of the requested parameters (_maxTripsPerRoute or _lookaheadTime)
         for (const QString &routeID : routeTrips.keys())
@@ -275,6 +298,7 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
         // Populate the trip-record with all the pertinent / necessary details
         StopRecoTripRec tripRec;
         tripRec.tripID          = curTripId;
+        tripRec.stopID          = (*sStopTimes)[curTripId].at(stopTripIdx).stop_id;
         tripRec.stopSequenceNum = (*sStopTimes)[curTripId].at(stopTripIdx).stop_sequence;
         tripRec.beginningOfTrip = (stopTripIdx == 0) ? true : false;
         tripRec.endOfTrip       = (stopTripIdx == (*sStopTimes)[curTripId].length() - 1) ? true : false;

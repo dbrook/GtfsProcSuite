@@ -45,12 +45,13 @@ void RealtimeStatus::fillResponseData(QJsonObject &resp)
         resp["active_side"] = activeSideStr;
     } else {
         // Active and inactive data information
-        QDateTime activeFeedTime        = rTrips->getFeedTime();
-        resp["active_side"]             = activeSideStr;
-        resp["active_age_sec"]          = activeFeedTime.secsTo(getUTCTime());
-        resp["active_feed_time"]        = activeFeedTime.toString("ddMMMyyyy hh:mm:ss t");
-        resp["active_download_ms"]      = rTrips->getDownloadTimeMSec();
-        resp["active_integration_ms"]   = rTrips->getIntegrationTimeMSec();
+        QDateTime activeFeedTime      = rTrips->getFeedTime();
+        resp["active_rt_version"]     = rTrips->getFeedGTFSVersion();
+        resp["active_side"]           = activeSideStr;
+        resp["active_age_sec"]        = activeFeedTime.secsTo(getUTCTime());
+        resp["active_feed_time"]      = activeFeedTime.toString("ddMMMyyyy hh:mm:ss t");
+        resp["active_download_ms"]    = rTrips->getDownloadTimeMSec();
+        resp["active_integration_ms"] = rTrips->getIntegrationTimeMSec();
     }
 
     // fill standard protocol information
