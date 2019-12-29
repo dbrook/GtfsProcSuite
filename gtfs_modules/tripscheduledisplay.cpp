@@ -160,6 +160,11 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         QVector<GTFS::rtStopTimeUpdate> stopTimes;
         _realTimeProc->fillStopTimesForTrip(_tripID, route_id, staticStopTimes, stopTimes);
 
+        // In Version 1 feeds, we have to look for the route ID from the static feed as well
+        if (rtVersion1) {
+            route_id = (*_tripDB)[_tripID].route_id;
+        }
+
         resp["real_time"] = true;
 
         // Data information
@@ -170,8 +175,8 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         resp["route_id"]         = route_id;
         resp["trip_id"]          = _tripID;
         resp["short_name"]       = (*_tripDB)[_tripID].trip_short_name;
-        resp["route_short_name"] = (*_routes)[(*_tripDB)[_tripID].route_id].route_short_name;
-        resp["route_long_name"]  = (*_routes)[(*_tripDB)[_tripID].route_id].route_long_name;
+        resp["route_short_name"] = (*_routes)[route_id].route_short_name;
+        resp["route_long_name"]  = (*_routes)[route_id].route_long_name;
         resp["vehicle"]          = _realTimeProc->getOperatingVehicle(_tripID);
 
         for (const GTFS::rtStopTimeUpdate &rtsu : stopTimes) {

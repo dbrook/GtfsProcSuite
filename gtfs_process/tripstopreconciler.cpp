@@ -119,22 +119,32 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                     QDateTime schedDepUTC = tripRecord.schDepTime.toUTC();
 
                     // Parameters filled by the "actual time" service (returned in UTC)
-                    QDateTime predictedArr, predictedDep;
-                    if ((tripRecord.tripStatus != SKIP && tripRecord.tripStatus != CANCEL) &&
-                         rActiveFeed->tripStopActualTime(tripRecord.tripID,
-                                                         tripRecord.stopSequenceNum,
-                                                         tripRecord.stopID,
-                                                         schedArrUTC,
-                                                         schedDepUTC,
-                                                         predictedArr,
-                                                         predictedDep))
-                    {
-                        if (!predictedArr.isNull())
-                            tripRecord.realTimeArrival   = predictedArr.toTimeZone(_agencyTime.timeZone());
-                        if (!predictedDep.isNull())
-                            tripRecord.realTimeDeparture = predictedDep.toTimeZone(_agencyTime.timeZone());
+                    QDateTime predictedArr = QDateTime();
+                    QDateTime predictedDep = QDateTime();
+                    if (tripRecord.tripStatus != SKIP && tripRecord.tripStatus != CANCEL) {
+                        // It is possible that a trip only has partial real-time information, and this stop isn't
+                        // covered by it even though it is on the trip's static schedule and NOT explicitly skipped
+                        rActiveFeed->tripStopActualTime(tripRecord.tripID,
+                                                        tripRecord.stopSequenceNum,
+                                                        tripRecord.stopID,
+                                                        schedArrUTC,
+                                                        schedDepUTC,
+                                                        predictedArr,
+                                                        predictedDep);
 
-                        bool rtMissingForStop = true;
+                        bool rtMissingForStop   = true;
+                        bool rtArrivalMissing   = true;
+                        bool rtDepartureMissing = true;
+
+                        if (!predictedArr.isNull()) {
+                            tripRecord.realTimeArrival = predictedArr.toTimeZone(_agencyTime.timeZone());
+                            rtArrivalMissing           = false;
+                        }
+                        if (!predictedDep.isNull()) {
+                            tripRecord.realTimeDeparture = predictedDep.toTimeZone(_agencyTime.timeZone());
+                            rtDepartureMissing           = false;
+                        }
+
                         tripRecord.realTimeOffsetSec = 0;
                         if (!tripRecord.schArrTime.isNull() && !predictedArr.isNull()) {
                             rtMissingForStop = false;
@@ -146,8 +156,13 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                             tripRecord.waitTimeSec       = _agencyTime.secsTo(predictedDep);
                         }
 
-                        // Time-based statuses (arriving/early/late/on-time)
-                        if (rtMissingForStop)
+                        // Time-based statuses (arriving/early/late/on-time), or no real-time data for stop
+                        if ((rtArrivalMissing && rtDepartureMissing) || rtMissingForStop)
+                        //if ((rtArrivalMissing && rtDepartureMissing) || rtMissingForStop)
+                            // Missing both arrival and departure predictions: only show scheduled time
+                            //tripRecord.tripStatus = SCHEDULE;
+                            tripRecord.tripStatus = MISSING;
+                        else if (rtMissingForStop)
                             tripRecord.tripStatus = MISSING;
                         else if (tripRecord.realTimeOffsetSec < -59)
                             tripRecord.tripStatus = EARLY;
@@ -170,10 +185,22 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                                 tripRecord.tripStatus = BOARD;
                         }
 
-                        // Vehicle id
-                        tripRecord.vehicleRealTime = rActiveFeed->getOperatingVehicle(tripRecord.tripID);
+                        // Vehicle id and real-time information only available if one or more predictions present
+                        //if (!rtArrivalMissing || !rtDepartureMissing) {
+                            tripRecord.vehicleRealTime   = rActiveFeed->getOperatingVehicle(tripRecord.tripID);
+                            tripRecord.realTimeDataAvail = true;
+                        //}
 
-                        tripRecord.realTimeDataAvail = true;
+                        // Make a stop irrelevant if it has no arrival nor departure data and its schedule time is
+                        // purely in the past
+                        if (rtArrivalMissing && rtDepartureMissing) {
+                            if (!tripRecord.schDepTime.isNull() && _agencyTime > tripRecord.schDepTime) {
+                                tripRecord.tripStatus = IRRELEVANT;
+                            }
+                            if (!tripRecord.schArrTime.isNull() && _agencyTime > tripRecord.schArrTime) {
+                                tripRecord.tripStatus = IRRELEVANT;
+                            }
+                        }
                     } else {
                         // No time was found for the stop in this trip! There are two ways this is possible:
                         //  1) The trip passed the stop early and we should not display it

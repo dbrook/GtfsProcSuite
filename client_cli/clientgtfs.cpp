@@ -696,26 +696,47 @@ void ClientGtfs::repl()
                                << qSetFieldWidth(c4) << tripTerm << pickUp << dropOff     << qSetFieldWidth(1) << " ";
                         screen.setFieldAlignment(QTextStream::AlignRight);
 
+                        // Static schedule arrival/departure times
+                        QString depTimeSch = tr["dep_time"].toString();
+                        QString arrTimeSch = tr["arr_time"].toString();
+
                         /*
                          * Real-Time Processing -- Check if the "realtime_data" object is present
                          */
                         if (tr["realtime_data"].isObject()) {
                             QJsonObject rt = tr["realtime_data"].toObject();
 
-                            QString rtStatus = rt["status"].toString();
+                            QString rtStatus   = rt["status"].toString();
+                            QString depTimeAct = rt["actual_arrival"].toString();
+                            QString arrTimeAct = rt["actual_departure"].toString();
 
                             // Print the actual time of arrival and countdown
                             if (rtStatus == "SKIP") {
-                                screen << qSetFieldWidth(c5+c6+1) << tr["dep_time"].toString()
+                                screen << qSetFieldWidth(c5+c6+1) << depTimeSch
                                        << qSetFieldWidth(1) << " "
                                        << qSetFieldWidth(c7) << "-" << qSetFieldWidth(1) << " ";
                             } else if (rtStatus == "CNCL") {
                                 // Print regular schedule information with no add-ons
-                                screen << qSetFieldWidth(c5+c6+1)  << tr["dep_time"].toString()
+                                screen << qSetFieldWidth(c5+c6+1)  << depTimeSch
                                        << qSetFieldWidth(1) << " " << qSetFieldWidth(c7) << " "
                                        << qSetFieldWidth(1) << " " << qSetFieldWidth(0);
                             } else {
-                                screen << qSetFieldWidth(c5+c6+1) << rt["actual_arrival"].toString()
+                                QString timeToShow;
+                                // Give priority to the actual arrival, then actual departure ... failing those,
+                                // we revert to the static arrival, then static departure
+                                if (!arrTimeAct.isEmpty()) {
+                                    timeToShow = arrTimeAct;
+                                }
+                                else if (!depTimeAct.isEmpty()) {
+                                    timeToShow = depTimeAct;
+                                }
+                                else if (!arrTimeSch.isEmpty()) {
+                                    timeToShow = arrTimeSch;
+                                }
+                                else {
+                                    timeToShow = depTimeSch;
+                                }
+                                screen << qSetFieldWidth(c5+c6+1) << timeToShow
                                        << qSetFieldWidth(1)       << " "
                                        << qSetFieldWidth(c7)      << waitTimeMin
                                        << qSetFieldWidth(1)       << " ";
@@ -729,9 +750,15 @@ void ClientGtfs::repl()
                                 screen << qSetFieldWidth(c7) << rtStatus << qSetFieldWidth(0);
                             }
                         } else {
-                            // Just print regular schedule information with no add-ons
-                            screen << qSetFieldWidth(c5+c6+1) << tr["dep_time"].toString() << qSetFieldWidth(1) << " "
-                                   << qSetFieldWidth(c7)      << waitTimeMin               << qSetFieldWidth(0);
+                            // Just print regular schedule information with no add-ons, preference is always given to
+                            // the arrival time, unless it is not available then use the departure
+                            if (arrTimeSch.isEmpty()) {
+                            screen << qSetFieldWidth(c5+c6+1) << depTimeSch  << qSetFieldWidth(1) << " "
+                                   << qSetFieldWidth(c7)      << waitTimeMin << qSetFieldWidth(0);
+                            } else {
+                                screen << qSetFieldWidth(c5+c6+1) << arrTimeSch  << qSetFieldWidth(1) << " "
+                                       << qSetFieldWidth(c7)      << waitTimeMin << qSetFieldWidth(0);
+                            }
                         }
 
                         screen.setFieldAlignment(QTextStream::AlignLeft);
