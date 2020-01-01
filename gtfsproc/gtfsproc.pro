@@ -5,6 +5,7 @@ QT += network
 CONFIG += c++11 console
 CONFIG -= app_bundle
 
+# Link all sub-modules
 include("../gtfs_process/gtfs_process.pri")
 include("../gtfs_realtime/gtfs_realtime.pri")
 include("../gtfs_modules/gtfs_modules.pri")
