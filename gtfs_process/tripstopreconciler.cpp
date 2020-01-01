@@ -192,7 +192,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                         //}
 
                         // Make a stop irrelevant if it has no arrival nor departure data and its schedule time is
-                        // purely in the past
+                        // purely in the past -- Could this be handled in invalidateTrips() better?
                         if (rtArrivalMissing && rtDepartureMissing) {
                             if (!tripRecord.schDepTime.isNull() && _agencyTime > tripRecord.schDepTime) {
                                 tripRecord.tripStatus = IRRELEVANT;
@@ -438,7 +438,7 @@ void TripStopReconciler::invalidateTrips(const QString &routeID, QMap<QString, S
 
         // Mark trips as invalid if they are outside the time window requested
         if (_lookaheadMins != 0 &&
-            ((tripRecord.tripStatus == SCHEDULE   && stopTime               > _lookaheadTime) ||
+            (((tripRecord.tripStatus == SCHEDULE || tripRecord.tripStatus == MISSING) && stopTime > _lookaheadTime) ||
              (tripRecord.tripStatus == NOSCHEDULE && tripRecord.schSortTime > _lookaheadTime)   )) {
             tripRecord.tripStatus = IRRELEVANT;
         }
