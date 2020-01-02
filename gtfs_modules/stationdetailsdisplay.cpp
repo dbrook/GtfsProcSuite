@@ -22,6 +22,7 @@
 
 #include "datagateway.h"
 
+#include <QSet>
 #include <QJsonArray>
 
 namespace GTFS {
@@ -36,19 +37,22 @@ StationDetailsDisplay::StationDetailsDisplay(const QString &stopID)
 
 void StationDetailsDisplay::fillResponseData(QJsonObject &resp)
 {
-    QList<QString> routesServed;
+    QSet<QString> routesServed;
     bool stopIsParent;
 
     if (_parSta->contains(_stopID)) {
         // If we find a parent station, populate all the routes for all of the "sub-stations" as well
-        // TODO: Avoid duplicates when trips/routes serve several of the parent station's "platforms" / "sub-stops"
         for (const QString &subStop : (*_parSta)[_stopID]) {
-            routesServed.append((*_stops)[subStop].stopTripsRoutes.keys());
+            for (const QString &routeID : (*_stops)[subStop].stopTripsRoutes.keys()) {
+                routesServed.insert(routeID);
+            }
         }
         stopIsParent = true;
     } else if (_stops->contains(_stopID)) {
         // If it's a standalone station, populate the routes JUST for this station
-        routesServed = (*_stops)[_stopID].stopTripsRoutes.keys();
+        for (const QString &routeID : (*_stops)[_stopID].stopTripsRoutes.keys()) {
+            routesServed.insert(routeID);
+        }
         stopIsParent = false;
     } else {
         // StopID doesn't exist in either database, then an error must be raised
@@ -56,42 +60,43 @@ void StationDetailsDisplay::fillResponseData(QJsonObject &resp)
         return;
     }
 
-    if (_stops->contains(_stopID)) {
-        resp["stop_id"]    = _stopID;
-        resp["stop_name"]  = (*_stops)[_stopID].stop_name;
-        resp["stop_desc"]  = (*_stops)[_stopID].stop_desc;
-        resp["parent_sta"] = (*_stops)[_stopID].parent_station;
-        resp["loc_lat"]    = (*_stops)[_stopID].stop_lat;
-        resp["loc_lon"]    = (*_stops)[_stopID].stop_lon;
+    // Sort the routes by route_id
+    QJsonArray stopRouteArray;
+    QList<QString> listOfRoutes = routesServed.toList();
+    std::sort(listOfRoutes.begin(), listOfRoutes.end());
 
-        QJsonArray stopRouteArray;
+    resp["stop_id"]    = _stopID;
+    resp["stop_name"]  = (*_stops)[_stopID].stop_name;
+    resp["stop_desc"]  = (*_stops)[_stopID].stop_desc;
+    resp["parent_sta"] = (*_stops)[_stopID].parent_station;
+    resp["loc_lat"]    = (*_stops)[_stopID].stop_lat;
+    resp["loc_lon"]    = (*_stops)[_stopID].stop_lon;
 
-        // Find more details about all the routes served by the station
-        for (const QString &routeID : routesServed) {
-            QJsonObject singleRouteJSON;
-            singleRouteJSON["route_id"]         = routeID;
-            singleRouteJSON["route_short_name"] = (*_routes)[routeID].route_short_name;
-            singleRouteJSON["route_long_name"]  = (*_routes)[routeID].route_long_name;
-            singleRouteJSON["route_color"]      = (*_routes)[routeID].route_color;
-            singleRouteJSON["route_text_color"] = (*_routes)[routeID].route_text_color;
-            stopRouteArray.push_back(singleRouteJSON);
-        }
-        resp["routes"] = stopRouteArray;
-
-        // If there is a valid parent, display the other associated stations
-        QJsonArray stopsSharingParent;
-        QString parentStation = (stopIsParent) ? _stopID : (*_stops)[_stopID].parent_station;
-        if (parentStation != "") {
-            for (const QString &subStopID : (*_parSta)[parentStation]) {
-                QJsonObject singleSubStop;
-                singleSubStop["stop_id"]   = subStopID;
-                singleSubStop["stop_name"] = (*_stops)[subStopID].stop_name;
-                singleSubStop["stop_desc"] = (*_stops)[subStopID].stop_desc;
-                stopsSharingParent.push_back(singleSubStop);
-            }
-        }
-        resp["stops_sharing_parent"] = stopsSharingParent;
+    // Find more details about all the routes served by the station
+    for (const QString &routeID : listOfRoutes) {
+        QJsonObject singleRouteJSON;
+        singleRouteJSON["route_id"]         = routeID;
+        singleRouteJSON["route_short_name"] = (*_routes)[routeID].route_short_name;
+        singleRouteJSON["route_long_name"]  = (*_routes)[routeID].route_long_name;
+        singleRouteJSON["route_color"]      = (*_routes)[routeID].route_color;
+        singleRouteJSON["route_text_color"] = (*_routes)[routeID].route_text_color;
+        stopRouteArray.push_back(singleRouteJSON);
     }
+    resp["routes"] = stopRouteArray;
+
+    // If there is a valid parent, display the other associated stations
+    QJsonArray stopsSharingParent;
+    QString parentStation = (stopIsParent) ? _stopID : (*_stops)[_stopID].parent_station;
+    if (parentStation != "") {
+        for (const QString &subStopID : (*_parSta)[parentStation]) {
+            QJsonObject singleSubStop;
+            singleSubStop["stop_id"]   = subStopID;
+            singleSubStop["stop_name"] = (*_stops)[subStopID].stop_name;
+            singleSubStop["stop_desc"] = (*_stops)[subStopID].stop_desc;
+            stopsSharingParent.push_back(singleSubStop);
+        }
+    }
+    resp["stops_sharing_parent"] = stopsSharingParent;
 
     // Successfully filled all station information, now populate core protocol fields
     fillProtocolFields("STA", 0, resp);

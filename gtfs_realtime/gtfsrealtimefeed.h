@@ -105,6 +105,11 @@ public:
     // Was the trip-update to specifically skip the stop?
     bool tripSkipsStop(const QString &stop_id, const QString &trip_id, qint64 stopSeq, const QDate &serviceDay) const;
 
+    // Has the trip already passed the stop? This is useful for indicating that a trip went by early (i.e. don't care
+    // about showing things which have already departed the stop)
+    // NOTE: This is not compatible with V1 feeds!
+    bool scheduledTripAlreadyPassed(const QString &trip_id, qint64 stopSeq) const;
+
     // What is the actual time of arrival? (Returns realArr/DepTime as seconds-since-UNIX-epoch in UTC - 64-bit)
     // Returns a FALSE if the trip and stopseq combination was not found in the data
     // Unused values will come back as 0 ... probably

@@ -88,6 +88,8 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
         }
     } else {
         // REALTIME MODE: Integrate the GTFS Realtime feed information into the requested stop's trips
+        bool rtFeedIsV1 = rActiveFeed->isRTVersion1();
+
         // Mark any cancelled trips as such (tripStatus)
         for (const QString &routeID : routeTrips.keys())
             for (StopRecoTripRec &tripRecord : routeTrips[routeID].tripRecos)
@@ -122,8 +124,17 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                     QDateTime predictedArr = QDateTime();
                     QDateTime predictedDep = QDateTime();
                     if (tripRecord.tripStatus != SKIP && tripRecord.tripStatus != CANCEL) {
+                        if (!rtFeedIsV1 && rActiveFeed->scheduledTripAlreadyPassed(tripRecord.tripID,
+                                                                                   tripRecord.stopSequenceNum)) {
+                            // A scheduled trip with realtime data might have left the stop in question early so we
+                            // need to account for that and expunge the trip from displaying. This is not needed for
+                            // addred trips (as there is nothing to compare them to). This does not work with V1 feeds.
+                            tripRecord.tripStatus = IRRELEVANT;
+                            continue;
+                        }
+
                         // It is possible that a trip only has partial real-time information, and this stop isn't
-                        // covered by it even though it is on the trip's static schedule and NOT explicitly skipped
+                        // covered by it even though it is on the trip's static schedule and NOT explicitly skipped.
                         rActiveFeed->tripStopActualTime(tripRecord.tripID,
                                                         tripRecord.stopSequenceNum,
                                                         tripRecord.stopID,

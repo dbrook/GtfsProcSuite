@@ -188,6 +188,27 @@ bool RealTimeTripUpdate::tripSkipsStop(const QString &stop_id,
     return false;
 }
 
+bool RealTimeTripUpdate::scheduledTripAlreadyPassed(const QString &trip_id, qint64 stopSeq) const
+{
+    // We are assured from the GTFS specification that stop sequence numbers will ALWAYS increase, so if the first
+    // stop sequence we find in the realtime feed is higher than that of the one requested by stopSeq, we should
+    // note that the trip has already passed through the stop and therefore not display it
+
+    qint32 entityIdx;
+    if (_activeTrips.contains(trip_id)) {
+        entityIdx = _activeTrips[trip_id];
+    } else {
+        return false;
+    }
+
+    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(entityIdx).trip_update();
+    if ((tri.stop_time_update_size() > 0) && (tri.stop_time_update(0).stop_sequence() > stopSeq)) {
+        return true;
+    }
+
+    return false;
+}
+
 bool RealTimeTripUpdate::tripStopActualTime(const QString   &trip_id,
                                             qint64           stopSeq,
                                             const QString   &stop_id,
