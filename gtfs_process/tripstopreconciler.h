@@ -25,6 +25,7 @@
 #include "gtfsrealtimegateway.h"
 
 #include <QObject>
+#include <QList>
 
 namespace GTFS {
 
@@ -101,7 +102,7 @@ public:
      *  - Today (obvious...)
      *  - Tomorrow (in case the future minutes asked for exceeds the end of the day today
      */
-    explicit TripStopReconciler(const QString            &stop_id,
+    explicit TripStopReconciler(const QList<QString>     &stop_ids,
                                 bool                      realTimeProcess,
                                 QDate                     serviceDate,
                                 const QDateTime          &currAgencyTime,
@@ -119,8 +120,13 @@ public:
     /*
      * Core stop_id information retrieval
      */
+    // Checks that all stop IDs requested in the QList actually exist
     bool stopIdExists() const;
+
+    // Returns the name of a single stop, or a comma-list of all stop names requested
     QString getStopName() const;
+
+    // Returns the stop description if only 1 stop was requested
     QString getStopDesciption() const;
 
     /*
@@ -144,8 +150,9 @@ private:
      * Local Functions for helping retrieve data from the gateway
      */
     // Fill in the StopRecoTripRec for a particular service day and route
-    void addTripRecordsForServiceDay(const QString &routeID,
-                                     const QDate &serviceDay,
+    void addTripRecordsForServiceDay(const QString    &routeID,
+                                     const QDate      &serviceDay,
+                                     const QString    &stopID,
                                      StopRecoRouteRec &routeRecord) const;
 
     // Invalidate trips that fall outside the requested thresholds
@@ -157,19 +164,19 @@ private:
     /*
      * Data Members
      */
-    bool      _realTimeMode;
-    QDate     _svcDate;
-    QString   _stopID;
-    qint32    _lookaheadMins;      // If set to 0, it is ignored
-    qint32    _maxTripsPerRoute;
-    bool      _realTimeOnly;
+    bool           _realTimeMode;
+    QDate          _svcDate;
+    QList<QString> _stopIDs;            // List of Stop IDs to compute all at once
+    qint32         _lookaheadMins;      // If set to 0, it is ignored
+    qint32         _maxTripsPerRoute;
+    bool           _realTimeOnly;
 
-    QDate     _svcYesterday;
-    QDate     _svcToday;
-    QDate     _svcTomorrow;
-    QDateTime _currentUTC;
-    QDateTime _agencyTime;
-    QDateTime _lookaheadTime;
+    QDate          _svcYesterday;
+    QDate          _svcToday;
+    QDate          _svcTomorrow;
+    QDateTime      _currentUTC;
+    QDateTime      _agencyTime;
+    QDateTime      _lookaheadTime;
 
     /*
      * GTFS Static Database Handles

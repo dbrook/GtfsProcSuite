@@ -37,13 +37,13 @@ static inline void swap(QJsonValueRef left, QJsonValueRef right)
 
 namespace GTFS {
 
-UpcomingStopService::UpcomingStopService(QString stopID,
-                                         qint32  futureMinutes,
-                                         qint32  maxTripsPerRoute,
-                                         bool    nexCombFormat,
-                                         bool    realtimeOnly)
+UpcomingStopService::UpcomingStopService(QList<QString> stopIDs,
+                                         qint32         futureMinutes,
+                                         qint32         maxTripsPerRoute,
+                                         bool           nexCombFormat,
+                                         bool           realtimeOnly)
     : StaticStatus      (),
-      _stopID           (stopID),
+      _stopIDs          (stopIDs),
       _serviceDate      (QDate::currentDate()),
       _futureMinutes    (futureMinutes),
       _maxTripsPerRoute (maxTripsPerRoute),
@@ -61,16 +61,25 @@ UpcomingStopService::UpcomingStopService(QString stopID,
     _status    = GTFS::DataGateway::inst().getStatus();
     _service   = GTFS::DataGateway::inst().getServiceDB();
     _stops     = GTFS::DataGateway::inst().getStopsDB();
+    _parentSta = GTFS::DataGateway::inst().getParentsDB();
     _routes    = GTFS::DataGateway::inst().getRoutesDB();
     _stopTimes = GTFS::DataGateway::inst().getStopTimesDB();
     _tripDB    = GTFS::DataGateway::inst().getTripsDB();
-
 }
 
 void UpcomingStopService::fillResponseData(QJsonObject &resp)
 {
+    // If a parent station was requested, fetch all the relevant trips to all its child stops
+    bool parentStationMode = false;
+    QString parentStation;
+    if (_stopIDs.size() == 1 && _parentSta->contains(_stopIDs.at(0))) {
+        parentStation = _stopIDs.at(0);
+        _stopIDs = (*_parentSta)[parentStation].toList();
+        parentStationMode = true;
+    }
+
     // Array to populate based on the response of the tripStopLoader
-    GTFS::TripStopReconciler tripStopLoader(_stopID,
+    GTFS::TripStopReconciler tripStopLoader(_stopIDs,
                                             _rtData,
                                             _serviceDate,
                                             getAgencyTime(),
@@ -95,9 +104,23 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
     }
 
     // Fill stop information in response
-    resp["stop_id"]   = _stopID;
-    resp["stop_name"] = tripStopLoader.getStopName();
-    resp["stop_desc"] = tripStopLoader.getStopDesciption();
+    if (parentStationMode) {
+        resp["stop_id"] = parentStation;
+        resp["stop_name"] = (*_stops)[parentStation].stop_name;
+        resp["stop_desc"] = "Parent Station";
+    } else {
+        if (_stopIDs.size() == 1) {
+            resp["stop_id"] = _stopIDs.at(0);
+        } else {
+            QString stopIDconcat;
+            for (const QString &stopID : _stopIDs) {
+                stopIDconcat += stopID + ", ";
+            }
+            resp["stop_id"] = stopIDconcat;
+        }
+        resp["stop_name"] = tripStopLoader.getStopName();
+        resp["stop_desc"] = tripStopLoader.getStopDesciption();
+    }
 
     // Populate the valid upcoming routes with trips for the stop_id requested
     QJsonArray  stopRouteArray;

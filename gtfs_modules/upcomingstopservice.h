@@ -30,6 +30,8 @@
 #include "gtfsroute.h"
 #include "operatingday.h"
 
+#include <QList>
+
 namespace GTFS {
 
 /*
@@ -57,11 +59,11 @@ public:
      *
      * realtimeOnly     - only show service times for trips that appear in the realtime feed
      */
-    UpcomingStopService(QString stopID,
-                        qint32  futureMinutes,
-                        qint32  maxTripsPerRoute,
-                        bool    nexCombFormat,
-                        bool    realtimeOnly);
+    UpcomingStopService(QList<QString> stopIDs,
+                        qint32         futureMinutes,
+                        qint32         maxTripsPerRoute,
+                        bool           nexCombFormat,
+                        bool           realtimeOnly);
 
     /*
      * Fills a JSON response with upcoming service information for a requested stop ID given the parameters requested
@@ -171,19 +173,20 @@ public:
     void fillResponseData(QJsonObject &resp);
 
 private:
-    QString _stopID;
-    QDate _serviceDate;
-    qint32 _futureMinutes;
-    qint32 _maxTripsPerRoute;
-    bool _combinedFormat;
-    bool _realtimeOnly;
+    QList<QString> _stopIDs;
+    QDate          _serviceDate;
+    qint32         _futureMinutes;
+    qint32         _maxTripsPerRoute;
+    bool           _combinedFormat;
+    bool           _realtimeOnly;
 
-    const Status       *_status;
-    const OperatingDay *_service;
-    const StopData     *_stops;
-    const RouteData    *_routes;
-    const TripData     *_tripDB;
-    const StopTimeData *_stopTimes;
+    const Status         *_status;
+    const OperatingDay   *_service;
+    const StopData       *_stops;
+    const ParentStopData *_parentSta;
+    const RouteData      *_routes;
+    const TripData       *_tripDB;
+    const StopTimeData   *_stopTimes;
 
     bool _rtData;
     const GTFS::RealTimeTripUpdate *_realTimeProc;

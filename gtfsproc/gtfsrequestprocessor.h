@@ -98,6 +98,10 @@ private:
      */
     qint32 determineMinuteRange(const QString &userReq, QString &remUserQuery);
 
+    /*
+     * Multiple Stop ID decoder. Several stop IDs can be queried at a time, separated with a "|" symbol for NEX & NCF
+     */
+    void listifyStopIDs(const QString &remUserQuery, QList<QString> &listStopIDs);
 
     // Data member
     QString request;

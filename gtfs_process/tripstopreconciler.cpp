@@ -25,7 +25,7 @@
 
 namespace GTFS {
 
-TripStopReconciler::TripStopReconciler(const QString            &stop_id,
+TripStopReconciler::TripStopReconciler(const QList<QString>     &stop_ids,
                                        bool                      realTimeProcess,
                                        QDate                     serviceDate,
                                        const QDateTime          &currAgencyTime,
@@ -39,7 +39,7 @@ TripStopReconciler::TripStopReconciler(const QString            &stop_id,
                                        const StopTimeData       *stopTimeDB,
                                        const RealTimeTripUpdate *activeFeed,
                                        QObject                  *parent)
-    : QObject(parent), _realTimeMode(realTimeProcess), _svcDate(serviceDate), _stopID(stop_id),
+    : QObject(parent), _realTimeMode(realTimeProcess), _svcDate(serviceDate), _stopIDs(stop_ids),
       _lookaheadMins(futureMinutes), _maxTripsPerRoute(maxTripsForRoute), _agencyTime(currAgencyTime),
       sStatus(status), sService(services), sStops(stopDB), sRoutes(routeDB), sTripDB(tripDB), sStopTimes(stopTimeDB),
       rActiveFeed(activeFeed)
@@ -54,29 +54,58 @@ TripStopReconciler::TripStopReconciler(const QString            &stop_id,
     _lookaheadTime = _agencyTime.addSecs(_lookaheadMins * 60);
 }
 
-bool TripStopReconciler::stopIdExists() const           {return sStops->contains(_stopID);}
+bool TripStopReconciler::stopIdExists() const
+{
+    for (const QString &stopID : _stopIDs) {
+        if (!sStops->contains(stopID)) {
+            return false;
+        }
+    }
+    return true;
+}
 
-QString TripStopReconciler::getStopName() const         {return (*sStops)[_stopID].stop_name;}
+QString TripStopReconciler::getStopName() const
+{
+    if (_stopIDs.size() == 1) {
+        return (*sStops)[_stopIDs.at(0)].stop_name;
+    }
 
-QString TripStopReconciler::getStopDesciption() const   {return (*sStops)[_stopID].stop_desc;}
+    QString concatStopNames;
+    for (const QString &stopID : _stopIDs) {
+        concatStopNames += (*sStops)[stopID].stop_name + ", ";
+    }
+    return concatStopNames;
+}
+
+QString TripStopReconciler::getStopDesciption() const
+{
+    if (_stopIDs.size() == 1) {
+        return (*sStops)[_stopIDs.at(0)].stop_desc;
+    } else {
+        return "Multiple Stops Queried";
+    }
+}
 
 void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeTrips)
 {
+    // For every stop requested, find all relevant trips
+    for (const QString &stopID : _stopIDs) {
+
     // Retrieve all the trips that could service the stop (from yesterday, today, and tomorrow service days)
-    for (const QString &routeID : (*sStops)[_stopID].stopTripsRoutes.keys()) {
-        StopRecoRouteRec routeRecord;
+    for (const QString &routeID : (*sStops)[stopID].stopTripsRoutes.keys()) {
+        StopRecoRouteRec &routeRecord = routeTrips[routeID];
         routeRecord.longRouteName  = (*sRoutes)[routeID].route_long_name;
         routeRecord.shortRouteName = (*sRoutes)[routeID].route_short_name;
         routeRecord.routeColor     = (*sRoutes)[routeID].route_color;
         routeRecord.routeTextColor = (*sRoutes)[routeID].route_text_color;
 
-        addTripRecordsForServiceDay(routeID, _svcYesterday, routeRecord);
-        addTripRecordsForServiceDay(routeID, _svcToday,     routeRecord);
-        addTripRecordsForServiceDay(routeID, _svcTomorrow,  routeRecord);
+        addTripRecordsForServiceDay(routeID, _svcYesterday, stopID, routeRecord);
+        addTripRecordsForServiceDay(routeID, _svcToday,     stopID, routeRecord);
+        addTripRecordsForServiceDay(routeID, _svcTomorrow,  stopID, routeRecord);
 
         // Put the new-found route in the overall map.
         // Pay attention later when more trips could be added, don't overwrite!
-        routeTrips[routeID] = routeRecord;
+//        routeTrips[routeID] = routeRecord;
     }
 
     // Without realtime information, expunge trips which stopped in the past / occur outside the desired time range
@@ -103,7 +132,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
         // Mark trips which will skip the stop instead of serve it
         for (const QString &routeID : routeTrips.keys())
             for (StopRecoTripRec &tripRecord : routeTrips[routeID].tripRecos)
-                if (rActiveFeed->tripSkipsStop(_stopID, tripRecord.tripID,
+                if (rActiveFeed->tripSkipsStop(stopID, tripRecord.tripID,
                                                tripRecord.stopSequenceNum, tripRecord.tripServiceDate))
                 {
                     tripRecord.tripStatus = SKIP;
@@ -237,7 +266,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
         // Add the 'added' trips (mark with SUPPLEMENT)
         // We first fill a separate compatible data structure which will then merge into the vector of trip-records
         QMap<QString, QVector<QPair<QString, quint32>>> addedTrips;
-        rActiveFeed->getAddedTripsServingStop(_stopID, addedTrips);
+        rActiveFeed->getAddedTripsServingStop(stopID, addedTrips);
         for (const QString &routeID : addedTrips.keys()) {
             for (const QPair<QString, quint32> &tripAndIndex : addedTrips[routeID]) {
                 // Make a new tripRecord so we have a place to add current trip information
@@ -317,18 +346,21 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
         for (const QString &routeID : routeTrips.keys())
             invalidateTrips(routeID, routeTrips);
     }
+
+    }  // End of loop on stop ID list
 }
 
 void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
                                                      const QDate      &serviceDay,
+                                                     const QString    &stopID,
                                                      StopRecoRouteRec &routeRecord) const
 {
     // Go through all the trips from the static feed and find all that hit this stop
-    for (qint32 tripIdx = 0; tripIdx < (*sStops)[_stopID].stopTripsRoutes[routeID].length(); ++tripIdx)
+    for (qint32 tripIdx = 0; tripIdx < (*sStops)[stopID].stopTripsRoutes[routeID].length(); ++tripIdx)
     {
         // Offset into the individual stop-trip array (so the entire trip information can be found)
-        qint32        stopTripIdx  = (*sStops)[_stopID].stopTripsRoutes[routeID].at(tripIdx).tripStopIndex;
-        const QString curTripId    = (*sStops)[_stopID].stopTripsRoutes[routeID].at(tripIdx).tripID;
+        qint32        stopTripIdx  = (*sStops)[stopID].stopTripsRoutes[routeID].at(tripIdx).tripStopIndex;
+        const QString curTripId    = (*sStops)[stopID].stopTripsRoutes[routeID].at(tripIdx).tripID;
 
         // Ensure that the trip actually runs for this service day
         if (! sService->serviceRunning(serviceDay, (*sTripDB)[curTripId].service_id))
@@ -373,7 +405,7 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
         if ((*sStopTimes)[curTripId].at(stopTripIdx).arrival_time == -1 &&
             (*sStopTimes)[curTripId].at(stopTripIdx).departure_time == -1) {
             QDateTime localNoon(tripRec.tripServiceDate, QTime(12, 0, 0), _agencyTime.timeZone());
-            tripRec.schSortTime = localNoon.addSecs((*sStops)[_stopID].stopTripsRoutes[routeID].at(tripIdx).sortTime);
+            tripRec.schSortTime = localNoon.addSecs((*sStops)[stopID].stopTripsRoutes[routeID].at(tripIdx).sortTime);
             tripRec.waitTimeSec = _agencyTime.secsTo(tripRec.schSortTime);
             scheduleTimeAvail   = false;
         }
