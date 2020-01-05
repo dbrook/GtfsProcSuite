@@ -33,7 +33,7 @@ namespace GTFS {
 
 /*
  * GTFS::TripsServingStop
- * Retrieves all the trips that serve a route (or just a the trips for a given operating day*).
+ * Retrieves all the trips that serve a stop (or just a the trips for a given operating day*).
  *
  * *= Note: "operating day" is not the same thing as an actual day. The best example is late night service that belongs
  *          to the day before (i.e. a "Friday Night 1am train" which technically is running on Saturday will appear
@@ -46,6 +46,7 @@ namespace GTFS {
  *  - TripData
  *  - StopTimeData
  *  - StopData
+ *  - ParentStations
  *  - OperatingDay
  */
 class TripsServingStop : public StaticStatus
@@ -54,7 +55,7 @@ public:
     explicit TripsServingStop(const QString &stopID, const QDate serviceDay);
 
     /*
-     * Fills a JSON response with details about the route and all trips associated with it (optionally: for single day)
+     * Fills a JSON response with details about the stop and all trips associated with it (optionally: for single day)
      *
      * NOTE: Fields with (D) indicated mean they only appear when a specific date was requested
      * {
@@ -98,9 +99,9 @@ public:
      *       op_fri                 :bool  : true if the trip operates on Fridays
      *       op_sat                 :bool  : true if the trip operates on Saturdays
      *       op_sun                 :bool  : true if the trip operates on Sundays
-     *       dep_time               :string: departure time at stop (only corrected for DST when requesting a day)
-     *       arr_time               :string: arrival time at stop (only corrected for DST when requesting a day)
-     *       dst_on                 :bool  : true if times are in DST
+     *       dep_time               :string: departure time at stop ((D) only corrected for DST when requesting a day)
+     *       arr_time               :string: arrival time at stop ((D) only corrected for DST when requesting a day)
+     *       dst_on                 :bool  : true if times are in DST ((D) only shown when requesting a specific day)
      *       trip_terminates        :bool  : true if the stop is at the last position of the trip
      *       trip_begins            :bool  : true if the stop is at the first position of the trip
      *     ]
@@ -128,11 +129,11 @@ private:
     QDate   _onlyDate;
 
     // GTFS datasets
-    const GTFS::StopData     *_stops;
-    const GTFS::TripData     *_tripDB;
-    const GTFS::OperatingDay *_svc;
-    const GTFS::StopTimeData *_stopTimes;
-    const GTFS::RouteData    *_routes;
+    const GTFS::StopData       *_stops;
+    const GTFS::TripData       *_tripDB;
+    const GTFS::OperatingDay   *_svc;
+    const GTFS::StopTimeData   *_stopTimes;
+    const GTFS::RouteData      *_routes;
 };
 
 } //  Namespace GTFS

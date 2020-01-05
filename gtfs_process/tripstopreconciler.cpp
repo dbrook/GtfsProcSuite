@@ -72,7 +72,7 @@ QString TripStopReconciler::getStopName() const
 
     QString concatStopNames;
     for (const QString &stopID : _stopIDs) {
-        concatStopNames += (*sStops)[stopID].stop_name + ", ";
+        concatStopNames += (*sStops)[stopID].stop_name + " | ";
     }
     return concatStopNames;
 }
@@ -82,7 +82,7 @@ QString TripStopReconciler::getStopDesciption() const
     if (_stopIDs.size() == 1) {
         return (*sStops)[_stopIDs.at(0)].stop_desc;
     } else {
-        return "Multiple Stops Queried";
+        return "Multiple Stops";
     }
 }
 
@@ -90,6 +90,10 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 {
     // For every stop requested, find all relevant trips
     for (const QString &stopID : _stopIDs) {
+
+    // Trips will be built locally per route per stop ID, then invalidated based on the timeframe or number of stops
+    // requested. Only the "relevant" trips will be stored in routeTrips for the JSON-building services to use.
+    QMap<QString, StopRecoRouteRec> fullTrips;
 
     // Retrieve all the trips that could service the stop (from yesterday, today, and tomorrow service days)
     for (const QString &routeID : (*sStops)[stopID].stopTripsRoutes.keys()) {
@@ -99,49 +103,45 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
         routeRecord.routeColor     = (*sRoutes)[routeID].route_color;
         routeRecord.routeTextColor = (*sRoutes)[routeID].route_text_color;
 
-        addTripRecordsForServiceDay(routeID, _svcYesterday, stopID, routeRecord);
-        addTripRecordsForServiceDay(routeID, _svcToday,     stopID, routeRecord);
-        addTripRecordsForServiceDay(routeID, _svcTomorrow,  stopID, routeRecord);
-
-        // Put the new-found route in the overall map.
-        // Pay attention later when more trips could be added, don't overwrite!
-//        routeTrips[routeID] = routeRecord;
+        StopRecoRouteRec &fullRouteRecord = fullTrips[routeID];
+        addTripRecordsForServiceDay(routeID, _svcYesterday, stopID, fullRouteRecord);
+        addTripRecordsForServiceDay(routeID, _svcToday,     stopID, fullRouteRecord);
+        addTripRecordsForServiceDay(routeID, _svcTomorrow,  stopID, fullRouteRecord);
     }
 
     // Without realtime information, expunge trips which stopped in the past / occur outside the desired time range
     // The presence of realtime information adds some complexity like added trips and new times / countdowns
-    if (!_realTimeMode) {
-        // STATIC MODE: Invalidate the trips so that the front-end can avoid serializing them
-        for (const QString &routeID : routeTrips.keys()) {
-            invalidateTrips(routeID, routeTrips);
-        }
-    } else {
+    if (_realTimeMode) {
         // REALTIME MODE: Integrate the GTFS Realtime feed information into the requested stop's trips
         bool rtFeedIsV1 = rActiveFeed->isRTVersion1();
 
         // Mark any cancelled trips as such (tripStatus)
-        for (const QString &routeID : routeTrips.keys())
-            for (StopRecoTripRec &tripRecord : routeTrips[routeID].tripRecos)
+        for (const QString &routeID : fullTrips.keys()) {
+            for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
                 if (rActiveFeed->tripIsCancelled(tripRecord.tripID, tripRecord.tripServiceDate))
                 {
 //                    qDebug() << "Trip ID " << tripRecord.tripID << " is cancelled!";
                     tripRecord.tripStatus = CANCEL;
                     tripRecord.realTimeDataAvail = true;
                 }
+            }
+        }
 
         // Mark trips which will skip the stop instead of serve it
-        for (const QString &routeID : routeTrips.keys())
-            for (StopRecoTripRec &tripRecord : routeTrips[routeID].tripRecos)
+        for (const QString &routeID : fullTrips.keys()) {
+            for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
                 if (rActiveFeed->tripSkipsStop(stopID, tripRecord.tripID,
                                                tripRecord.stopSequenceNum, tripRecord.tripServiceDate))
                 {
                     tripRecord.tripStatus = SKIP;
                     tripRecord.realTimeDataAvail = true;
                 }
+            }
+        }
 
         // Inject realtime information in scheduled trips (realTimeActual, realTimeOffsetSec, waitTimeSec, tripStatus)
-        for (const QString &routeID : routeTrips.keys()) {
-            for (StopRecoTripRec &tripRecord : routeTrips[routeID].tripRecos) {
+        for (const QString &routeID : fullTrips.keys()) {
+            for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
                 if (rActiveFeed->scheduledTripIsRunning(tripRecord.tripID, tripRecord.tripServiceDate)) {
                     // Scheduled trip arrival/departure converted to UTC for offset calculation standardization
                     // TODO: this might be unnecessary, but for the sake of all the subsequent time maths, it makes
@@ -326,25 +326,14 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 //                qDebug() << "Final Stop for tripID " << tripRecord.tripID << " is: " << finalStopID;
                 tripRecord.headsign = (*sStops)[finalStopID].stop_name;
 
-                routeTrips[routeID].tripRecos.push_back(tripRecord);
+                fullTrips[routeID].tripRecos.push_back(tripRecord);
             }
         }
+    }
 
-        // Sort the vector by the service time (order of importance: arrival time THEN departure time)
-        // RealTime trips may have their actual time modified by so much that the scheduling order breaks down.
-        // This is much more common on some systems/routes than others. As this application is primarily used to show
-        // countdown / wait timers, we will prefer sorting based on actual times and adjust the output as needed.
-        //
-        // TODO: THIS CAN PROBABLY BE DELETED AS WE HAD TO END UP RE-SORTING EVERYTHING AFTER ANYWAY...
-        // UNCOMMENT THIS CODE IF THINGS START GETTING SORTED WEIRD
-//        for (const QString &routeID : routeTrips.keys())
-//            std::sort(routeTrips[routeID].tripRecos.begin(),
-//                      routeTrips[routeID].tripRecos.end(),
-//                      TripStopReconciler::arrivalThenDepartureSortRealTime);
-
-        // Invalidate trips which fall outside of the requested parameters (_maxTripsPerRoute or _lookaheadTime)
-        for (const QString &routeID : routeTrips.keys())
-            invalidateTrips(routeID, routeTrips);
+    // Invalidate trips which fall outside of the requested parameters (_maxTripsPerRoute or _lookaheadTime)
+    for (const QString &routeID : fullTrips.keys()) {
+        invalidateTrips(routeID, fullTrips, routeTrips);
     }
 
     }  // End of loop on stop ID list
@@ -421,15 +410,29 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
     }
 }
 
-void TripStopReconciler::invalidateTrips(const QString &routeID, QMap<QString, StopRecoRouteRec> &routeTrips)
+void TripStopReconciler::invalidateTrips(const QString                   &routeID,
+                                         QMap<QString, StopRecoRouteRec> &fullTrips,
+                                         QMap<QString, StopRecoRouteRec> &relevantRouteTrips)
 {
     qint32 nbTripsForRoute = 0;
-    for (StopRecoTripRec &tripRecord : routeTrips[routeID].tripRecos) {
+    for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
         QDateTime stopTime;
         if (!tripRecord.schArrTime.isNull()) {
             stopTime = tripRecord.schArrTime;
         } else if (!tripRecord.schDepTime.isNull()) {
             stopTime = tripRecord.schDepTime;
+        }
+
+        // Mark trips as invalid if they are outside of the number of trips requested
+        if (_maxTripsPerRoute != 0 && nbTripsForRoute >= _maxTripsPerRoute) {
+            tripRecord.tripStatus = IRRELEVANT;
+        }
+
+        // Mark trips as invalid if they are outside the time window requested
+        if (_lookaheadMins != 0 &&
+            (((tripRecord.tripStatus == SCHEDULE || tripRecord.tripStatus == MISSING) && stopTime > _lookaheadTime) ||
+             (tripRecord.tripStatus == NOSCHEDULE && tripRecord.schSortTime > _lookaheadTime)   )) {
+            tripRecord.tripStatus = IRRELEVANT;
         }
 
         // Mark the trip-stop as invalid if it occurred in the past
@@ -469,67 +472,13 @@ void TripStopReconciler::invalidateTrips(const QString &routeID, QMap<QString, S
             }
         }
 
-        // If we didn't mark the trip as irrelevant, then it shall count against the maxTripsForRoute
+        // If we didn't mark the trip as irrelevant, then it shall count against the maxTripsForRoute and it can
+        // be added to the output structure for output rendering
         if (tripRecord.tripStatus != IRRELEVANT) {
             ++nbTripsForRoute;
-        }
-
-        // Mark trips as invalid if they are outside of the number of trips requested
-        if (_maxTripsPerRoute != 0 && nbTripsForRoute > _maxTripsPerRoute) {
-            tripRecord.tripStatus = IRRELEVANT;
-        }
-
-        // Mark trips as invalid if they are outside the time window requested
-        if (_lookaheadMins != 0 &&
-            (((tripRecord.tripStatus == SCHEDULE || tripRecord.tripStatus == MISSING) && stopTime > _lookaheadTime) ||
-             (tripRecord.tripStatus == NOSCHEDULE && tripRecord.schSortTime > _lookaheadTime)   )) {
-            tripRecord.tripStatus = IRRELEVANT;
+            relevantRouteTrips[routeID].tripRecos.push_back(tripRecord);
         }
     }
-}
-
-bool TripStopReconciler::arrivalThenDepartureSortRealTime(StopRecoTripRec &left, StopRecoTripRec &right)
-{
-    // There can be several notions of time on which we could sort depending on the amount of data available
-    QDateTime leftSort;
-    QDateTime rightSort;
-
-    // Because the primary purpose of the countdown display is arrival times, we will always try to prefer them
-    if (left.tripStatus == SCHEDULE || left.tripStatus == CANCEL  ||
-        left.tripStatus == SKIP     || left.tripStatus == IRRELEVANT) {
-        if (!left.schArrTime.isNull())
-            leftSort = left.schArrTime;
-        else if (!left.schDepTime.isNull())
-            leftSort = left.schDepTime;
-    } else if (left.tripStatus == NOSCHEDULE) {
-        leftSort = left.schSortTime;
-    } else {
-        // Everything else should have real time data available for sorting
-        // Give preference for arrival time, but for trips that begin, it might be unreliable, so fallback to departure
-        if (!left.realTimeArrival.isNull())
-            leftSort = left.realTimeArrival;
-        else
-            leftSort = left.realTimeDeparture;
-    }
-
-    if (right.tripStatus == SCHEDULE || right.tripStatus == CANCEL  ||
-        right.tripStatus == SKIP     || right.tripStatus == IRRELEVANT) {
-        if (!right.schArrTime.isNull())
-            rightSort = right.schArrTime;
-        else if (!right.schDepTime.isNull())
-            rightSort = right.schDepTime;
-    } else if (right.tripStatus == NOSCHEDULE) {
-        rightSort = right.schSortTime;
-    } else {
-        // Everything else should have real time data available for sorting
-        // Give preference for arrival time, but for trips that begin, it might be unreliable, so fallback to departure
-        if (!right.realTimeArrival.isNull())
-            rightSort = right.realTimeArrival;
-        else
-            rightSort = right.realTimeDeparture;
-    }
-
-    return leftSort < rightSort;
 }
 
 } // Namespace GTFS

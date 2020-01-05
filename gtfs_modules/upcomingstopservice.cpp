@@ -114,7 +114,7 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
         } else {
             QString stopIDconcat;
             for (const QString &stopID : _stopIDs) {
-                stopIDconcat += stopID + ", ";
+                stopIDconcat += stopID + " | ";
             }
             resp["stop_id"] = stopIDconcat;
         }

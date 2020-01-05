@@ -156,10 +156,11 @@ private:
                                      StopRecoRouteRec &routeRecord) const;
 
     // Invalidate trips that fall outside the requested thresholds
-    void invalidateTrips(const QString &routeID, QMap<QString, StopRecoRouteRec> &routeTrips);
-
-    // Sorting based on predicted arrival times
-    static bool arrivalThenDepartureSortRealTime(StopRecoTripRec &left, StopRecoTripRec &right);
+    // The input is the fullTrips argument, the output (containing ONLY the trips which should be displayed per the
+    // criteria set in the construction of this object) is found in relevantRouteTrips.
+    void invalidateTrips(const QString                   &routeID,
+                         QMap<QString, StopRecoRouteRec> &fullTrips,
+                         QMap<QString, StopRecoRouteRec> &relevantRouteTrips);
 
     /*
      * Data Members
