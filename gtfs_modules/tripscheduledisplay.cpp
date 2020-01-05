@@ -28,7 +28,7 @@
 namespace GTFS {
 
 TripScheduleDisplay::TripScheduleDisplay(const QString &tripID, bool useRealTimeData)
-    : StaticStatus(), _tripID(tripID), _realTimeData(false)
+    : StaticStatus(), _tripID(tripID), _realTimeDataRequested(useRealTimeData), _realTimeDataAvailable(false)
 {
     _tripDB    = GTFS::DataGateway::inst().getTripsDB();
     _svc       = GTFS::DataGateway::inst().getServiceDB();
@@ -40,7 +40,7 @@ TripScheduleDisplay::TripScheduleDisplay(const QString &tripID, bool useRealTime
     if (useRealTimeData) {
         _realTimeProc = GTFS::RealTimeGateway::inst().getActiveFeed();
         if (_realTimeProc != nullptr) {
-            _realTimeData = true;
+            _realTimeDataAvailable = true;
         }
     }
 }
@@ -48,7 +48,7 @@ TripScheduleDisplay::TripScheduleDisplay(const QString &tripID, bool useRealTime
 void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
 {
     /************************************** Request for static trip ID schedule ***************************************/
-    if (!_realTimeData) {
+    if (!_realTimeDataRequested) {
         // The trip ID doesn't exist in the static database -- ERROR CODE 101
         if (!_tripDB->contains(_tripID)) {
             fillProtocolFields("TRI", 101, resp);
@@ -116,6 +116,12 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
 
     /*********************************** Request for real-time trip ID predictions *************************************/
     else {
+        // Real-time predictions were requested but the data is not available -- ERROR CODE 103
+        if (!_realTimeDataAvailable) {
+            fillProtocolFields("TRI", 103, resp);
+            return;
+        }
+
         // There is no real-time update for the trip ID requested -- ERROR CODE 102
         if (!_realTimeProc->tripExists(_tripID)) {
             fillProtocolFields("TRI", 102, resp);

@@ -68,6 +68,7 @@ public:
      *   error            :int   : Standard Content :   0: success
      *                                                101: trip ID does not exist in the static data set
      *                                                102: trip ID does not exist in the real-time feed
+     *                                                103: real time data not available, but was requested anyway
      *
      *   real_time           :bool  : true if realtime prediction data is in the response, false if static
      *   real_time_data_time :string: ( R) time the real-time data set was valid
@@ -106,7 +107,8 @@ public:
 private:
     // Instance Variables
     QString _tripID;
-    bool    _realTimeData;
+    bool    _realTimeDataRequested;
+    bool    _realTimeDataAvailable;
 
     // Datasets
     const GTFS::TripData           *_tripDB;
