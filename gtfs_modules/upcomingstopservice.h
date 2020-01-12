@@ -29,6 +29,7 @@
 #include "gtfsstoptimes.h"
 #include "gtfsroute.h"
 #include "operatingday.h"
+#include "tripstopreconciler.h"
 
 #include <QList>
 
@@ -100,9 +101,9 @@ public:
      *   stop_name        :string: name of the stop ID (from stops.txt)
      *   stop_desc        :string: description of the stop ID (from stops.txt)
      *
+     *   ---------- NEX Transactions -----------------------------------------------------------------------------------
      *   routes           :ARRAY :
      *   [
-     *   ---------- NEX Transactions -----------------------------------------------------------------------------------
      *     route_id             :string: route ID of the trips serving the stop in the contained trips array
      *     route_short_name     :string: short name of the route
      *     route_long_name      :string: long name of the route
@@ -145,14 +146,19 @@ public:
      *         vehicle          :string: vehicle number operating on the trip
      *       }
      *     ]
+     *   ]
      *
      *   ---------- NCF Transactions -----------------------------------------------------------------------------------
-     *     // The fields in NCF correspond exactly to those of the NEX transaction, but trips are not nested by route
-     *     route_id           :string: same as matching named fields in "NEX"
-     *     route_short_name   :string: same as matching named fields in "NEX"
-     *     route_long_name    :string: same as matching named fields in "NEX"
-     *     route_color        :string: same as matching named fields in "NEX"
-     *     route_text_color   :string: same as matching named fields in "NEX"
+     *   routes {
+     *     route_id           :COLLEC: {
+     *       route_short_name :string: same as matching named fields in "NEX"
+     *       route_long_name  :string: same as matching named fields in "NEX"
+     *       route_color      :string: same as matching named fields in "NEX"
+     *       route_text_color :string: same as matching named fields in "NEX"
+     *     }
+     *   }
+     *   trips [
+     *     route_id           :string: referrs to matching route_id under routes for common information
      *     trip_id            :string: same as matching named fields in "NEX"
      *     short_name         :string: same as matching named fields in "NEX"
      *     dep_time           :string: same as matching named fields in "NEX"
@@ -190,6 +196,15 @@ private:
 
     bool _rtData;
     const GTFS::RealTimeTripUpdate *_realTimeProc;
+
+    // Utility Functions
+    void fillRouteData(const QString &shortName,
+                       const QString &longName,
+                       const QString &color,
+                       const QString &textColor,
+                       QJsonObject   &routeDetails);
+
+    void fillTripData(const GTFS::StopRecoTripRec &rts, QJsonObject &stopTripItem);
 };
 
 }  // Namespace GTFS
