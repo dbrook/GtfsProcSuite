@@ -39,7 +39,7 @@ TripsServingRoute::TripsServingRoute(const QString &routeID, const QDate &onlyDa
 void TripsServingRoute::fillResponseData(QJsonObject &resp)
 {
     if (!_routes->contains(_routeID)) {
-        fillProtocolFields("TSR", 202, resp);
+        fillProtocolFields("TSR", 201, resp);
         return;
     }
 

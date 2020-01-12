@@ -26,7 +26,7 @@
 #include <QDebug>
 
 // Ridiculous sort function for the NCF module
-static inline void swap(QJsonValueRef left, QJsonValueRef right)
+inline void swap(QJsonValueRef left, QJsonValueRef right)
 {
     // This seems horrible!
     QJsonValue temp(left);

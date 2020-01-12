@@ -462,12 +462,18 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
                 }
             }
 
-            // The excpetion is for cancelled trips, which can show for 15 minutes past the scheduled departure
+            // The excpetion is for cancelled trips, which can show for 5 minutes past the scheduled departure
             if (tripRecord.tripStatus == CANCEL) {
-                if (!tripRecord.schArrTime.isNull() && _agencyTime.secsTo(tripRecord.schArrTime) < -600) {
-                    tripRecord.tripStatus = IRRELEVANT;
-                } else if (!tripRecord.schDepTime.isNull() && _agencyTime.secsTo(tripRecord.schDepTime) < -600) {
-                    tripRecord.tripStatus = IRRELEVANT;
+                if (!tripRecord.schArrTime.isNull()) {
+                    qint64 secUntilSchArr = _agencyTime.secsTo(tripRecord.schArrTime);
+                    if (secUntilSchArr < -300 || secUntilSchArr > _lookaheadMins * 60) {
+                        tripRecord.tripStatus = IRRELEVANT;
+                    }
+                } else if (!tripRecord.schDepTime.isNull()) {
+                    qint64 secUntilSchDep = _agencyTime.secsTo(tripRecord.schDepTime);
+                    if (secUntilSchDep < -300 || secUntilSchDep > _lookaheadMins * 60) {
+                        tripRecord.tripStatus = IRRELEVANT;
+                    }
                 }
             }
         }
