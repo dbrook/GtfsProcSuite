@@ -123,6 +123,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 //                    qDebug() << "Trip ID " << tripRecord.tripID << " is cancelled!";
                     tripRecord.tripStatus = CANCEL;
                     tripRecord.realTimeDataAvail = true;
+                    tripRecord.supplementalTrip  = false;
                 }
             }
         }
@@ -135,6 +136,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                 {
                     tripRecord.tripStatus = SKIP;
                     tripRecord.realTimeDataAvail = true;
+                    tripRecord.supplementalTrip  = false;
                 }
             }
         }
@@ -161,6 +163,8 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                             tripRecord.tripStatus = IRRELEVANT;
                             continue;
                         }
+
+                        tripRecord.supplementalTrip = false;
 
                         // It is possible that a trip only has partial real-time information, and this stop isn't
                         // covered by it even though it is on the trip's static schedule and NOT explicitly skipped.
@@ -204,12 +208,8 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                             tripRecord.tripStatus = MISSING;
                         else if (rtMissingForStop)
                             tripRecord.tripStatus = MISSING;
-                        else if (tripRecord.realTimeOffsetSec < -59)
-                            tripRecord.tripStatus = EARLY;
-                        else if (tripRecord.realTimeOffsetSec > 59)
-                            tripRecord.tripStatus = LATE;
                         else
-                            tripRecord.tripStatus = ON_TIME;
+                            tripRecord.tripStatus = RUNNING;
 
                         // Trip has an arrival time, so we can mark a trip as arriving withing 30 seconds
                         if (!predictedArr.isNull() && _agencyTime.secsTo(predictedArr) < 30)
@@ -271,7 +271,8 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
             for (const QPair<QString, quint32> &tripAndIndex : addedTrips[routeID]) {
                 // Make a new tripRecord so we have a place to add current trip information
                 StopRecoTripRec tripRecord;
-                tripRecord.tripStatus = SUPPLEMENT;
+                tripRecord.tripStatus        = RUNNING;
+                tripRecord.supplementalTrip  = true;
                 tripRecord.realTimeDataAvail = true;
 
                 // We cannot reliably map information of a real-time-only trip
@@ -292,20 +293,22 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                                                     QDateTime(),
                                                     prArrTime,
                                                     prDepTime)) {
+
                     // We have to have at least one time
                     if (!prDepTime.isNull()) {
-                        tripRecord.realTimeDeparture = prDepTime.toTimeZone(_agencyTime.timeZone());
-
                         // Fill in the countdown until departure initially ...
+                        tripRecord.realTimeDeparture = prDepTime.toTimeZone(_agencyTime.timeZone());
                         tripRecord.waitTimeSec = _agencyTime.secsTo(tripRecord.realTimeDeparture);
                     }
                     if (!prArrTime.isNull()) {
-                        tripRecord.realTimeArrival = prArrTime.toTimeZone(_agencyTime.timeZone());
-
                         // ... but we will always prefer the countdown time to show the time until vehicle arrival
+                        tripRecord.realTimeArrival = prArrTime.toTimeZone(_agencyTime.timeZone());
                         tripRecord.waitTimeSec = _agencyTime.secsTo(tripRecord.realTimeArrival);
                     }
                 }
+
+                // There is not really a schedule offset (since no schedule exists for added trips)
+                tripRecord.realTimeOffsetSec = 0;
 
                 // Trip has an arrival time, so we can mark a trip as arriving withing 30 seconds
                 if (!prArrTime.isNull() && _agencyTime.secsTo(prArrTime) < 30)
@@ -417,16 +420,26 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
     qint32 nbTripsForRoute = 0;
     for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
         QDateTime stopTime;
-        if (!tripRecord.schArrTime.isNull()) {
-            stopTime = tripRecord.schArrTime;
-        } else if (!tripRecord.schDepTime.isNull()) {
-            stopTime = tripRecord.schDepTime;
+        if (tripRecord.realTimeDataAvail && tripRecord.tripStatus != MISSING) {
+            // Use real-time data for the lookahead determination unless the trip is running but no data is present...
+            if (!tripRecord.realTimeArrival.isNull()) {
+                stopTime = tripRecord.realTimeArrival;
+            } else if (!tripRecord.realTimeDeparture.isNull()) {
+                stopTime = tripRecord.realTimeDeparture;
+            }
+        } else {
+            // ... unless it is not available
+            if (!tripRecord.schArrTime.isNull()) {
+                stopTime = tripRecord.schArrTime;
+            } else if (!tripRecord.schDepTime.isNull()) {
+                stopTime = tripRecord.schDepTime;
+            }
         }
 
         // Mark trips as invalid if they are outside of the number of trips requested
-        if (_maxTripsPerRoute != 0 && nbTripsForRoute >= _maxTripsPerRoute) {
-            tripRecord.tripStatus = IRRELEVANT;
-        }
+//        if (_maxTripsPerRoute != 0 && nbTripsForRoute >= _maxTripsPerRoute) {
+//            tripRecord.tripStatus = IRRELEVANT;
+//        }
 
         // Mark trips as invalid if they are outside the time window requested
         if (_lookaheadMins != 0 &&
@@ -447,10 +460,8 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
         // With realtime data available, don't "irrelevant-ify" skipped stops (might be interesting to show)
         // We won't get rid of trips immediately, let them live for a few minutes before expunging from view.
         else if (tripRecord.realTimeDataAvail) {
-            if (tripRecord.tripStatus == ON_TIME || tripRecord.tripStatus == LATE   ||
-                tripRecord.tripStatus == EARLY   || tripRecord.tripStatus == DEPART ||
-                tripRecord.tripStatus == BOARD   || tripRecord.tripStatus == ARRIVE ||
-                tripRecord.tripStatus == SUPPLEMENT) {
+            if (tripRecord.tripStatus == RUNNING || tripRecord.tripStatus == DEPART ||
+                tripRecord.tripStatus == BOARD   || tripRecord.tripStatus == ARRIVE) {
                 if (!tripRecord.realTimeArrival.isNull() &&
                     ((_agencyTime.secsTo(tripRecord.realTimeArrival) < -60) ||
                      (_lookaheadMins != 0 && tripRecord.realTimeArrival > _lookaheadTime))) {

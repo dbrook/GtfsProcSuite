@@ -736,16 +736,32 @@ void ClientGtfs::repl()
                                 else {
                                     timeToShow = depTimeSch;
                                 }
+
                                 screen << qSetFieldWidth(c5+c6+1) << timeToShow
-                                       << qSetFieldWidth(1)       << " "
-                                       << qSetFieldWidth(c7)      << waitTimeMin
                                        << qSetFieldWidth(1)       << " ";
+
+                                if (rtStatus == "ARRV" || rtStatus == "BRDG" || rtStatus == "DPRT") {
+                                    screen << qSetFieldWidth(c7) << rtStatus << qSetFieldWidth(1) << " ";
+                                } else {
+                                    screen << qSetFieldWidth(c7) << waitTimeMin << qSetFieldWidth(1) << " ";
+                                }
                             }
 
-                            if (rtStatus == "ERLY" || rtStatus == "LATE") {
-                                screen.setNumberFlags(QTextStream::ForceSign);
-                                screen << qSetFieldWidth(c7) << rt["offset_seconds"].toInt() / 60 << qSetFieldWidth(0);
-                                noforcesign(screen);
+                            if (rtStatus == "RNNG" || rtStatus == "ARRV" || rtStatus == "BRDG" || rtStatus == "DPRT") {
+                                if (rt["supplemental"].toBool()) {
+                                    // If a supplemental trip, there is no schedule to go off of, so it should be marked
+                                    screen << qSetFieldWidth(c7) << "SPLM" << qSetFieldWidth(0);
+                                } else {
+                                    // A running trip is either on-time, late, or early, depending on the offset
+                                    qint64 offsetSec = rt["offset_seconds"].toInt();
+                                    if (offsetSec < -60 || offsetSec > 60) {
+                                        screen.setNumberFlags(QTextStream::ForceSign);
+                                        screen << qSetFieldWidth(c7) << offsetSec / 60 << qSetFieldWidth(0);
+                                        noforcesign(screen);
+                                    } else {
+                                        screen << qSetFieldWidth(c7) << "ONTM" << qSetFieldWidth(0);
+                                    }
+                                }
                             } else {
                                 screen << qSetFieldWidth(c7) << rtStatus << qSetFieldWidth(0);
                             }

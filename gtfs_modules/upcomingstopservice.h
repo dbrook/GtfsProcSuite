@@ -133,10 +133,7 @@ public:
      *         status           :string: ARRV = Vehicle is arriving at the stop
      *                                   BRDG = Vehicle is at the stop and boarding
      *                                   DPRT = Vehicle is departing the stop
-     *                                   ONTM = Trip is operating on time vs. the schedule
-     *                                   LATE = Trip is operating behind schedule (see offset_seconds)
-     *                                   ERLY = Trip is operating ahead of schedule (see offset_seconds)
-     *                                   SPLM = Supplemental trip (not on the static dataset)
+     *                                   RNNG = Trip is running per the realtime data feed
      *                                   SKIP = Trip is skipping this stop which it would have normally stopped at
      *                                   CNCL = Trip is entirely cancelled
      *                                   MSNG = While realtime data exists, this particular stop doesn't appear in it
@@ -144,6 +141,7 @@ public:
      *         actual_departure :string: time that the trip will actually depart from the stop (format "ddd hh:mm")
      *         offset_seconds   :int   : number of seconds the trip is offset from the schedule: early < 0 < late)
      *         vehicle          :string: vehicle number operating on the trip
+     *         supplemental     :bool  : true if the trip is supplemental (it does not appear in the static schedule)
      *       }
      *     ]
      *   ]

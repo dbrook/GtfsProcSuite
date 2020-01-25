@@ -36,10 +36,7 @@ typedef enum {
     SCHEDULE,   // Trip appears in the static schedule / has no real-time data associated
     NOSCHEDULE, // Trip appears in the static schedule, no real-time data associated, but also has no schedule time
     IRRELEVANT, // Trip information is too old (no longer running, for ex.) or beyond cutoff: should not appear
-    SUPPLEMENT, // Trip supplements the static schedule / no basis for schedule comparison
-    ON_TIME,    // Trip is running - compare expected times to determine lateness (offset from schedule)
-    LATE,       // Trip is running - behind schedule
-    EARLY,      // Trip is running - ahead of schedule
+    RUNNING,    // Trip is running - compare expected times to determine lateness (offset from schedule)
     DEPART,     // Trip has departed the stop_id (but it still appears in the real-time feed)
     BOARD,      // Trip is at the stop (current time is between arrival and departure time)
     ARRIVE,     // Trip is arriving at the stop_id (< 30 seconds)
@@ -69,6 +66,7 @@ typedef struct {
     qint32       stopSequenceNum;     // Stop Sequence within the trip (some trips can serve a stop_id multiple times!)
     QString      stopID;              // Stop ID of the stop in question
     qint32       stopTimesIndex;      // Offset index of stop into the stop_times table of the stop within the trip
+    bool         supplementalTrip;    // TRUE if the trip_id is a supplemental one (no corresponding static schedule)
     bool         beginningOfTrip;     // TRUE if the stop_id is at the beginning of the trip
     bool         endOfTrip;           // TRUE if the stop_id is at the end of the trip
     QString      vehicleRealTime;     // Vehicle ID of an operating trip with real-time data
