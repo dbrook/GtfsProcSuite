@@ -457,8 +457,7 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
             tripRecord.tripStatus = IRRELEVANT;
         }
 
-        // With realtime data available, don't "irrelevant-ify" skipped stops (might be interesting to show)
-        // We won't get rid of trips immediately, let them live for a few minutes before expunging from view.
+        // With realtime data available, the invalidation process needs to take extra parameters into consideration
         else if (tripRecord.realTimeDataAvail) {
             if (tripRecord.tripStatus == RUNNING || tripRecord.tripStatus == DEPART ||
                 tripRecord.tripStatus == BOARD   || tripRecord.tripStatus == ARRIVE) {
@@ -471,10 +470,8 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
                           (_lookaheadMins != 0 && tripRecord.realTimeDeparture > _lookaheadTime))) {
                     tripRecord.tripStatus = IRRELEVANT;
                 }
-            }
-
-            // The excpetion is for cancelled trips, which can show for 5 minutes past the scheduled departure
-            if (tripRecord.tripStatus == CANCEL) {
+            } else if (tripRecord.tripStatus == CANCEL) {
+                // Excpetion for cancelled trips: which can show for 5 minutes past the scheduled departure
                 if (!tripRecord.schArrTime.isNull()) {
                     qint64 secUntilSchArr = _agencyTime.secsTo(tripRecord.schArrTime);
                     if (secUntilSchArr < -300 || secUntilSchArr > _lookaheadMins * 60) {
@@ -483,6 +480,19 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
                 } else if (!tripRecord.schDepTime.isNull()) {
                     qint64 secUntilSchDep = _agencyTime.secsTo(tripRecord.schDepTime);
                     if (secUntilSchDep < -300 || secUntilSchDep > _lookaheadMins * 60) {
+                        tripRecord.tripStatus = IRRELEVANT;
+                    }
+                }
+            } else if (tripRecord.tripStatus == SKIP) {
+                // Exception for skipped trips : show for an extra minute after the scheduled departure/arrival
+                if (!tripRecord.schArrTime.isNull()) {
+                    qint64 secUntilSchArr = _agencyTime.secsTo(tripRecord.schArrTime);
+                    if (secUntilSchArr < -60 || secUntilSchArr > _lookaheadMins * 60) {
+                        tripRecord.tripStatus = IRRELEVANT;
+                    }
+                } else if (!tripRecord.schDepTime.isNull()) {
+                    qint64 secUntilSchDep = _agencyTime.secsTo(tripRecord.schDepTime);
+                    if (secUntilSchDep < -60 || secUntilSchDep > _lookaheadMins * 60) {
                         tripRecord.tripStatus = IRRELEVANT;
                     }
                 }
