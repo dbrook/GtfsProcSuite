@@ -88,12 +88,12 @@ QString TripStopReconciler::getStopDesciption() const
 
 void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeTrips)
 {
-    // For every stop requested, find all relevant trips
-    for (const QString &stopID : _stopIDs) {
-
     // Trips will be built locally per route per stop ID, then invalidated based on the timeframe or number of stops
     // requested. Only the "relevant" trips will be stored in routeTrips for the JSON-building services to use.
     QMap<QString, StopRecoRouteRec> fullTrips;
+
+    // For every stop requested, find all relevant trips
+    for (const QString &stopID : _stopIDs) {
 
     // Retrieve all the trips that could service the stop (from yesterday, today, and tomorrow service days)
     for (const QString &routeID : (*sStops)[stopID].stopTripsRoutes.keys()) {
@@ -332,14 +332,24 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                 fullTrips[routeID].tripRecos.push_back(tripRecord);
             }
         }
+    }  // End of real-time data integration block
+    }  // End of loop on stop ID list
+
+    // Now that all requested stops and routes have been filled, each trip must be sorted by arrival time per route
+    // or else the number-of-trips style of invalidation could miss supplemental trips. It is also possible that the
+    // real-time data has altered the ordering of trip arrivals, so the sort is just a necessary evil.
+    for (const QString &routeID : fullTrips.keys()) {
+        std::sort(fullTrips[routeID].tripRecos.begin(),
+                  fullTrips[routeID].tripRecos.end(),
+                  [](const StopRecoTripRec &rt1, const StopRecoTripRec &rt2) {
+            return rt1.waitTimeSec < rt2.waitTimeSec;
+        });
     }
 
     // Invalidate trips which fall outside of the requested parameters (_maxTripsPerRoute or _lookaheadTime)
     for (const QString &routeID : fullTrips.keys()) {
         invalidateTrips(routeID, fullTrips, routeTrips);
     }
-
-    }  // End of loop on stop ID list
 }
 
 void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
@@ -437,9 +447,9 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
         }
 
         // Mark trips as invalid if they are outside of the number of trips requested
-//        if (_maxTripsPerRoute != 0 && nbTripsForRoute >= _maxTripsPerRoute) {
-//            tripRecord.tripStatus = IRRELEVANT;
-//        }
+        if (_maxTripsPerRoute != 0 && nbTripsForRoute >= _maxTripsPerRoute) {
+            tripRecord.tripStatus = IRRELEVANT;
+        }
 
         // Mark trips as invalid if they are outside the time window requested
         if (_lookaheadMins != 0 &&
@@ -470,29 +480,16 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
                           (_lookaheadMins != 0 && tripRecord.realTimeDeparture > _lookaheadTime))) {
                     tripRecord.tripStatus = IRRELEVANT;
                 }
-            } else if (tripRecord.tripStatus == CANCEL) {
-                // Excpetion for cancelled trips: which can show for 5 minutes past the scheduled departure
+            } else if (tripRecord.tripStatus == CANCEL || tripRecord.tripStatus == SKIP) {
+                // Excpetion for cancelled and stop-skip trips: show for 2 minutes past the scheduled time
                 if (!tripRecord.schArrTime.isNull()) {
                     qint64 secUntilSchArr = _agencyTime.secsTo(tripRecord.schArrTime);
-                    if (secUntilSchArr < -300 || secUntilSchArr > _lookaheadMins * 60) {
+                    if (secUntilSchArr < -120 || secUntilSchArr > _lookaheadMins * 60) {
                         tripRecord.tripStatus = IRRELEVANT;
                     }
                 } else if (!tripRecord.schDepTime.isNull()) {
                     qint64 secUntilSchDep = _agencyTime.secsTo(tripRecord.schDepTime);
-                    if (secUntilSchDep < -300 || secUntilSchDep > _lookaheadMins * 60) {
-                        tripRecord.tripStatus = IRRELEVANT;
-                    }
-                }
-            } else if (tripRecord.tripStatus == SKIP) {
-                // Exception for skipped trips : show for an extra minute after the scheduled departure/arrival
-                if (!tripRecord.schArrTime.isNull()) {
-                    qint64 secUntilSchArr = _agencyTime.secsTo(tripRecord.schArrTime);
-                    if (secUntilSchArr < -60 || secUntilSchArr > _lookaheadMins * 60) {
-                        tripRecord.tripStatus = IRRELEVANT;
-                    }
-                } else if (!tripRecord.schDepTime.isNull()) {
-                    qint64 secUntilSchDep = _agencyTime.secsTo(tripRecord.schDepTime);
-                    if (secUntilSchDep < -60 || secUntilSchDep > _lookaheadMins * 60) {
+                    if (secUntilSchDep < -120 || secUntilSchDep > _lookaheadMins * 60) {
                         tripRecord.tripStatus = IRRELEVANT;
                     }
                 }

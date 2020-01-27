@@ -150,11 +150,6 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
                 stopTrips.push_back(stopTripItem);
             }
 
-            // Sort trips by arrival time:
-            std::sort(stopTrips.begin(), stopTrips.end(), [](const QJsonValue &v1, const QJsonValue &v2) {
-                return v1["wait_time_sec"].toInt() < v2["wait_time_sec"].toInt();
-            });
-
             routeItem["trips"] = stopTrips;
             stopRouteArray.push_back(routeItem);
         }
@@ -168,16 +163,18 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
         // Store all common route information to avoid massive duplication of route information per trip (makes the
         // front-end work "a little" harder but it will drasticlly reduce information transfer over the network)
         QJsonObject routeCollection;
+        QVector<QPair<GTFS::StopRecoTripRec, QString>> unifiedTrips;  // A trip and its associated routeID (QString)
 
         for (const QString &routeID : tripsForStopByRouteID.keys()) {
             QJsonArray stopTrips;
+
+            // Flatten trips into a single array (as opposed to the nesting by route present) to sorted times together
             for (const GTFS::StopRecoTripRec &rts : tripsForStopByRouteID[routeID].tripRecos) {
                 GTFS::TripRecStat tripStat = rts.tripStatus;
                 if ((tripStat == GTFS::IRRELEVANT) ||
                     (_realtimeOnly && (tripStat == GTFS::SCHEDULE || tripStat == GTFS::NOSCHEDULE))) {
                     continue;
                 }
-
                 if (!routeCollection.contains(routeID)) {
                     QJsonObject routeItem;
                     fillRouteData(tripsForStopByRouteID[routeID].shortRouteName,
@@ -187,18 +184,23 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
                                   routeItem);
                     routeCollection[routeID] = routeItem;
                 }
-
-                QJsonObject stopTripItem;
-                stopTripItem["route_id"] = routeID;    // Link to the route information
-                fillTripData(rts, stopTripItem);
-                stopRouteArray.push_back(stopTripItem);
+                unifiedTrips.push_back(qMakePair(rts, routeID));
             }
         }
 
-        // Display in order of the wait time
-        std::sort(stopRouteArray.begin(), stopRouteArray.end(), [](const QJsonValue &v1, const QJsonValue &v2) {
-            return v1["wait_time_sec"].toInt() < v2["wait_time_sec"].toInt();
+        // Sort the unified trips array in order of wait time
+        std::sort(unifiedTrips.begin(), unifiedTrips.end(),
+                  [](const QPair<GTFS::StopRecoTripRec, QString> &v1, const QPair<GTFS::StopRecoTripRec, QString> &v2) {
+            return v1.first.waitTimeSec < v2.first.waitTimeSec;
         });
+
+        // Place into JSON style output now that it is sorted together by wait time
+        for (const QPair<GTFS::StopRecoTripRec, QString> &rts : unifiedTrips) {
+            QJsonObject stopTripItem;
+            stopTripItem["route_id"] = rts.second;    // Link to the route information
+            fillTripData(rts.first, stopTripItem);
+            stopRouteArray.push_back(stopTripItem);
+        }
 
         // Attach the routes and trips collections
         resp["routes"] = routeCollection;
