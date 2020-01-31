@@ -33,6 +33,7 @@
 #include "realtimetripinformation.h"
 #include "realtimestatus.h"
 #include "upcomingstopservice.h"
+#include "servicebetweenstops.h"
 
 // Qt Framework Dependencies
 #include <QVector>
@@ -149,6 +150,16 @@ void GtfsRequestProcessor::run()
         } else if (! userApp.compare("RTI", Qt::CaseInsensitive)) {
             GTFS::RealtimeTripInformation RTI;
             RTI.fillResponseData(respJson);
+        } else if (! userApp.compare("SBS", Qt::CaseInsensitive)) {
+            QString remainingReq;
+            QDate reqDate = determineServiceDay(userReq, remainingReq);
+            QList<QString> decodedStopIDs;
+            listifyStopIDs(remainingReq, decodedStopIDs);
+            // *****************************
+            //  TODO WARNING THIS IS SHITTY ... fix the direct references :-(
+            // *****************************
+            GTFS::ServiceBetweenStops SBS(decodedStopIDs.at(0), decodedStopIDs.at(1), reqDate);
+            SBS.fillResponseData(respJson);
         } else {
             // Return ERROR 1: Unknown request (userApp)
             respJson["error"] = 1;

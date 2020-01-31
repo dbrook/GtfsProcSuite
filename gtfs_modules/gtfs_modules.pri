@@ -10,6 +10,7 @@ HEADERS += \
     $$PWD/availableroutes.h \
     $$PWD/realtimestatus.h \
     $$PWD/realtimetripinformation.h \
+    $$PWD/servicebetweenstops.h \
     $$PWD/staticstatus.h \
     $$PWD/stationdetailsdisplay.h \
     $$PWD/stopsservedbyroute.h \
@@ -23,6 +24,7 @@ SOURCES += \
     $$PWD/availableroutes.cpp \
     $$PWD/realtimestatus.cpp \
     $$PWD/realtimetripinformation.cpp \
+    $$PWD/servicebetweenstops.cpp \
     $$PWD/staticstatus.cpp \
     $$PWD/stationdetailsdisplay.cpp \
     $$PWD/stopsservedbyroute.cpp \
