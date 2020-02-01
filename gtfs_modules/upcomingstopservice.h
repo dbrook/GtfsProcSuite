@@ -37,10 +37,25 @@ namespace GTFS {
 
 /*
  * GTFS::UpcomingStopService
- * ~~~~~~ TODO - finish a really detailed description of this module as it's the most complicated part of the backend!
+ * This was really the initial intent of the GTFSProc - a way to avoid the API call limitations that transit agencies
+ * enforce on their web services to get stop trip service wait times. Early forms of real-time data provided by the
+ * Massachusetts Bay Transportation Authority (MBTA) in the Commonwealth of Massachusetts, U.S.A., but it was specific
+ * to the agency and later decommissioned. A fully-standards-based replacement was envisioned, using the open General
+ * Transit Feed Specification (GTFS).
+ *
+ * This module loads trips that service a single stop ID, several stop IDs, or parent-stations as created in the
+ * GTFS Static Dataset files. It uses the scheduled (and real-time, if present) trip data and determines the wait time
+ * for each trip within a specified time window, or number of future trips. Along with this information, if real-time
+ * data is present, the schedule offset and arrival/departure/boarding statuses are determined.
+ *
+ * There are several other points to know about transit feeds (services after midnight, in particular), so it is also
+ * wise to read the comments in the member functions of this class as well.
  *
  * The following information is required:
- *  - ~~
+ *  - Stops and Parent Stations
+ *  - Routes
+ *  - Trips
+ *  - Stop Times
  */
 class UpcomingStopService : public StaticStatus
 {
@@ -69,9 +84,9 @@ public:
     /*
      * Fills a JSON response with upcoming service information for a requested stop ID given the parameters requested
      *
-     * NOTE: This process will look at AT MOST 3 operating days to get the full scope of the possible upcoming stops:
+     * NOTE: This process will look at 3 operating days to get the full scope of the possible upcoming stops:
      *   - Yesterday -- specifically for any trips that began / still run after midnight that could show up, i.e. a
-     *                  trip which began at 23:55 and runs until 25:10 (using time-since-midnight notation), but we ask
+     *                  trip which began at 23:55 and runs until 25:10 (using time-since-noon notation), but we ask
      *                  about a the next trips as of 00:35 where we are technically in the following day
      *   - Today     -- Obviously we want the trips that would pertain to this operating day, regardless of the time
      *   - Tomorrow  -- In case we ask for a future time-range which bleeds into the next operating day
@@ -83,11 +98,7 @@ public:
      * If it's preferred (and with stops covered by a myriad of confusing routes it might be), you can instead request
      * to show at most X future stops within the previous + current + next operating day using maxTripsPerRoute != 0.
      *
-     * TODO: A route-filtering mechanism would be a good idea for this, since parent stations can be VERY active
-     *
-     * TODO: Providing a QList or something of the stop_ids should also be supported since many agencies don't file
-     *       with parent_station, rendering several stop_ids which are basically the same physical stop. Basically it
-     *       seems like depending on the agency size and technical expertise there is wildly different filing standards
+     * IDEA: A route-filtering mechanism would be a good idea for this, since parent stations can be VERY active
      *
      * {
      *   message_type     :string: Standard Content : "NEX": upcoming service sorted by route ID (NEXt service)

@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
      */
     QCoreApplication a(argc, argv);
     QCoreApplication::setApplicationName("GtfsProc");
-    QCoreApplication::setApplicationVersion("1.0");
+    QCoreApplication::setApplicationVersion("1.1");
 
     QTextStream console(stdout);
     QString appName = QCoreApplication::applicationName();
