@@ -30,10 +30,14 @@ namespace GTFS {
 ServiceBetweenStops::ServiceBetweenStops(const QString &originStop,
                                          const QString &destinationStop,
                                          const QDate   &serviceDate)
-    : StaticStatus(), _oriStopID(originStop), _desStopID(destinationStop), _serviceDate(serviceDate)
+    : StaticStatus(),
+      _oriStopID(originStop),
+      _desStopID(destinationStop),
+      _serviceDate(serviceDate)
 {
     _service   = GTFS::DataGateway::inst().getServiceDB();
     _stops     = GTFS::DataGateway::inst().getStopsDB();
+    _parents   = GTFS::DataGateway::inst().getParentsDB();
     _routes    = GTFS::DataGateway::inst().getRoutesDB();
     _tripDB    = GTFS::DataGateway::inst().getTripsDB();
     _stopTimes = GTFS::DataGateway::inst().getStopTimesDB();
@@ -41,16 +45,42 @@ ServiceBetweenStops::ServiceBetweenStops(const QString &originStop,
 
 void ServiceBetweenStops::fillResponseData(QJsonObject &resp)
 {
-    // Deal with any missing stop rejects
-    if (!_stops->contains(_oriStopID)) {
-        fillProtocolFields("SBS", 701, resp);
-        return;
-    } else if (!_stops->contains(_desStopID)) {
-        fillProtocolFields("SBS", 702, resp);
-        return;
-    } else if (_serviceDate.isNull()) {
+    // Ensure a date was requested
+    if (_serviceDate.isNull()) {
         fillProtocolFields("SBS", 703, resp);
         return;
+    }
+
+    // Parent stops can be supported, but we need to track ALL children if they are used
+    bool oriIsParent = false;
+    bool desIsParent = false;
+    QList<QString> oriStopIDs;
+    QList<QString> desStopIDs;
+
+    // Deal with parent stops
+    if (_parents->contains(_oriStopID)) {
+        // Put all the child stops into the origin stop ID list
+        oriIsParent = true;
+        oriStopIDs = (*_parents)[_oriStopID].toList();
+    }
+    if (_parents->contains(_desStopID)) {
+        // Put all the child stops into the destination stop ID list
+        desIsParent = true;
+        desStopIDs = (*_parents)[_desStopID].toList();
+    }
+
+    // Otherwise it's a single stop
+    if (!_stops->contains(_oriStopID) && !oriIsParent) {
+        fillProtocolFields("SBS", 701, resp);
+        return;
+    } else {
+        oriStopIDs.push_back(_oriStopID);
+    }
+    if (!_stops->contains(_desStopID) && !desIsParent) {
+        fillProtocolFields("SBS", 702, resp);
+        return;
+    } else {
+        desStopIDs.push_back(_desStopID);
     }
 
     // With valid stop IDs found, fill in details for the origin and destination
@@ -71,8 +101,13 @@ void ServiceBetweenStops::fillResponseData(QJsonObject &resp)
     QMap<QString, tripOnDSchedule> tripSchTimes;
     QSet<QString> tripsPickingUpOrigin;
     QSet<QString> tripsDroppingOffDestination;
-    tripsForServiceDay(_oriStopID, tripsPickingUpOrigin, true, tripSchTimes);
-    tripsForServiceDay(_desStopID, tripsDroppingOffDestination, false, tripSchTimes);
+
+    for (const QString &childStop : oriStopIDs) {
+        tripsForServiceDay(childStop, tripsPickingUpOrigin, true, tripSchTimes);
+    }
+    for (const QString &childStop : desStopIDs) {
+        tripsForServiceDay(childStop, tripsDroppingOffDestination, false, tripSchTimes);
+    }
     tripsPickingUpOrigin.intersect(tripsDroppingOffDestination);
 
     /*

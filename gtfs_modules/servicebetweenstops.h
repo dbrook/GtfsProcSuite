@@ -93,11 +93,12 @@ private:
     const QDate   _serviceDate;
 
     // GTFS Datasets
-    const OperatingDay *_service;
-    const StopData     *_stops;
-    const RouteData    *_routes;
-    const TripData     *_tripDB;
-    const StopTimeData *_stopTimes;
+    const OperatingDay   *_service;
+    const StopData       *_stops;
+    const ParentStopData *_parents;
+    const RouteData      *_routes;
+    const TripData       *_tripDB;
+    const StopTimeData   *_stopTimes;
 };
 
 }  // Namespace GTFS
