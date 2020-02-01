@@ -90,14 +90,14 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
             QJsonObject singleStopJSON;
             QTime localNoon(12, 0, 0);
 
-            if (stop.arrival_time != -1) {
+            if (stop.arrival_time != StopTimes::kNoTime) {
                 QTime arrivalTime = localNoon.addSecs(stop.arrival_time);
                 singleStopJSON["arr_time"] = arrivalTime.toString("hh:mm");
             } else {
                 singleStopJSON["arr_time"] = "-";
             }
 
-            if (stop.departure_time != -1) {
+            if (stop.departure_time != StopTimes::kNoTime) {
                 QTime departureTime = localNoon.addSecs(stop.departure_time);
                 singleStopJSON["dep_time"]  = departureTime.toString("hh:mm");
             } else {
@@ -142,12 +142,12 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
                 staticStopUpdate.stopID       = str.stop_id;
                 staticStopUpdate.stopSequence = str.stop_sequence;
 
-                if (str.arrival_time != -1) {
+                if (str.arrival_time != StopTimes::kNoTime) {
                     staticStopUpdate.arrTime = todayNoon.addSecs(str.arrival_time).toUTC();
                 } else {
                     staticStopUpdate.arrTime = QDateTime();
                 }
-                if (str.departure_time != -1) {
+                if (str.departure_time != StopTimes::kNoTime) {
                     staticStopUpdate.depTime = todayNoon.addSecs(str.departure_time).toUTC();
                 } else {
                     staticStopUpdate.depTime = QDateTime();

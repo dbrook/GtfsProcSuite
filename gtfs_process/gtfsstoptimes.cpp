@@ -23,10 +23,12 @@
 
 #include <QDebug>
 #include <algorithm>
+#include <limits>
 
 namespace GTFS {
 
 const qint32 StopTimes::s_localNoonSec = 43200; // 12 * 60 * 60
+const qint32 StopTimes::kNoTime        = std::numeric_limits<qint32>::max();
 
 StopTimes::StopTimes(const QString dataRootPath, QObject *parent) : QObject(parent)
 {
@@ -161,7 +163,7 @@ qint32 StopTimes::computeSecondsLocalNoonOffset(const QString &hhmmssTime)
      * It is not unusual to see times posted like 25:14 for a stop at 1:14 AM the following day, for instance
      */
     if (hhmmssTime == "") {
-        return -1;
+        return kNoTime;
     }
 
     qint32 firstColon = hhmmssTime.indexOf(":");

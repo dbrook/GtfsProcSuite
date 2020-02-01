@@ -386,14 +386,14 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
         // The schedule times are always offset from the local noon (to handle DST fluctuations)
         bool scheduleTimeAvail     = false;
         QDateTime localNoon        = QDateTime(serviceDay, QTime(12, 0, 0), _agencyTime.timeZone());
-        if ((*sStopTimes)[curTripId].at(stopTripIdx).departure_time != -1) {
+        if ((*sStopTimes)[curTripId].at(stopTripIdx).departure_time != StopTimes::kNoTime) {
             tripRec.schDepTime  = localNoon.addSecs((*sStopTimes)[curTripId].at(stopTripIdx).departure_time);
             tripRec.waitTimeSec = _agencyTime.secsTo(tripRec.schDepTime);
             scheduleTimeAvail   = true;
         } else {
             tripRec.schDepTime  = QDateTime();
         }
-        if ((*sStopTimes)[curTripId].at(stopTripIdx).arrival_time != -1) {
+        if ((*sStopTimes)[curTripId].at(stopTripIdx).arrival_time != StopTimes::kNoTime) {
             tripRec.schArrTime  = localNoon.addSecs((*sStopTimes)[curTripId].at(stopTripIdx).arrival_time);
             // NOTE: Prefer the arrival time for the wait-time calculations, so that's process arr. after dep.!
             tripRec.waitTimeSec = _agencyTime.secsTo(tripRec.schArrTime);
@@ -404,8 +404,8 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
 
         // There is neither a departure nor arrival time from which to countdown
         // Some stops aren't timed at all, so the "next possible time" is used (called the sort time)
-        if ((*sStopTimes)[curTripId].at(stopTripIdx).arrival_time == -1 &&
-            (*sStopTimes)[curTripId].at(stopTripIdx).departure_time == -1) {
+        if ((*sStopTimes)[curTripId].at(stopTripIdx).arrival_time == StopTimes::kNoTime &&
+            (*sStopTimes)[curTripId].at(stopTripIdx).departure_time == StopTimes::kNoTime) {
             QDateTime localNoon(tripRec.tripServiceDate, QTime(12, 0, 0), _agencyTime.timeZone());
             tripRec.schSortTime = localNoon.addSecs((*sStops)[stopID].stopTripsRoutes[routeID].at(tripIdx).sortTime);
             tripRec.waitTimeSec = _agencyTime.secsTo(tripRec.schSortTime);

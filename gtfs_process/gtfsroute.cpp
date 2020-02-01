@@ -20,6 +20,7 @@
 
 #include "gtfsroute.h"
 #include "csvprocessor.h"
+#include "gtfsstoptimes.h"
 
 #include <algorithm>
 
@@ -72,7 +73,7 @@ void Routes::connectTrip(const QString &routeID, const QString &tripID,
 
     // Warning: this assumes (and it should be fine) that the first stop on a trip is ALWAYS with a time. If we don't
     // see a departure time, then we will take the arrival time. If neither exist: oh well :-(
-    if (fstDepTime != -1) {
+    if (fstDepTime != StopTimes::kNoTime) {
         // Append first departure time
         tripIDwithTime = {tripID, fstDepTime};
     } else {

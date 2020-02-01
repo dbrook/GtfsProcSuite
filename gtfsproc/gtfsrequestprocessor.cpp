@@ -155,11 +155,17 @@ void GtfsRequestProcessor::run()
             QDate reqDate = determineServiceDay(userReq, remainingReq);
             QList<QString> decodedStopIDs;
             listifyStopIDs(remainingReq, decodedStopIDs);
-            // *****************************
-            //  TODO WARNING THIS IS SHITTY ... fix the direct references :-(
-            // *****************************
-            GTFS::ServiceBetweenStops SBS(decodedStopIDs.at(0), decodedStopIDs.at(1), reqDate);
-            SBS.fillResponseData(respJson);
+            if (decodedStopIDs.length() != 2) {
+                // TODO: This fixes the segmentation fault, but it is a little bad to do this logic here
+                respJson["error"]        = 704;
+                respJson["message_type"] = "SBS";
+            } else {
+                // *****************************
+                //  TODO WARNING THIS IS SHITTY ... fix the direct references :-(
+                // *****************************
+                GTFS::ServiceBetweenStops SBS(decodedStopIDs.at(0), decodedStopIDs.at(1), reqDate);
+                SBS.fillResponseData(respJson);
+            }
         } else {
             // Return ERROR 1: Unknown request (userApp)
             respJson["error"] = 1;

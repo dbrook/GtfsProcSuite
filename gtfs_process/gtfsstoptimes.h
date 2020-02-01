@@ -30,18 +30,22 @@ namespace GTFS {
 
 typedef struct {
     qint32  stop_sequence;
-    QString stop_id;
+
+    // Arrival and Departure Times for the stop ID in the trip. If no time is present, the value is StopTimes::kNoTime
     qint32  arrival_time;     // in seconds relative to local noon of the operating day (can exceed 12-hours!)
     qint32  departure_time;   // in seconds relative to local noon of the operating day (can exceed 12-hours!)
+
     /*
-     * There are several more feeds which are not mandatory (nor are interesting here), so we will skip them for now
+     * There are several more feeds which are not mandatory (nor are interesting here), so we will skip them for now.
+     * Except for drop-off and pick-up types ... that is actually an interesting concept as we should indicate them.
+     * These are stored as-is from the data: 0 = normal, 1 = not allowed, 2 = call agency first, 3 = arrange with driver
+     * so it is up to the front-end to decide how/if to show this information (as this software is intended to be used
+     * as more of a wait / countdown for service, the pickup types might be the most interesting
      */
-    // Except for drop-off and pick-up types ... that is actually an interesting concept!
-    // These are stored as-is from the data: 0 = normal, 1 = not allowed, 2 = call agency first, 3 = arrange with driver
-    // so it is up to the front-end to decide how/if to show this information (as this software is intended to be used
-    // as more of a wait / countdown for service, the pickup types might be the most interesting
     qint16  drop_off_type;
     qint16  pickup_type;
+
+    QString stop_id;
 
     // And another one just for fun: the each individual stop in a trip (i.e. one of these stop-time records) can have
     // a unique / standalone headsign just for it (independent of the overall journey)
@@ -58,6 +62,9 @@ class StopTimes : public QObject
 {
     Q_OBJECT
 public:
+    // When a time is not present the value of arrival_time / departure_time will be GTFS::StopTimes::kNoTime
+    const static qint32 kNoTime;
+
     // Constructor
     explicit StopTimes(const QString dataRootPath, QObject *parent = nullptr);
 

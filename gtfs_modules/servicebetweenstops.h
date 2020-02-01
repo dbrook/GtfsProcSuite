@@ -83,6 +83,7 @@ public:
      *                                                701: the origin stop ID does not exist
      *                                                702: the destination stop ID does not exist
      *                                                703: there was no date provided or it was null
+     *                                          TODO: 704: the wrong number stops were requested (only 2 allowed)
      *
      *   ori_stop_id        :string: stop ID of the origin stop (from stops.txt)
      *   ori_stop_name      :string: stop name of the origin stop (from stops.txt)

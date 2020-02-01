@@ -225,10 +225,10 @@ void ServiceBetweenStops::tripsForServiceDay(const QString                  &sto
                     qint32    arrTime = (*_stopTimes)[tripStop.tripID].at(tripStop.tripStopIndex).arrival_time;
                     qint32    depTime = (*_stopTimes)[tripStop.tripID].at(tripStop.tripStopIndex).departure_time;
 
-                    if (arrTime != -1) {
+                    if (arrTime != StopTimes::kNoTime) {
                         tods[thisTripID].oriArrival = localNoonDT.addSecs(arrTime);
                     }
-                    if (depTime != -1) {
+                    if (depTime != StopTimes::kNoTime) {
                         tods[thisTripID].oriDeparture = localNoonDT.addSecs(depTime);
                     }
                 }
@@ -247,10 +247,10 @@ void ServiceBetweenStops::tripsForServiceDay(const QString                  &sto
                     qint32    arrTime = (*_stopTimes)[tripStop.tripID].at(tripStop.tripStopIndex).arrival_time;
                     qint32    depTime = (*_stopTimes)[tripStop.tripID].at(tripStop.tripStopIndex).departure_time;
 
-                    if (arrTime != -1) {
+                    if (arrTime != StopTimes::kNoTime) {
                         tods[thisTripID].desArrival = localNoonDT.addSecs(arrTime);
                     }
-                    if (depTime != -1) {
+                    if (depTime != StopTimes::kNoTime) {
                         tods[thisTripID].desDeparture = localNoonDT.addSecs(depTime);
                     }
                 }

@@ -87,27 +87,27 @@ void DataGateway::linkStopsTripsRoutes()
             // Sort the stop times for every stop after they're all connected. If a stop time is available for a stop,
             // then use it for the sort. This is not always the case as some stops are un-timed depending on the
             // publishing agency, so in those particular cases, WE SORT BASED ON THE NEXT AVAILABLE TIME IN THE TRIP SEQ
-            qint32 sortTime = -1;
-            if (rec.arrival_time != -1) {
+            qint32 sortTime = StopTimes::kNoTime;
+            if (rec.arrival_time != StopTimes::kNoTime) {
                 sortTime = rec.arrival_time;
-            } else if (rec.departure_time != -1) {
+            } else if (rec.departure_time != StopTimes::kNoTime) {
                 sortTime = rec.departure_time;
             } else {
                 // Neither time is available for this stop, so find the next one in the chronology ( loop in a loop :( )
                 for (qint32 sTimeIdxAhead = sTimeIdx;
                      sTimeIdxAhead < sTimDB[stopTimeTripID].length();
                      ++sTimeIdxAhead) {
-                    if (sTimDB[stopTimeTripID].at(sTimeIdxAhead).arrival_time != -1) {
+                    if (sTimDB[stopTimeTripID].at(sTimeIdxAhead).arrival_time != StopTimes::kNoTime) {
                         sortTime = sTimDB[stopTimeTripID].at(sTimeIdxAhead).arrival_time;
                         break;
-                    } else if (sTimDB[stopTimeTripID].at(sTimeIdxAhead).departure_time != -1) {
+                    } else if (sTimDB[stopTimeTripID].at(sTimeIdxAhead).departure_time != StopTimes::kNoTime) {
                         sortTime = sTimDB[stopTimeTripID].at(sTimeIdxAhead).departure_time;
                         break;
                     }
                 }
             }
 
-            if (sortTime == -1) {
+            if (sortTime == StopTimes::kNoTime) {
                 qDebug() << "WARNING: a sortTime was not findable for Route: " << tripDB[stopTimeTripID].route_id
                          << ", Trip: " << stopTimeTripID << ", Stop: " << rec.stop_id;
             }

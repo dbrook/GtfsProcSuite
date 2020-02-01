@@ -140,13 +140,13 @@ void TripsServingStop::fillUnifiedTripDetailsForArray(const QString            &
     if (serviceDate.isNull()) {
         // No particular day requested, we will just show the "offset" times
         QTime localNoon(12, 0, 0);
-        if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != -1) {
+        if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != StopTimes::kNoTime) {
             QTime stopDep = localNoon.addSecs((*stopTimes)[tripID].at(stopTripIdx).departure_time);
             singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
         } else {
             singleStopJSON["dep_time"] = "-";
         }
-        if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != -1) {
+        if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != StopTimes::kNoTime) {
             QTime stopArr = localNoon.addSecs((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
             singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
         } else {
@@ -161,14 +161,14 @@ void TripsServingStop::fillUnifiedTripDetailsForArray(const QString            &
 
 //        localNoonDT = localNoonDT.toUTC();
 
-        if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != -1) {
+        if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != StopTimes::kNoTime) {
             QDateTime stopDep = localNoonDT.addSecs((*stopTimes)[tripID].at(stopTripIdx).departure_time);
             singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
             singleStopJSON["dst_on"]   = stopDep.isDaylightTime();
         } else {
             singleStopJSON["dep_time"] = "-";
         }
-        if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != -1) {
+        if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != StopTimes::kNoTime) {
             QDateTime stopArr = localNoonDT.addSecs((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
             singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
             singleStopJSON["dst_on"]   = stopArr.isDaylightTime();
