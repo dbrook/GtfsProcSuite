@@ -58,10 +58,8 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, QObje
 
     _tripUpdate.ParseFromArray(gtfsRealTimeData, gtfsRealTimeData.size());
 
-    qDebug() << "  (RTTU) GTFS-Realtime : FETCH LIVE REAL DATA";
-    qDebug() << "  (RTTU) LIVE Protobuf: " << _tripUpdate.ByteSize() << " bytes";
-    qDebug() << "  (RTTU) Processing _tripUpdate.entity_size() = " << _tripUpdate.entity_size() << "real-time records."
-             << endl;
+    qDebug() << "  (RTTU) GTFS-Realtime : LIVE Protobuf: " << _tripUpdate.ByteSize()
+             << "bytes consisting of" << _tripUpdate.entity_size() << "real-time records.";
 
     processUpdateDetails(startUTC);
 }

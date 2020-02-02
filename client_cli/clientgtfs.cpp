@@ -85,8 +85,9 @@ void ClientGtfs::once()
 void ClientGtfs::repl()
 {
     QTextStream screen(stdout);
-
     disp.displayWelcome();
+
+    QString previousEntry = "HOM";                         // Track the last query so resubmitting is easier
 
     while (1) {
         screen << "% ";
@@ -105,7 +106,13 @@ void ClientGtfs::repl()
             this->disp.reInitTerm();
             this->disp.clearTerm();
             this->disp.displayWelcome();
+            previousEntry = qquery;
             continue;
+        } else if (! qquery.compare("R", Qt::CaseInsensitive)) {
+            qquery = previousEntry;
+        } else {
+            // Store the query so it can be used again with "R"
+            previousEntry = qquery;
         }
 
         //
@@ -862,6 +869,7 @@ void ClientGtfs::repl()
                    << "Download Time  . . " << respObj["active_download_ms"].toInt() << " ms" << endl
                    << "Integ Time . . . . " << respObj["active_integration_ms"].toInt() << " ms" << endl
                    << "Next Fetch In  . . " << respObj["seconds_to_next_fetch"].toInt() << " s" << endl
+                   << "Latest RT Txn  . . " << respObj["last_realtime_query"].toString() << endl
                    << endl << endl;
 
 

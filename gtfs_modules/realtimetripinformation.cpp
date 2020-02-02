@@ -28,6 +28,7 @@ RealtimeTripInformation::RealtimeTripInformation()
     : StaticStatus()
 {
     _rTrips = RealTimeGateway::inst().getActiveFeed();
+    RealTimeGateway::inst().realTimeTransactionHandled();
 }
 
 void RealtimeTripInformation::fillResponseData(QJsonObject &resp)

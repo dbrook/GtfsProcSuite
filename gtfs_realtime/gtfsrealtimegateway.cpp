@@ -51,7 +51,11 @@ void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath, qint3
         _dataPathLocal = realTimeFeedPath;
     }
 
+    // Set how many seconds should elapse between data fetches
     _refreshIntervalSec = refreshIntervalSec;
+
+    // Upon the first call to setting the realtime path, the refresh should happen right away
+    _latestRealTimeTxn = _nextFetchTimeUTC = QDateTime::currentDateTimeUtc();
 }
 
 qint64 RealTimeGateway::secondsToFetch() const
@@ -65,13 +69,46 @@ void RealTimeGateway::dataRetrievalLoop()
     QTimer *dataTimer = new QTimer();
     connect(dataTimer, SIGNAL(timeout()), SLOT(refetchData()));
 
-    // Download interval setting
-    dataTimer->start(_refreshIntervalSec * 1000);
+    // Check interval is 10 seconds, but data will only refresh at the specified interval setting when not "idle"
+    dataTimer->start(10000);
+}
+
+void RealTimeGateway::realTimeTransactionHandled()
+{
+    _lock_lastRTTxn.lock();
+    _latestRealTimeTxn = QDateTime::currentDateTimeUtc();
+    _lock_lastRTTxn.unlock();
 }
 
 void RealTimeGateway::refetchData()
 {
-    qDebug() << "  (RTTU) Refetching realtime data...";
+    QDateTime        currentUTC = QDateTime::currentDateTimeUtc();
+    RealTimeDataRepo current    = activeBuffer();
+    QDateTime        latestTxn  = mostRecentTransaction();
+
+    // Should the refresh even be attempted?
+    if (latestTxn.secsTo(currentUTC) > 180) {
+        if (current == IDLED) {
+            return;
+        }
+
+        // If no realtime requests have been sent recently (> 3 minutes), disable the realtime fetching
+        qDebug() << "  (RTTU) Last realtime request more than 3 minutes ago, stop fetching";
+        _nextFetchTimeUTC = QDateTime();
+        setActiveFeed(IDLED);
+        return;
+    } else if (latestTxn.secsTo(currentUTC) <= 180 && current == IDLED) {
+        // Otherwise we will have to restart the retrieval
+        qDebug() << "  (RTTU) Last realtime request less than 3 minutes ago and we were idled, start fetching again";
+        _nextFetchTimeUTC = currentUTC;
+    }
+
+    // Make sure enough time has passed since the last refresh, otherwise just idle the thread again
+    if (_nextFetchTimeUTC.isNull() || _nextFetchTimeUTC > currentUTC) {
+        return;
+    }
+
+    qDebug() << "  (RTTU) Refetching realtime data at " << QDateTime::currentDateTimeUtc();
 
     // We want to time how long the download
     qint64 start = QDateTime::currentMSecsSinceEpoch();
@@ -105,7 +142,7 @@ void RealTimeGateway::refetchData()
     try {
         RealTimeDataRepo currentSide = activeBuffer();
         RealTimeDataRepo nextSide    = DISABLED;
-        if (currentSide == DISABLED || currentSide == SIDE_B) {
+        if (currentSide == DISABLED || currentSide == IDLED || currentSide == SIDE_B) {
             // This **should** be safe enough. Most transactions should take < 250 ms, so nothing should be using the
             // currently-inactive side by the time the next fetch occurs. Therefore only deleting the inactive side
             // when it comes time to actually allocate into it again.
@@ -174,6 +211,14 @@ RealTimeTripUpdate *RealTimeGateway::getActiveFeed()
     } else {
         return nullptr;
     }
+}
+
+QDateTime RealTimeGateway::mostRecentTransaction()
+{
+    _lock_lastRTTxn.lock();
+    QDateTime latestTxn  = _latestRealTimeTxn;
+    _lock_lastRTTxn.unlock();
+    return latestTxn;
 }
 
 /*

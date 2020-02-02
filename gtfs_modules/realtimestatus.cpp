@@ -37,9 +37,14 @@ void RealtimeStatus::fillResponseData(QJsonObject &resp)
     } else if (active == GTFS::SIDE_B) {
         activeSideStr   = "B";
         inactiveSideStr = "A";
+    } else if (active == GTFS::IDLED) {
+        activeSideStr   = "IDLE";
     } else {
         activeSideStr = inactiveSideStr = "N/A";
     }
+
+    resp["last_realtime_query"] = _rg.mostRecentTransaction().toTimeZone(getAgencyTime().timeZone())
+                                                             .toString("dd-MMM-yyyy hh:mm:ss t");
 
     if (rTrips == nullptr) {
         resp["active_side"] = activeSideStr;
@@ -49,7 +54,7 @@ void RealtimeStatus::fillResponseData(QJsonObject &resp)
         resp["active_rt_version"]     = rTrips->getFeedGTFSVersion();
         resp["active_side"]           = activeSideStr;
         resp["active_age_sec"]        = activeFeedTime.secsTo(getUTCTime());
-        resp["active_feed_time"]      = activeFeedTime.toString("ddMMMyyyy hh:mm:ss t");
+        resp["active_feed_time"]      = activeFeedTime.toString("dd-MMM-yyyy hh:mm:ss t");
         resp["active_download_ms"]    = rTrips->getDownloadTimeMSec();
         resp["active_integration_ms"] = rTrips->getIntegrationTimeMSec();
     }

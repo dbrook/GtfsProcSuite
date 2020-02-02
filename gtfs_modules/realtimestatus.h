@@ -50,9 +50,14 @@ public:
      *   active_side           :string: "N/A", "A", or "B", indicating which buffer is active for realtime operations
      *                                        A|B: all information herein refers to the statistics of the "active side")
      *                                        N/A: realtime information is not active
+     *                                        IDLE: realtime information would be available, but no queries were made
+     *                                              which would require it for the last 3 minutes. Data will be fetched
+     *                                              within 10 seconds after a new NEX, NCF, RTR, RTI transaction
+     *   last_realtime_query   :string: the time (in acency timezone) of the last query requiring realtime information
+     *                                  [format: (dd-MMM-yyyy hh:mm:ss t)]
      *   active_rt_version     :string: version string from the protocol buffer (GTFS Realtime Trip Update version)
      *   active_age_sec        :int   : number of seconds since the active feed was integrated
-     *   active_feed_time      :string: time denoting when the string was generated at provider (ddMMMyyyy hh:mm:ss t)
+     *   active_feed_time      :string: time denoting when the string was generated at provider (dd-MMM-yyyy hh:mm:ss t)
      *   active_download_ms    :int   : time it took to download the currently active feed (milliseconds)
      *   active_integration_ms :int   : time it took to integrate the data on the GtfsProc backend
      * }

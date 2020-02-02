@@ -38,6 +38,7 @@ TripScheduleDisplay::TripScheduleDisplay(const QString &tripID, bool useRealTime
 
     // Real-time data gateway if it is requested and the data feed is alive
     if (useRealTimeData) {
+        RealTimeGateway::inst().realTimeTransactionHandled();
         _realTimeProc = GTFS::RealTimeGateway::inst().getActiveFeed();
         if (_realTimeProc != nullptr) {
             _realTimeDataAvailable = true;

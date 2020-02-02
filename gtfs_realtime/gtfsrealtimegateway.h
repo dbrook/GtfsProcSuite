@@ -34,7 +34,8 @@ namespace GTFS {
 typedef enum {
     DISABLED,
     SIDE_A,
-    SIDE_B
+    SIDE_B,
+    IDLED
 } RealTimeDataRepo;
 
 class RealTimeGateway : public QObject
@@ -59,14 +60,20 @@ public:
     // Retrieve the active feed (returns NULL if we are in the DISABLED mode)
     RealTimeTripUpdate *getActiveFeed();
 
+    // Get the date and time of the most recent transaction which used realtime information
+    QDateTime mostRecentTransaction();
+
 signals:
 
 public slots:
     // Single Fetch-and-Stop -- This should probably be made private!
     void refetchData();
 
-    // Infinite loop to fetch new data
+    // Infinite loop to fetch new data, checks every 10 seconds the number of seconds which have elapsed since a refresh
     void dataRetrievalLoop();
+
+    // Indicate that a transaction with real-time data was just requested so we don't idle the fetching process
+    void realTimeTransactionHandled();
 
 private:
     // Singleton Pattern Requirements
@@ -78,10 +85,12 @@ private:
     // Dataset Members
     qint32              _refreshIntervalSec; // Time between each data refresh attempt (in seconds)
     QMutex              _lock_activeSide;    // Prevent messing up the active side 'pointer'
+    QMutex              _lock_lastRTTxn;     // Prevent messing up the last realtime transaction time
     RealTimeDataRepo    _activeSide;         // Atomic indicator to denote data which is both active and ready
-    QString             _dataPathLocal;
-    QUrl                _dataPathRemote;
-    QDateTime           _nextFetchTimeUTC;
+    QString             _dataPathLocal;      // Data Fetch Path (local file)
+    QUrl                _dataPathRemote;     // Data Fetch Path (remote URL)
+    QDateTime           _nextFetchTimeUTC;   // Time at which new data real-time data should be fetched
+    QDateTime           _latestRealTimeTxn;  // Stores the date of the most recent transaction requesting realtime data
     RealTimeTripUpdate *_sideA;
     RealTimeTripUpdate *_sideB;
 };

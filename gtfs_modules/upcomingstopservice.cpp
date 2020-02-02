@@ -50,6 +50,7 @@ UpcomingStopService::UpcomingStopService(QList<QString> stopIDs,
       _rtData           (false)
 {
     // Realtime Data Determination
+    RealTimeGateway::inst().realTimeTransactionHandled();
     _realTimeProc = GTFS::RealTimeGateway::inst().getActiveFeed();
     if (_realTimeProc != nullptr) {
         _rtData = true;
