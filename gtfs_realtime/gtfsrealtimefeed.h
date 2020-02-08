@@ -141,6 +141,10 @@ public:
     // Retrieve operating vehicle information
     const QString getOperatingVehicle(const QString &tripID) const;
 
+    // Retrieve the start_date and start_time fields of the trip_update from the realtime feed
+    const QString getTripStartTime(const QString &tripID) const;
+    const QString getTripStartDate(const QString &tripID) const;
+
     // Get a map of routes with lists of trips with prediction information
     void getAllTripsWithPredictions(QMap<QString, QVector<QString>> &addedRouteTrips,
                                     QMap<QString, QVector<QString>> &activeRouteTrips,

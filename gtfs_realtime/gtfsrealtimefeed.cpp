@@ -395,6 +395,34 @@ const QString RealTimeTripUpdate::getOperatingVehicle(const QString &tripID) con
     return QString::fromStdString(tri.vehicle().label());
 }
 
+const QString RealTimeTripUpdate::getTripStartTime(const QString &tripID) const
+{
+    qint32 tripUpdateEntity;
+    if (_addedTrips.contains(tripID))
+        tripUpdateEntity = _addedTrips[tripID];
+    else if (_activeTrips.contains(tripID))
+        tripUpdateEntity = _activeTrips[tripID];
+    else
+        return "";
+
+    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
+    return QString::fromStdString(tri.trip().start_time());
+}
+
+const QString RealTimeTripUpdate::getTripStartDate(const QString &tripID) const
+{
+    qint32 tripUpdateEntity;
+    if (_addedTrips.contains(tripID))
+        tripUpdateEntity = _addedTrips[tripID];
+    else if (_activeTrips.contains(tripID))
+        tripUpdateEntity = _activeTrips[tripID];
+    else
+        return "";
+
+    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
+    return QString::fromStdString(tri.trip().start_date());
+}
+
 void RealTimeTripUpdate::getAllTripsWithPredictions(QMap<QString, QVector<QString> > &addedRouteTrips,
                                                     QMap<QString, QVector<QString> > &activeRouteTrips,
                                                     QMap<QString, QVector<QString> > &cancelledRouteTrips) const

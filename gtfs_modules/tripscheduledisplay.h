@@ -86,6 +86,9 @@ public:
      *   svc_start_date   :string: (S ) start of the range of days the trip operates (inclusive)
      *   svc_end_date     :string: (S ) end of the range of days the trip operates (inclusive)
      *   vehicle          :string: ( R) the vehicle operating on the trip
+     *   start_time       :string: ( R) the start time of the trip as it was given from the realtime feed
+     *   start_date       :string: ( R) the start date of the trip as it was given from the realtime feed.
+     *                                      ^^^^^^^^^^ is it the service date or the ACTUAL local-time-based date?
      *
      *   stops            :ARRAY : (SR) one for each stop along the trip requested
      *   [

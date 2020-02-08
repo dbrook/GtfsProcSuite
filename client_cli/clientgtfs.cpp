@@ -305,6 +305,8 @@ void ClientGtfs::repl()
                     screen << "Headsign . . . . . " << respObj["headsign"].toString() << endl;
                 } else {
                     screen << "Vehicle  . . . . . " << respObj["vehicle"].toString() << endl;
+                    screen << "Start Date&Time  . " << respObj["start_date"].toString() << " "
+                                                    << respObj["start_time"].toString() << endl;
                     screen << "Real Time Data . . " << respObj["real_time_data_time"].toString() << endl;
                 }
 

@@ -129,11 +129,7 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
             return;
         }
 
-        /*
-         * We will populate directly from the real-time feed so it will have somewhat fewer details than the static one
-         * The other big difference from the static feed is we have to use date-times (since we get literal seconds
-         * since the UNIX epoch) as the type from the GTFS-RealTime feed)
-         */
+        // We will populate directly from the real-time feed so it will have somewhat fewer details than the static one
         QJsonArray                      tripStopArray;
         QString                         route_id;
         QVector<GTFS::rtStopTimeUpdate> stopTimes;
@@ -152,6 +148,8 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         resp["route_short_name"] = (*_routes)[route_id].route_short_name;
         resp["route_long_name"]  = (*_routes)[route_id].route_long_name;
         resp["vehicle"]          = _realTimeProc->getOperatingVehicle(_tripID);
+        resp["start_date"]       = _realTimeProc->getTripStartDate(_tripID);
+        resp["start_time"]       = _realTimeProc->getTripStartTime(_tripID);
 
         for (const GTFS::rtStopTimeUpdate &rtsu : stopTimes) {
             QJsonObject singleStopJSON;
