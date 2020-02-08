@@ -46,7 +46,7 @@ class Status : public QObject
     Q_OBJECT
 public:
     // Constructor
-    explicit Status(const QString dataRootPath, QObject *parent = nullptr);
+    explicit Status(const QString dataRootPath, const QString &frozenDateTime, QObject *parent = nullptr);
 
     // Returns the number of records loaded from the agency.txt and feed_into.txt files
     qint64    getRecordsLoaded() const;
@@ -74,6 +74,10 @@ public:
 
     // What the hell time is it where our feed is based?
     const QTimeZone &getAgencyTZ() const;
+
+    // Return a null QDateTime if there is no override in place. A valid QDateTime indicates the actual current time
+    // should not be used for the sake of showing upcoming trips
+    const QDateTime &getOverrideDateTime() const;
 
 private:
     // Determine order of CSV table columns from feed_info.txt
@@ -110,6 +114,9 @@ private:
     QVector<AgencyRecord> Agencies;
 
     QTimeZone  serverFeedTZ;
+
+    // A date and time to force the local time to for debugging purposes
+    QDateTime  frozenAgencyTime;
 };
 
 }  // Namespace GTFS

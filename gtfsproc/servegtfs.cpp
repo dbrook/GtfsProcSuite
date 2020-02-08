@@ -30,14 +30,19 @@
 #include <QThread>
 #include <QDebug>
 
-ServeGTFS::ServeGTFS(QString dbRootPath, QString realTimePath, qint32 rtInterval, QObject *parent) : TcpServer(parent)
+ServeGTFS::ServeGTFS(QString  dbRootPath,
+                     QString  realTimePath,
+                     qint32   rtInterval,
+                     QString  frozenTime,
+                     QObject *parent) :
+    TcpServer(parent)
 {
     // Setup the global data access
     GTFS::DataGateway &data = GTFS::DataGateway::inst();
     data.initDataPath(dbRootPath);
 
     // Populate each data set
-    data.initStatus();                   // "Status" is special, it holds process, feed_info.txt, and agency.txt data
+    data.initStatus(frozenTime);         // "Status" is special, it holds process, feed_info.txt, and agency.txt data
     data.initRoutes();                   // Fill the Routes database from routes.txt
     data.initOperatingDay();             // Fill the calendar.txt and calendar_dates.txt
     data.initTrips();                    // Fill the trips.txt data

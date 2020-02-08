@@ -29,7 +29,7 @@
 
 namespace GTFS {
 
-Status::Status(const QString dataRootPath, QObject *parent) : QObject(parent)
+Status::Status(const QString dataRootPath, const QString &frozenDateTime, QObject *parent) : QObject(parent)
 {
     // We should pass the start time from the main server start?
     this->serverStartTimeUTC = QDateTime::currentDateTimeUtc();
@@ -100,6 +100,26 @@ Status::Status(const QString dataRootPath, QObject *parent) : QObject(parent)
         // TODO: I actually have no idea, let's just take the first timezone we find and reference it for proper stamps
         this->serverFeedTZ = QTimeZone(this->Agencies[0].agency_timezone.toUtf8());
     }
+
+    // Decode any date string from input in case the time of every transaction should always be the same. This might
+    // be useful for debugging static data or a realtime feed that is giving any particular issue
+    frozenAgencyTime = QDateTime();
+    if (!frozenDateTime.isNull()) {
+        QStringList brokenDateParams = frozenDateTime.split(',');
+        if (brokenDateParams.size() != 6) {
+            qDebug() << "The requested date has improperly-formatted information: " << frozenDateTime;
+            return;
+        }
+        QDate frozenDate(brokenDateParams.at(0).toInt(),
+                         brokenDateParams.at(1).toInt(),
+                         brokenDateParams.at(2).toInt());
+        QTime frozenTime(brokenDateParams.at(3).toInt(),
+                         brokenDateParams.at(4).toInt(),
+                         brokenDateParams.at(5).toInt());
+        frozenAgencyTime = QDateTime(frozenDate, frozenTime, this->serverFeedTZ);
+        qDebug() << endl << "TESTING/DEBUGGING/ANALYSIS MODE: All transaction will be processed as if it is "
+                 << frozenAgencyTime << endl;
+    }
 }
 
 qint64 Status::getRecordsLoaded() const
@@ -150,6 +170,11 @@ const QVector<AgencyRecord> &Status::getAgencies() const
 const QTimeZone &Status::getAgencyTZ() const
 {
     return this->serverFeedTZ;
+}
+
+const QDateTime &Status::getOverrideDateTime() const
+{
+    return this->frozenAgencyTime;
 }
 
 void Status::incrementRecordsLoaded(const qint64 &value)
@@ -223,6 +248,5 @@ void Status::agencyCSVOrder(const QVector<QString> csvHeader,
         ++position;
     }
 }
-
 
 }

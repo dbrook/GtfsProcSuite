@@ -58,14 +58,23 @@ int main(int argc, char *argv[])
                                       QCoreApplication::translate("main", "Real-time (GTFS) data path"),
                                       QCoreApplication::translate("main", "URL or local path"));
     QCommandLineOption realTimeRefresh(QStringList() << "u" << "realTimeUpdate",
-                                       QCoreApplication::translate("main", "Seconds between real-time data updates"),
+                                       QCoreApplication::translate("main", "Time between real-time updates"),
                                        QCoreApplication::translate("main", "nb. seconds"));
+    QCommandLineOption fixedLocalTime(QStringList() << "f" << "fixedDateTime",
+                                      QCoreApplication::translate("main", "freeze local time for NEX/NCF"),
+                                      QCoreApplication::translate("main", "yr,mo,dy,hrs,min,sec"));
 
     parser.addOption(dataRootOption);
     parser.addOption(serverPortOption);
     parser.addOption(realTimeOption);
     parser.addOption(realTimeRefresh);
+    parser.addOption(fixedLocalTime);
     parser.process(a);
+
+    QString unchangingLocalTime;
+    if (parser.isSet(fixedLocalTime)) {
+        unchangingLocalTime = parser.value(fixedLocalTime);
+    }
 
     QString databaseRootPath;
     if (parser.isSet(dataRootOption)) {
@@ -93,11 +102,12 @@ int main(int argc, char *argv[])
     qint32 rtDataInterval = 120;
     if (parser.isSet(realTimeRefresh)) {
         rtDataInterval = parser.value(realTimeRefresh).toInt();
-        if (rtDataInterval < 30) {
-            rtDataInterval = 30;
+        if (rtDataInterval < 10) {
+            rtDataInterval = 10;
         }
     }
-    ServeGTFS gtfsRequestServer(databaseRootPath, realTimePath, rtDataInterval);
+
+    ServeGTFS gtfsRequestServer(databaseRootPath, realTimePath, rtDataInterval, unchangingLocalTime);
     gtfsRequestServer.displayDebugging();
 
     /*

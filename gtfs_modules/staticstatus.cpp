@@ -34,7 +34,13 @@ StaticStatus::StaticStatus()
 {
     _stat       = GTFS::DataGateway::inst().getStatus();
     _currUTC    = QDateTime::currentDateTimeUtc();
-    _currAgency = _currUTC.toTimeZone(_stat->getAgencyTZ());
+
+    QDateTime overrideTime = _stat->getOverrideDateTime();
+    if (!overrideTime.isNull()) {
+        _currAgency = overrideTime;
+    } else {
+        _currAgency = _currUTC.toTimeZone(_stat->getAgencyTZ());
+    }
 
     GTFS::DataGateway::inst().incrementHandledRequests();
 }

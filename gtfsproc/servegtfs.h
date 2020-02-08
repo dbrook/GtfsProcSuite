@@ -43,8 +43,14 @@ public:
      * dbRootPath:   path to the folder containing all GTFS *.txt files as the static dataset
      * realTimePath: path (local or URI) to the GTFS real-time data to supplement the processor
      * rtInterval:   number of seconds to wait between each refresh of the real-time data feed
+     * frozenTime:   yyyy,mm,dd,hh,mm,ss to force the transactions to always process as if it is the date specified
+     *                 NOTE: this is in the timezone of the GTFS agency.txt file time
      */
-    ServeGTFS(QString dbRootPath, QString realTimePath, qint32 rtInterval, QObject *parent = 0);
+    ServeGTFS(QString  dbRootPath,
+              QString  realTimePath,
+              qint32   rtInterval,
+              QString  frozenTime,
+              QObject *parent        = nullptr);
     virtual ~ServeGTFS();
 
     void displayDebugging() const;
