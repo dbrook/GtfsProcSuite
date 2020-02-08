@@ -32,6 +32,9 @@
 // And of course have a space for the protobuf
 #include "gtfs-realtime.pb.h"
 
+// For feeds which do not use UNIX timestamps but instead just offsets, the static feed must be compared
+#include "gtfsstoptimes.h"
+
 namespace GTFS {
 
 typedef struct {
@@ -107,17 +110,13 @@ public:
 
     // Has the trip already passed the stop? This is useful for indicating that a trip went by early (i.e. don't care
     // about showing things which have already departed the stop)
-    // NOTE: This is not compatible with V1 feeds!
-    bool scheduledTripAlreadyPassed(const QString &trip_id, qint64 stopSeq) const;
+    bool scheduledTripAlreadyPassed(const QString              &trip_id,
+                                    qint64                      stopSeq,
+                                    const QVector<StopTimeRec> &tripTimes) const;
 
-    // What is the actual time of arrival? (Returns realArr/DepTime as seconds-since-UNIX-epoch in UTC - 64-bit)
+    // What is the actual time of arrival? (returns the QDateTime in UTC of the actual arrival/departure times)
     // Returns a FALSE if the trip and stopseq combination was not found in the data
     // Unused values will come back as 0 ... probably
-    //
-    // VERSION - COMPATIBILITY WARNING! Version 2 of GTFS-Realtime natively uses seconds-since-UNIX-epoch / UTC 64-bit,
-    // but Version 1 simply uses offsets, so this function does a version sanity check and then...:
-    //   Version 2 - compares the trip_id and stopSeq to propagate realArrTimeUTC/realDepTimeUTC
-    //   Version 1 - use trip_id, stop_id, schedArrTimeUTC, schedDepTimeUTC to compute realArrTimeUTC/realDepTimeUTC
     bool tripStopActualTime(const QString   &trip_id,
                             qint64           stopSeq,
                             const QString   &stop_id,
@@ -126,20 +125,18 @@ public:
                             QDateTime       &realArrTimeUTC,
                             QDateTime       &realDepTimeUTC) const;
 
+    // Fill in predicted times for a single stop (helper function to avoid repeated code
+    void fillPredictedTime(const transit_realtime::TripUpdate_StopTimeUpdate &stu,
+                           const QDateTime                                   &schedArrTimeUTC,
+                           const QDateTime                                   &schedDepTimeUTC,
+                           QDateTime                                         &realArrTimeUTC,
+                           QDateTime                                         &realDepTimeUTC) const;
+
     // Fill an array of all the stop times for a requested real-time trip_id
     // Passes back route_id and stopTimes
-    //
-    // VERSION - COMPATIBILITY WARNING! See note from tripStopActualTime above, the same problem exists for listing
-    // all the stop times of a tripID because with V1 data everything is done with offsets
-    //
-    // Use isRTVersion1 function to see if you need to send in an additional array with static feed
-    void fillStopTimesForTrip(const QString             &tripID,
-                              QString                   &route_id,
-                              QVector<rtStopTimeUpdate> &schedStopTimes,
-                              QVector<rtStopTimeUpdate> &stopTimes) const;
-
-    // Returns true if the realtime data within is version 1
-    bool isRTVersion1() const;
+    void fillStopTimesForTrip(const QString              &tripID,
+                              const QVector<StopTimeRec> &tripTimes,
+                              QVector<rtStopTimeUpdate>  &rtStopTimes) const;
 
     // Retrieve operating vehicle information
     const QString getOperatingVehicle(const QString &tripID) const;

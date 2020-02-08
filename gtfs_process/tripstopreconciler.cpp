@@ -109,18 +109,16 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
         addTripRecordsForServiceDay(routeID, _svcTomorrow,  stopID, fullRouteRecord);
     }
 
-    // Without realtime information, expunge trips which stopped in the past / occur outside the desired time range
-    // The presence of realtime information adds some complexity like added trips and new times / countdowns
+    /*
+     * REALTIME MODE: Integrate the GTFS Realtime feed information into the requested stop's trips
+     * Without realtime information, expunge trips which stopped in the past / occur outside the desired time range
+     * The presence of realtime information adds some complexity like added trips and new times / countdowns
+     */
     if (_realTimeMode) {
-        // REALTIME MODE: Integrate the GTFS Realtime feed information into the requested stop's trips
-        bool rtFeedIsV1 = rActiveFeed->isRTVersion1();
-
         // Mark any cancelled trips as such (tripStatus)
         for (const QString &routeID : fullTrips.keys()) {
             for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
-                if (rActiveFeed->tripIsCancelled(tripRecord.tripID, tripRecord.tripServiceDate))
-                {
-//                    qDebug() << "Trip ID " << tripRecord.tripID << " is cancelled!";
+                if (rActiveFeed->tripIsCancelled(tripRecord.tripID, tripRecord.tripServiceDate)) {
                     tripRecord.tripStatus = CANCEL;
                     tripRecord.realTimeDataAvail = true;
                     tripRecord.supplementalTrip  = false;
@@ -132,8 +130,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
         for (const QString &routeID : fullTrips.keys()) {
             for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
                 if (rActiveFeed->tripSkipsStop(stopID, tripRecord.tripID,
-                                               tripRecord.stopSequenceNum, tripRecord.tripServiceDate))
-                {
+                                               tripRecord.stopSequenceNum, tripRecord.tripServiceDate)) {
                     tripRecord.tripStatus = SKIP;
                     tripRecord.realTimeDataAvail = true;
                     tripRecord.supplementalTrip  = false;
@@ -155,11 +152,12 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                     QDateTime predictedArr = QDateTime();
                     QDateTime predictedDep = QDateTime();
                     if (tripRecord.tripStatus != SKIP && tripRecord.tripStatus != CANCEL) {
-                        if (!rtFeedIsV1 && rActiveFeed->scheduledTripAlreadyPassed(tripRecord.tripID,
-                                                                                   tripRecord.stopSequenceNum)) {
+                        if (rActiveFeed->scheduledTripAlreadyPassed(tripRecord.tripID,
+                                                                    tripRecord.stopSequenceNum,
+                                                                    (*sStopTimes)[tripRecord.tripID])) {
                             // A scheduled trip with realtime data might have left the stop in question early so we
                             // need to account for that and expunge the trip from displaying. This is not needed for
-                            // addred trips (as there is nothing to compare them to). This does not work with V1 feeds.
+                            // addred trips (as there is nothing to compare them to).
                             tripRecord.tripStatus = IRRELEVANT;
                             continue;
                         }
@@ -202,11 +200,6 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 
                         // Time-based statuses (arriving/early/late/on-time), or no real-time data for stop
                         if ((rtArrivalMissing && rtDepartureMissing) || rtMissingForStop)
-                        //if ((rtArrivalMissing && rtDepartureMissing) || rtMissingForStop)
-                            // Missing both arrival and departure predictions: only show scheduled time
-                            //tripRecord.tripStatus = SCHEDULE;
-                            tripRecord.tripStatus = MISSING;
-                        else if (rtMissingForStop)
                             tripRecord.tripStatus = MISSING;
                         else
                             tripRecord.tripStatus = RUNNING;
@@ -225,11 +218,9 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                                 tripRecord.tripStatus = BOARD;
                         }
 
-                        // Vehicle id and real-time information only available if one or more predictions present
-                        //if (!rtArrivalMissing || !rtDepartureMissing) {
-                            tripRecord.vehicleRealTime   = rActiveFeed->getOperatingVehicle(tripRecord.tripID);
-                            tripRecord.realTimeDataAvail = true;
-                        //}
+                        // Vehicle id and real-time indicators for output to indicate it is actually available
+                        tripRecord.vehicleRealTime   = rActiveFeed->getOperatingVehicle(tripRecord.tripID);
+                        tripRecord.realTimeDataAvail = true;
 
                         // Make a stop irrelevant if it has no arrival nor departure data and its schedule time is
                         // purely in the past -- Could this be handled in invalidateTrips() better?
@@ -283,8 +274,6 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                 tripRecord.tripID          = tripAndIndex.first;
 
                 // Calculate wait time and actual departure/arrivals if available
-                // TODO: It is possible that Version 1 of GTFS-Realtime supports added trips, but I don't know...
-                //       In the future, this may have to be updated, for now we use nulls
                 QDateTime prArrTime, prDepTime;
                 if (rActiveFeed->tripStopActualTime(tripAndIndex.first,
                                                     tripAndIndex.second,
@@ -326,7 +315,6 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 
                 // Dumb hack to figure out where the train is going (will not properly match the "headsign" field!)
                 const QString finalStopID = rActiveFeed->getFinalStopIdForAddedTrip(tripRecord.tripID);
-//                qDebug() << "Final Stop for tripID " << tripRecord.tripID << " is: " << finalStopID;
                 tripRecord.headsign = (*sStops)[finalStopID].stop_name;
 
                 fullTrips[routeID].tripRecos.push_back(tripRecord);
