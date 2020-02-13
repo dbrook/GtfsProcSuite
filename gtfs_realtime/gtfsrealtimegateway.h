@@ -46,7 +46,7 @@ public:
     static RealTimeGateway &inst();
 
     // Store the path from which to grab new protobuf data
-    void setRealTimeFeedPath(const QString &realTimeFeedPath, qint32 refreshIntervalSec);
+    void setRealTimeFeedPath(const QString &realTimeFeedPath, qint32 refreshIntervalSec, bool showProtobuf);
 
     // How long until the next fetch?
     qint64 secondsToFetch() const;
@@ -91,6 +91,7 @@ private:
     QUrl                _dataPathRemote;     // Data Fetch Path (remote URL)
     QDateTime           _nextFetchTimeUTC;   // Time at which new data real-time data should be fetched
     QDateTime           _latestRealTimeTxn;  // Stores the date of the most recent transaction requesting realtime data
+    bool                _debugProtobuf;      // true if a protobuf should be serialized each time it is received
     RealTimeTripUpdate *_sideA;
     RealTimeTripUpdate *_sideB;
 };

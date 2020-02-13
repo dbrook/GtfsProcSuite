@@ -49,26 +49,29 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     parser.addHelpOption();
     QCommandLineOption dataRootOption(QStringList() << "d" << "dataRoot",
-                                      QCoreApplication::translate("main", "GTFS static feed"),
+                                      QCoreApplication::translate("main", "GTFS static feed directory."),
                                       QCoreApplication::translate("main", "path to feed"));
     QCommandLineOption serverPortOption(QStringList() << "p" << "serverPort",
-                                        QCoreApplication::translate("main", "Port on which to receive requests"),
+                                        QCoreApplication::translate("main", "Port to listen for requests."),
                                         QCoreApplication::translate("main", "port number"));
     QCommandLineOption realTimeOption(QStringList() << "r" << "realTimeData",
-                                      QCoreApplication::translate("main", "Real-time (GTFS) data path"),
+                                      QCoreApplication::translate("main", "Real-time (GTFS) data path."),
                                       QCoreApplication::translate("main", "URL or local path"));
     QCommandLineOption realTimeRefresh(QStringList() << "u" << "realTimeUpdate",
-                                       QCoreApplication::translate("main", "Time between real-time updates"),
+                                       QCoreApplication::translate("main", "Time between real-time updates."),
                                        QCoreApplication::translate("main", "nb. seconds"));
     QCommandLineOption fixedLocalTime(QStringList() << "f" << "fixedDateTime",
-                                      QCoreApplication::translate("main", "freeze local time for NEX/NCF"),
+                                      QCoreApplication::translate("main", "Freeze local time for NEX/NCF."),
                                       QCoreApplication::translate("main", "yr,mo,dy,hrs,min,sec"));
+    QCommandLineOption dumpRTProtobuf(QStringList() << "x" << "examineRTPB",
+                                      QCoreApplication::translate("main", "Examine GTFS-Realtime ProtoBuf."));
 
     parser.addOption(dataRootOption);
     parser.addOption(serverPortOption);
     parser.addOption(realTimeOption);
     parser.addOption(realTimeRefresh);
     parser.addOption(fixedLocalTime);
+    parser.addOption(dumpRTProtobuf);
     parser.process(a);
 
     QString unchangingLocalTime;
@@ -94,6 +97,11 @@ int main(int argc, char *argv[])
         realTimePath = parser.value(realTimeOption);
     }
 
+    bool protobufToQDebug = false;
+    if (parser.isSet(dumpRTProtobuf)) {
+        protobufToQDebug = true;
+    }
+
     /*
      * Primary Application Data Load and Server Connection Setup
      * (Includes static dataset and real-time data, which by default will refresh every 2 minutes, and no more often
@@ -107,7 +115,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    ServeGTFS gtfsRequestServer(databaseRootPath, realTimePath, rtDataInterval, unchangingLocalTime);
+    ServeGTFS gtfsRequestServer(databaseRootPath, realTimePath, rtDataInterval, unchangingLocalTime, protobufToQDebug);
     gtfsRequestServer.displayDebugging();
 
     /*

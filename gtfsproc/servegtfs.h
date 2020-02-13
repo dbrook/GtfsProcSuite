@@ -45,11 +45,13 @@ public:
      * rtInterval:   number of seconds to wait between each refresh of the real-time data feed
      * frozenTime:   yyyy,mm,dd,hh,mm,ss to force the transactions to always process as if it is the date specified
      *                 NOTE: this is in the timezone of the GTFS agency.txt file time
+     * showProtobuf: set to true to print realtime updates to a string on QDebug each time an update is received
      */
     ServeGTFS(QString  dbRootPath,
               QString  realTimePath,
               qint32   rtInterval,
               QString  frozenTime,
+              bool     showProtobuf,
               QObject *parent        = nullptr);
     virtual ~ServeGTFS();
 

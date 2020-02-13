@@ -28,7 +28,8 @@
 
 namespace GTFS {
 
-RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath, QObject *parent) : QObject(parent)
+RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath, bool dumpProtobuf, QObject *parent)
+    : QObject(parent)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -37,20 +38,15 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath, QObject *parent) :
     std::fstream pbfstream(rtPath.toUtf8(), std::ios::in | std::ios::binary);
     _tripUpdate.ParseFromIstream(&pbfstream);
 
-    // Decode it and dump to output so it can be analyzed
-    std::string data;
-    google::protobuf::TextFormat::PrintToString(_tripUpdate, &data);
-    qDebug() << "GTFS-Realtime : LOCAL DEBUGGING MODE";
-    qDebug() << "-----[ CONTENTS ]------------------------------------------------------------------------------------";
-    qDebug() << data.c_str() << endl
-             << "-----------------------------------------------------------------------[ END PROTOBUF CONTENTS ]-----";
-    qDebug() << "Protobuf: " << _tripUpdate.ByteSize() << " bytes" << endl;
-    qDebug() << "Processing _tripUpdate.entity_size() = " << _tripUpdate.entity_size() << "real-time records.";
+    if (dumpProtobuf) {
+        showProtobufData();
+    }
 
     processUpdateDetails(startUTC);
 }
 
-RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, QObject *parent) : QObject(parent)
+RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, bool dumpProtobuf, QObject *parent)
+    : QObject(parent)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -60,6 +56,10 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, QObje
 
     qDebug() << "  (RTTU) GTFS-Realtime : LIVE Protobuf: " << _tripUpdate.ByteSize()
              << "bytes consisting of" << _tripUpdate.entity_size() << "real-time records.";
+
+    if (dumpProtobuf) {
+        showProtobufData();
+    }
 
     processUpdateDetails(startUTC);
 }
@@ -240,17 +240,14 @@ bool RealTimeTripUpdate::tripStopActualTime(const QString   &trip_id,
                                             QDateTime       &realArrTimeUTC,
                                             QDateTime       &realDepTimeUTC) const
 {
-    // Assume that the trip id and stop-sequence are valid
-    qint32 entityIdx;
-    if (_activeTrips.contains(trip_id)) {
-        entityIdx = _activeTrips[trip_id];
-    } else if (_addedTrips.contains(trip_id)) {
-        entityIdx = _addedTrips[trip_id];
-    } else {
+    // Determine that the trip id and stop-sequence are valid
+    qint32 tripUpdateEntity;
+    bool   isSupplementalTrip;
+    if (!findEntityIndex(trip_id, tripUpdateEntity, isSupplementalTrip)) {
         return false;
     }
 
-    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(entityIdx).trip_update();
+    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
 
     // Either the realtime update is in POSIX-style seconds-since-UNIX-epoch UTC timestamps OR just offset-seconds
     for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
@@ -304,14 +301,8 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID
 {
     // We can determine which vector to loop over to fill route_id and stopTimes
     qint32 tripUpdateEntity;
-    bool   isSupplementalTrip = false;
-
-    if (_addedTrips.contains(tripID)) {
-        tripUpdateEntity   = _addedTrips[tripID];
-        isSupplementalTrip = true;
-    } else if (_activeTrips.contains(tripID)) {
-        tripUpdateEntity   = _activeTrips[tripID];
-    } else {
+    bool   isSupplementalTrip;
+    if (!findEntityIndex(tripID, tripUpdateEntity, isSupplementalTrip)) {
         return;
     }
 
@@ -381,29 +372,23 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID
 
 const QString RealTimeTripUpdate::getOperatingVehicle(const QString &tripID) const
 {
-    // We can determine which vector to loop over to fill route_id and stopTimes
     qint32 tripUpdateEntity;
-    if (_addedTrips.contains(tripID))
-        tripUpdateEntity = _addedTrips[tripID];
-    else if (_activeTrips.contains(tripID))
-        tripUpdateEntity = _activeTrips[tripID];
-    else
+    bool   isSupplementalTrip;
+    if (!findEntityIndex(tripID, tripUpdateEntity, isSupplementalTrip)) {
         return "";
+    }
 
     const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
-
     return QString::fromStdString(tri.vehicle().label());
 }
 
 const QString RealTimeTripUpdate::getTripStartTime(const QString &tripID) const
 {
     qint32 tripUpdateEntity;
-    if (_addedTrips.contains(tripID))
-        tripUpdateEntity = _addedTrips[tripID];
-    else if (_activeTrips.contains(tripID))
-        tripUpdateEntity = _activeTrips[tripID];
-    else
+    bool   isSupplementalTrip;
+    if (!findEntityIndex(tripID, tripUpdateEntity, isSupplementalTrip)) {
         return "";
+    }
 
     const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
     return QString::fromStdString(tri.trip().start_time());
@@ -412,12 +397,10 @@ const QString RealTimeTripUpdate::getTripStartTime(const QString &tripID) const
 const QString RealTimeTripUpdate::getTripStartDate(const QString &tripID) const
 {
     qint32 tripUpdateEntity;
-    if (_addedTrips.contains(tripID))
-        tripUpdateEntity = _addedTrips[tripID];
-    else if (_activeTrips.contains(tripID))
-        tripUpdateEntity = _activeTrips[tripID];
-    else
+    bool   isSupplementalTrip;
+    if (!findEntityIndex(tripID, tripUpdateEntity, isSupplementalTrip)) {
         return "";
+    }
 
     const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
     return QString::fromStdString(tri.trip().start_date());
@@ -480,6 +463,32 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
     }
 
     setIntegrationTimeMSec(startProcTimeUTC.msecsTo(QDateTime::currentDateTimeUtc()));
+}
+
+void RealTimeTripUpdate::showProtobufData() const
+{
+    std::string data;
+    google::protobuf::TextFormat::PrintToString(_tripUpdate, &data);
+    qDebug() << "GTFS-Realtime : LOCAL DEBUGGING MODE";
+    qDebug() << "-----[ CONTENTS ]------------------------------------------------------------------------------------";
+    qDebug() << data.c_str() << endl
+             << "-----------------------------------------------------------------------[ END PROTOBUF CONTENTS ]-----";
+    qDebug() << "Protobuf: " << _tripUpdate.ByteSize() << " bytes" << endl;
+    qDebug() << "Processing _tripUpdate.entity_size() = " << _tripUpdate.entity_size() << "real-time records.";
+}
+
+bool RealTimeTripUpdate::findEntityIndex(const QString &tripID, qint32 &entityIdx, bool &isSupplemental) const
+{
+    if (_addedTrips.contains(tripID)) {
+        entityIdx      = _addedTrips[tripID];
+        isSupplemental = true;
+        return true;
+    } else if (_activeTrips.contains(tripID)) {
+        entityIdx      = _activeTrips[tripID];
+        isSupplemental = false;
+        return true;
+    }
+    return false;
 }
 
 } // namespace GTFS

@@ -42,9 +42,9 @@ RealTimeGateway &RealTimeGateway::inst()
     return *_instance;
 }
 
-void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath, qint32 refreshIntervalSec)
+void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath, qint32 refreshIntervalSec, bool showProtobuf)
 {
-    // TODO : Make this more robust!
+    // TODO : Make this more robust?
     if (realTimeFeedPath.startsWith("http://") || realTimeFeedPath.startsWith("https://")) {
         _dataPathRemote = QUrl(realTimeFeedPath);
     } else {
@@ -56,6 +56,9 @@ void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath, qint3
 
     // Upon the first call to setting the realtime path, the refresh should happen right away
     _latestRealTimeTxn = _nextFetchTimeUTC = QDateTime::currentDateTimeUtc();
+
+    // Render the protocol buffer to QDebug every time one is received
+    _debugProtobuf = showProtobuf;
 }
 
 qint64 RealTimeGateway::secondsToFetch() const
@@ -70,6 +73,7 @@ void RealTimeGateway::dataRetrievalLoop()
     connect(dataTimer, SIGNAL(timeout()), SLOT(refetchData()));
 
     // Check interval is 10 seconds, but data will only refresh at the specified interval setting when not "idle"
+    // TODO: this could be more event driven maybe?
     dataTimer->start(10000);
 }
 
@@ -152,9 +156,9 @@ void RealTimeGateway::refetchData()
                 delete _sideA;
 
             if (!_dataPathLocal.isNull()) {
-                _sideA = new RealTimeTripUpdate(_dataPathLocal);
+                _sideA = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf);
             } else {
-                _sideA = new RealTimeTripUpdate(GtfsRealTimePB);
+                _sideA = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf);
             }
         } else if (currentSide == SIDE_A) {
             nextSide = SIDE_B;
@@ -163,9 +167,9 @@ void RealTimeGateway::refetchData()
                 delete _sideB;
 
             if (!_dataPathLocal.isNull()) {
-                _sideB = new RealTimeTripUpdate(_dataPathLocal);
+                _sideB = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf);
             } else {
-                _sideB = new RealTimeTripUpdate(GtfsRealTimePB);
+                _sideB = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf);
             }
         }
 

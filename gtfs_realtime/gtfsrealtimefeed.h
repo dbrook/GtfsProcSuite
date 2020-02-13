@@ -64,8 +64,8 @@ class RealTimeTripUpdate : public QObject
 {
     Q_OBJECT
 public:
-    explicit RealTimeTripUpdate(const QString &rtPath, QObject *parent = nullptr);
-    explicit RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, QObject *parent = nullptr);
+    explicit RealTimeTripUpdate(const QString &rtPath, bool dumpProtobuf, QObject *parent = nullptr);
+    explicit RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, bool dumpProtobuf, QObject *parent = nullptr);
     virtual ~RealTimeTripUpdate();
 
     /*
@@ -161,6 +161,14 @@ private:
     // Once data is ingested (either from a byte array from a URL or a local file's fstream), the process to ingest
     // trip updates is the same and encapsulated in this function to prevent previous code duplication
     void processUpdateDetails(const QDateTime &startProcTimeUTC);
+
+    // Dump the protocol buffer real time update into QDebug
+    void showProtobufData() const;
+
+    // Checks the _addedTrips and _activeTrips fields and fills in the entityIdx with the position in the trip_update
+    // FeedMessage. isSupplemental is filled with true if the trip came from the supplemental trips. A false is returned
+    // in the event no entityIdx was found for the requested tripID.
+    bool findEntityIndex(const QString &tripID, qint32 &entityIdx, bool &isSupplemental) const;
 
     /*
      * Data Members
