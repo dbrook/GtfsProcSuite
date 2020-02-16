@@ -232,24 +232,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                                 tripRecord.tripStatus = IRRELEVANT;
                             }
                         }
-                    } else {
-                        // No time was found for the stop in this trip! There are two ways this is possible:
-                        //  1) The trip passed the stop early and we should not display it
-                        //  2) The trip is far enough in the future that the realtime information for the entire trip
-                        //       is not populated by the data provider
-                        //
-                        // For #1, just expunge the trip from the arrival information
-                        // For #2, don't want to remove a future scheduled trip!
-                        //
-                        // Essentially, this means there should be a cutoff interval to do this removal. For the MBTA
-                        // (the only reference platform so far) it seems to be times beyond 2 hours in the future.
-                        // For a general case, assume 1 hour (3600 seconds) is the cutoff
-                        if ((tripRecord.tripStatus != SKIP) &&
-                            ((!tripRecord.schArrTime.isNull() && _agencyTime.secsTo(tripRecord.schArrTime) < 3600) ||
-                             (!tripRecord.schDepTime.isNull() && _agencyTime.secsTo(tripRecord.schDepTime) < 3600))) {
-                            tripRecord.tripStatus = IRRELEVANT;
-                        }
-                    }
+                    } // End of processing an actual trip with real-time information (non-cancelled, non-stop-skip)
                 } // End of active (real-time) trip handling condition
             } // End of loop on trips
         } // End of loop on routes
@@ -450,7 +433,8 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
         // There are two notions: scheduled and unscheduled times. Unscheduled times should NOT display a time
         // but we allow a countdown (probably the client should warn that the data is missing). If realtime
         // data were to be associated with these 'untimed' stops, then hopefully that would supplement it :) )
-        if ((tripRecord.tripStatus == SCHEDULE   && _agencyTime > stopTime) ||
+        // Scheduled trips without realtime information should show for an extra 2 minutes like cancelled/skipping ones
+        if ((tripRecord.tripStatus == SCHEDULE   && _agencyTime.secsTo(stopTime) < -120) ||
             (tripRecord.tripStatus == NOSCHEDULE && _agencyTime > tripRecord.schSortTime)) {
             tripRecord.tripStatus = IRRELEVANT;
         }
