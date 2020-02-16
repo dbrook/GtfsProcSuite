@@ -433,8 +433,7 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
         // There are two notions: scheduled and unscheduled times. Unscheduled times should NOT display a time
         // but we allow a countdown (probably the client should warn that the data is missing). If realtime
         // data were to be associated with these 'untimed' stops, then hopefully that would supplement it :) )
-        // Scheduled trips without realtime information should show for an extra 2 minutes like cancelled/skipping ones
-        if ((tripRecord.tripStatus == SCHEDULE   && _agencyTime.secsTo(stopTime) < -120) ||
+        if ((tripRecord.tripStatus == SCHEDULE   && _agencyTime.secsTo(stopTime) < 0) ||
             (tripRecord.tripStatus == NOSCHEDULE && _agencyTime > tripRecord.schSortTime)) {
             tripRecord.tripStatus = IRRELEVANT;
         }
