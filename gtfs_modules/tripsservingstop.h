@@ -112,17 +112,17 @@ public:
 
 private:
     // Helper function to append a valid trip belonging to a route to a structured TSS response
-    static void fillUnifiedTripDetailsForArray(const QString            &tripID,
-                                               qint32                    stopTripIdx,
-                                               const GTFS::OperatingDay *svc,
-                                               const GTFS::StopTimeData *stopTimes,
-                                               const GTFS::TripData     *tripDB,
-                                               const QDate              &serviceDate,
-                                               bool                      skipServiceDetail,
-                                               bool                      addWaitTime,
-                                               const QDateTime          &currAgency,
-                                               qint64                    waitTimeSec,
-                                               QJsonObject              &singleStopJSON);
+    void fillUnifiedTripDetailsForArray(const QString            &tripID,
+                                        qint32                    stopTripIdx,
+                                        const GTFS::OperatingDay *svc,
+                                        const GTFS::StopTimeData *stopTimes,
+                                        const GTFS::TripData     *tripDB,
+                                        const QDate              &serviceDate,
+                                        bool                      skipServiceDetail,
+                                        bool                      addWaitTime,
+                                        const QDateTime          &currAgency,
+                                        qint64                    waitTimeSec,
+                                        QJsonObject              &singleStopJSON);
 
     // Instance variables
     QString _stopID;

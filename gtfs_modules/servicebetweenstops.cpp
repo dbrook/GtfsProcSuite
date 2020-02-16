@@ -170,12 +170,19 @@ void ServiceBetweenStops::fillResponseData(QJsonObject &resp)
         singleOutputTrip["route_short_name"] = (*_routes)[singleTrip.routeID].route_short_name;
         singleOutputTrip["route_long_name"]  = (*_routes)[singleTrip.routeID].route_long_name;
         singleOutputTrip["headsign"]         = singleTrip.headsign;
-        singleOutputTrip["ori_arrival"]      = singleTrip.oriArrival.toString("ddd hh:mm");
-        singleOutputTrip["ori_depature"]     = singleTrip.oriDeparture.toString("ddd hh:mm");
         singleOutputTrip["ori_pick_up"]      = singleTrip.ori_pickup_type;
-        singleOutputTrip["des_arrival"]      = singleTrip.desArrival.toString("ddd hh:mm");
-        singleOutputTrip["des_departure"]    = singleTrip.desDeparture.toString("ddd hh:mm");
         singleOutputTrip["des_drop_off"]     = singleTrip.des_drop_off_type;
+        if (getStatus()->format12h()) {
+            singleOutputTrip["ori_arrival"]      = singleTrip.oriArrival.toString("ddd h:mma");
+            singleOutputTrip["ori_depature"]     = singleTrip.oriDeparture.toString("ddd h:mma");
+            singleOutputTrip["des_arrival"]      = singleTrip.desArrival.toString("ddd h:mma");
+            singleOutputTrip["des_departure"]    = singleTrip.desDeparture.toString("ddd h:mma");
+        } else {
+            singleOutputTrip["ori_arrival"]      = singleTrip.oriArrival.toString("ddd hh:mm");
+            singleOutputTrip["ori_depature"]     = singleTrip.oriDeparture.toString("ddd hh:mm");
+            singleOutputTrip["des_arrival"]      = singleTrip.desArrival.toString("ddd hh:mm");
+            singleOutputTrip["des_departure"]    = singleTrip.desDeparture.toString("ddd hh:mm");
+        }
 
         qint64 durationSe = singleTrip.oriDeparture.secsTo(singleTrip.desArrival);
         qint64 durationMi = (durationSe / 60) % 60;

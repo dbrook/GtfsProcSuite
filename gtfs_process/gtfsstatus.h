@@ -46,7 +46,10 @@ class Status : public QObject
     Q_OBJECT
 public:
     // Constructor
-    explicit Status(const QString dataRootPath, const QString &frozenDateTime, QObject *parent = nullptr);
+    explicit Status(const QString  dataRootPath,
+                    const QString &frozenDateTime,
+                    bool           use12hClock,
+                    QObject       *parent = nullptr);
 
     // Returns the number of records loaded from the agency.txt and feed_into.txt files
     qint64    getRecordsLoaded() const;
@@ -79,6 +82,9 @@ public:
     // should not be used for the sake of showing upcoming trips
     const QDateTime &getOverrideDateTime() const;
 
+    // Return true if 12-hour times with AM/PM indicators should be generated instead of the standard 24-hour times
+    bool format12h() const;
+
 private:
     // Determine order of CSV table columns from feed_info.txt
     static void feedInfoCSVOrder(const QVector<QString> csvHeader,
@@ -98,22 +104,24 @@ private:
                                qint8 &langPos,
                                qint8 &phonePos);
 
-    qint64     recordsLoaded;        // Number of lines loaded from the GTFS files
-    QDateTime  serverStartTimeUTC;   // Start time of the processor
-    QDateTime  loadFinishTimeUTC;    // Time when the whole database finished loading
+    qint64    recordsLoaded;        // Number of lines loaded from the GTFS files
+    QDateTime serverStartTimeUTC;   // Start time of the processor
+    QDateTime loadFinishTimeUTC;    // Time when the whole database finished loading
 
     // Data straight from "feed_info.txt"
-    QString    publisher;
-    QString    url;
-    QString    language;
-    QDate      startDate;
-    QDate      endDate;
-    QString    version;
+    QString publisher;
+    QString url;
+    QString language;
+    QDate   startDate;
+    QDate   endDate;
+    QString version;
 
     // Agency Information
     QVector<AgencyRecord> Agencies;
+    QTimeZone             serverFeedTZ;
 
-    QTimeZone  serverFeedTZ;
+    // 12- or 24-hour clock format
+    bool use12h;
 
     // A date and time to force the local time to for debugging purposes
     QDateTime  frozenAgencyTime;

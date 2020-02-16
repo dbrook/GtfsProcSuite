@@ -142,13 +142,21 @@ void TripsServingStop::fillUnifiedTripDetailsForArray(const QString            &
         QTime localNoon(12, 0, 0);
         if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != StopTimes::kNoTime) {
             QTime stopDep = localNoon.addSecs((*stopTimes)[tripID].at(stopTripIdx).departure_time);
-            singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
+            if (getStatus()->format12h()) {
+                singleStopJSON["dep_time"] = stopDep.toString("h:mma");
+            } else {
+                singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
+            }
         } else {
             singleStopJSON["dep_time"] = "-";
         }
         if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != StopTimes::kNoTime) {
             QTime stopArr = localNoon.addSecs((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
-            singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
+            if (getStatus()->format12h()) {
+                singleStopJSON["dep_time"] = stopArr.toString("h:mma");
+            } else {
+                singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
+            }
         } else {
             singleStopJSON["arr_time"] = "-";
         }
@@ -163,14 +171,22 @@ void TripsServingStop::fillUnifiedTripDetailsForArray(const QString            &
 
         if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != StopTimes::kNoTime) {
             QDateTime stopDep = localNoonDT.addSecs((*stopTimes)[tripID].at(stopTripIdx).departure_time);
-            singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
+            if (getStatus()->format12h()) {
+                singleStopJSON["dep_time"] = stopDep.toString("h:mma");
+            } else {
+                singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
+            }
             singleStopJSON["dst_on"]   = stopDep.isDaylightTime();
         } else {
             singleStopJSON["dep_time"] = "-";
         }
         if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != StopTimes::kNoTime) {
             QDateTime stopArr = localNoonDT.addSecs((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
-            singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
+            if (getStatus()->format12h()) {
+                singleStopJSON["arr_time"] = stopArr.toString("h:mma");
+            } else {
+                singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
+            }
             singleStopJSON["dst_on"]   = stopArr.isDaylightTime();
         } else {
             singleStopJSON["arr_time"] = "-";

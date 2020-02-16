@@ -86,11 +86,19 @@ void TripsServingRoute::fillResponseData(QJsonObject &resp)
         if (_onlyDate.isNull()) {
             QTime localNoon    = QTime(12, 0, 0);
             QTime firstStopDep = localNoon.addSecs(tripIDwTime.second);
-            singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
+            if (getStatus()->format12h()) {
+                singleStopJSON["first_stop_departure"] = firstStopDep.toString("h:mma");
+            } else {
+                singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
+            }
         } else {
             QDateTime localNoon(_onlyDate, QTime(12, 0, 0), getAgencyTime().timeZone());
             QDateTime firstStopDep = localNoon.addSecs(tripIDwTime.second);
-            singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
+            if (getStatus()->format12h()) {
+                singleStopJSON["first_stop_departure"] = firstStopDep.toString("h:mma");
+            } else {
+                singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
+            }
             singleStopJSON["first_stop_dst_on"]    = firstStopDep.isDaylightTime();
         }
 
@@ -104,11 +112,19 @@ void TripsServingRoute::fillResponseData(QJsonObject &resp)
         if (_onlyDate.isNull()) {
             QTime localNoon   = QTime(12, 0, 0);
             QTime lastStopArr = localNoon.addSecs(lastStop.arrival_time);
-            singleStopJSON["last_stop_arrival"] = lastStopArr.toString("hh:mm");
+            if (getStatus()->format12h()) {
+                singleStopJSON["last_stop_arrival"] = lastStopArr.toString("h:mma");
+            } else {
+                singleStopJSON["last_stop_arrival"] = lastStopArr.toString("hh:mm");
+            }
         } else {
             QDateTime localNoon(_onlyDate, QTime(12, 0, 0), getAgencyTime().timeZone());
             QDateTime lastStopArr = localNoon.addSecs(lastStop.arrival_time);
-            singleStopJSON["last_stop_arrival"] = lastStopArr.toString("hh:mm");
+            if (getStatus()->format12h()) {
+                singleStopJSON["last_stop_arrival"] = lastStopArr.toString("h:mma");
+            } else {
+                singleStopJSON["last_stop_arrival"] = lastStopArr.toString("hh:mm");
+            }
             singleStopJSON["last_stop_dst_on"]  = lastStopArr.isDaylightTime();
         }
 

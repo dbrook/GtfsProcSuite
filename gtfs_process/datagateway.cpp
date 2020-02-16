@@ -39,9 +39,9 @@ void DataGateway::initDataPath(QString databaseFilePath)
     _dbRootPath = databaseFilePath;
 }
 
-void DataGateway::initStatus(const QString frozenLocalDateTime)
+void DataGateway::initStatus(const QString frozenLocalDateTime, bool use12hourTimes)
 {
-    _status = new GTFS::Status(_dbRootPath, frozenLocalDateTime, this);
+    _status = new GTFS::Status(_dbRootPath, frozenLocalDateTime, use12hourTimes, this);
 }
 
 void DataGateway::initRoutes()

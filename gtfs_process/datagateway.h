@@ -47,7 +47,7 @@ public:
     void initDataPath(QString databaseFilePath);
 
     // Add feed information and initialize items. Use setStatusLoadFinishTimeUTC to save when load finished
-    void initStatus(const QString frozenLocalDateTime);
+    void initStatus(const QString frozenLocalDateTime, bool use12hourTimes);
     void initRoutes();
     void initOperatingDay();
     void initTrips();

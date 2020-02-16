@@ -43,8 +43,13 @@ void RealtimeStatus::fillResponseData(QJsonObject &resp)
         activeSideStr = inactiveSideStr = "N/A";
     }
 
-    resp["last_realtime_query"] = _rg.mostRecentTransaction().toTimeZone(getAgencyTime().timeZone())
-                                                             .toString("dd-MMM-yyyy hh:mm:ss t");
+    if (getStatus()->format12h()) {
+        resp["last_realtime_query"] = _rg.mostRecentTransaction().toTimeZone(getAgencyTime().timeZone())
+                                                                 .toString("dd-MMM-yyyy h:mm:ss a t");
+    } else {
+        resp["last_realtime_query"] = _rg.mostRecentTransaction().toTimeZone(getAgencyTime().timeZone())
+                                                                 .toString("dd-MMM-yyyy hh:mm:ss t");
+    }
 
     if (rTrips == nullptr) {
         resp["active_side"] = activeSideStr;
@@ -54,9 +59,14 @@ void RealtimeStatus::fillResponseData(QJsonObject &resp)
         resp["active_rt_version"]     = rTrips->getFeedGTFSVersion();
         resp["active_side"]           = activeSideStr;
         resp["active_age_sec"]        = activeFeedTime.secsTo(getUTCTime());
-        resp["active_feed_time"]      = activeFeedTime.toString("dd-MMM-yyyy hh:mm:ss t");
         resp["active_download_ms"]    = rTrips->getDownloadTimeMSec();
         resp["active_integration_ms"] = rTrips->getIntegrationTimeMSec();
+
+        if (getStatus()->format12h()) {
+            resp["active_feed_time"] = activeFeedTime.toString("dd-MMM-yyyy h:mm:ss a t");
+        } else {
+            resp["active_feed_time"] = activeFeedTime.toString("dd-MMM-yyyy hh:mm:ss t");
+        }
     }
 
     // fill standard protocol information

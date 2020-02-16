@@ -64,7 +64,11 @@ void StaticStatus::fillProtocolFields(const QString moduleID, qint64 errorID, QJ
 {
     resp["message_type"] = moduleID;
     resp["error"]        = errorID;
-    resp["message_time"] = _currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+    if (_stat->format12h()) {
+        resp["message_time"] = _currAgency.toString("dd-MMM-yyyy h:mm:ssa t");
+    } else {
+        resp["message_time"] = _currAgency.toString("dd-MMM-yyyy hh:mm:ss t");
+    }
     resp["proc_time_ms"] = _currUTC.msecsTo(QDateTime::currentDateTimeUtc());
 }
 

@@ -93,14 +93,22 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
 
             if (stop.arrival_time != StopTimes::kNoTime) {
                 QTime arrivalTime = localNoon.addSecs(stop.arrival_time);
-                singleStopJSON["arr_time"] = arrivalTime.toString("hh:mm");
+                if (getStatus()->format12h()) {
+                    singleStopJSON["arr_time"] = arrivalTime.toString("h:mma");
+                } else {
+                    singleStopJSON["arr_time"] = arrivalTime.toString("hh:mm");
+                }
             } else {
                 singleStopJSON["arr_time"] = "-";
             }
 
             if (stop.departure_time != StopTimes::kNoTime) {
                 QTime departureTime = localNoon.addSecs(stop.departure_time);
-                singleStopJSON["dep_time"]  = departureTime.toString("hh:mm");
+                if (getStatus()->format12h()) {
+                    singleStopJSON["dep_time"]  = departureTime.toString("h:mma");
+                } else {
+                    singleStopJSON["dep_time"]  = departureTime.toString("hh:mm");
+                }
             } else {
                 singleStopJSON["dep_time"]  = "-";
             }
@@ -138,8 +146,13 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         resp["real_time"] = true;
 
         // Data information
-        resp["real_time_data_time"] =
-                 _realTimeProc->getFeedTime().toTimeZone(getAgencyTime().timeZone()).toString("dd-MMM-yyyy hh:mm:ss t");
+        if (getStatus()->format12h()) {
+            resp["real_time_data_time"] =
+                _realTimeProc->getFeedTime().toTimeZone(getAgencyTime().timeZone()).toString("dd-MMM-yyyy h:mm:ss a t");
+        } else {
+            resp["real_time_data_time"] =
+                _realTimeProc->getFeedTime().toTimeZone(getAgencyTime().timeZone()).toString("dd-MMM-yyyy hh:mm:ss t");
+        }
 
         // Fill in some details (route specifically ... everything else should be added if I feel like it is useful)
         resp["route_id"]         = route_id;
@@ -153,10 +166,17 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
 
         for (const GTFS::rtStopTimeUpdate &rtsu : stopTimes) {
             QJsonObject singleStopJSON;
-            singleStopJSON["arr_time"]  = (rtsu.arrTime.isNull()) ?
+            if (getStatus()->format12h()) {
+                singleStopJSON["arr_time"]  = (rtsu.arrTime.isNull()) ?
+                                            "-" : rtsu.arrTime.toTimeZone(getAgencyTime().timeZone()).toString("h:mma");
+                singleStopJSON["dep_time"]  = (rtsu.depTime.isNull()) ?
+                                            "-" : rtsu.depTime.toTimeZone(getAgencyTime().timeZone()).toString("h:mma");
+            } else {
+                singleStopJSON["arr_time"]  = (rtsu.arrTime.isNull()) ?
                                             "-" : rtsu.arrTime.toTimeZone(getAgencyTime().timeZone()).toString("hh:mm");
-            singleStopJSON["dep_time"]  = (rtsu.depTime.isNull()) ?
+                singleStopJSON["dep_time"]  = (rtsu.depTime.isNull()) ?
                                             "-" : rtsu.depTime.toTimeZone(getAgencyTime().timeZone()).toString("hh:mm");
+            }
             singleStopJSON["stop_id"]   = rtsu.stopID;
             singleStopJSON["stop_name"] = (*_stops)[rtsu.stopID].stop_name;
             singleStopJSON["sequence"]  = rtsu.stopSequence;

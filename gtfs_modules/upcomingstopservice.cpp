@@ -234,14 +234,20 @@ void UpcomingStopService::fillTripData(const StopRecoTripRec &rts, QJsonObject &
 
     stopTripItem["trip_id"]         = rts.tripID;
     stopTripItem["short_name"]      = (*_tripDB)[rts.tripID].trip_short_name;
-    stopTripItem["dep_time"]        = rts.schDepTime.isNull() ? "-" : rts.schDepTime.toString("ddd hh:mm");
-    stopTripItem["arr_time"]        = rts.schArrTime.isNull() ? "-" : rts.schArrTime.toString("ddd hh:mm");
     stopTripItem["wait_time_sec"]   = rts.waitTimeSec;
     stopTripItem["headsign"]        = rts.headsign;
     stopTripItem["pickup_type"]     = rts.pickupType;
     stopTripItem["drop_off_type"]   = rts.dropoffType;
     stopTripItem["trip_begins"]     = rts.beginningOfTrip;
     stopTripItem["trip_terminates"] = rts.endOfTrip;
+
+    if (getStatus()->format12h()) {
+        stopTripItem["dep_time"]        = rts.schDepTime.isNull() ? "-" : rts.schDepTime.toString("ddd h:mma");
+        stopTripItem["arr_time"]        = rts.schArrTime.isNull() ? "-" : rts.schArrTime.toString("ddd h:mma");
+    } else {
+        stopTripItem["dep_time"]        = rts.schDepTime.isNull() ? "-" : rts.schDepTime.toString("ddd hh:mm");
+        stopTripItem["arr_time"]        = rts.schArrTime.isNull() ? "-" : rts.schArrTime.toString("ddd hh:mm");
+    }
 
     if (rts.realTimeDataAvail) {
         QJsonObject realTimeData;
@@ -263,10 +269,17 @@ void UpcomingStopService::fillTripData(const StopRecoTripRec &rts, QJsonObject &
 
         realTimeData["status"]           = statusString;
         realTimeData["supplemental"]     = rts.supplementalTrip;
-        realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd hh:mm");
-        realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd hh:mm");
         realTimeData["offset_seconds"]   = rts.realTimeOffsetSec;
         realTimeData["vehicle"]          = rts.vehicleRealTime;
+
+        if (getStatus()->format12h()) {
+            realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd h:mma");
+            realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd h:mma");
+        } else {
+            realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd hh:mm");
+            realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd hh:mm");
+        }
+
         stopTripItem["realtime_data"]    = realTimeData;
     }
 }

@@ -29,7 +29,8 @@
 
 namespace GTFS {
 
-Status::Status(const QString dataRootPath, const QString &frozenDateTime, QObject *parent) : QObject(parent)
+Status::Status(const QString dataRootPath, const QString &frozenDateTime, bool use12hClock, QObject *parent)
+    : QObject(parent)
 {
     // We should pass the start time from the main server start?
     this->serverStartTimeUTC = QDateTime::currentDateTimeUtc();
@@ -120,6 +121,9 @@ Status::Status(const QString dataRootPath, const QString &frozenDateTime, QObjec
         qDebug() << endl << "TESTING/DEBUGGING/ANALYSIS MODE: All transaction will be processed as if it is "
                  << frozenAgencyTime << endl;
     }
+
+    // Show all times with AM/PM indicator instead of standard 24-hour clock
+    use12h = use12hClock;
 }
 
 qint64 Status::getRecordsLoaded() const
@@ -175,6 +179,11 @@ const QTimeZone &Status::getAgencyTZ() const
 const QDateTime &Status::getOverrideDateTime() const
 {
     return this->frozenAgencyTime;
+}
+
+bool Status::format12h() const
+{
+    return this->use12h;
 }
 
 void Status::incrementRecordsLoaded(const qint64 &value)

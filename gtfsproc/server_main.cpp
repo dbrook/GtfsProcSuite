@@ -65,6 +65,8 @@ int main(int argc, char *argv[])
                                       QCoreApplication::translate("main", "yr,mo,dy,hrs,min,sec"));
     QCommandLineOption dumpRTProtobuf(QStringList() << "x" << "examineRTPB",
                                       QCoreApplication::translate("main", "Examine GTFS-Realtime ProtoBuf."));
+    QCommandLineOption ampmTimes(QStringList() << "a" << "use12hour",
+                                 QCoreApplication::translate("main", "Show times with 12-hour AM/PM."));
 
     parser.addOption(dataRootOption);
     parser.addOption(serverPortOption);
@@ -72,6 +74,7 @@ int main(int argc, char *argv[])
     parser.addOption(realTimeRefresh);
     parser.addOption(fixedLocalTime);
     parser.addOption(dumpRTProtobuf);
+    parser.addOption(ampmTimes);
     parser.process(a);
 
     QString unchangingLocalTime;
@@ -105,7 +108,7 @@ int main(int argc, char *argv[])
     /*
      * Primary Application Data Load and Server Connection Setup
      * (Includes static dataset and real-time data, which by default will refresh every 2 minutes, and no more often
-     * then 30 seconds to prevent DDOSing the server)
+     * then 10 seconds to prevent DDOSing the server)
      */
     qint32 rtDataInterval = 120;
     if (parser.isSet(realTimeRefresh)) {
@@ -115,7 +118,17 @@ int main(int argc, char *argv[])
         }
     }
 
-    ServeGTFS gtfsRequestServer(databaseRootPath, realTimePath, rtDataInterval, unchangingLocalTime, protobufToQDebug);
+    bool use12HourTimes = false;
+    if (parser.isSet(ampmTimes)) {
+        use12HourTimes = true;
+    }
+
+    ServeGTFS gtfsRequestServer(databaseRootPath,
+                                realTimePath,
+                                rtDataInterval,
+                                unchangingLocalTime,
+                                protobufToQDebug,
+                                use12HourTimes);
     gtfsRequestServer.displayDebugging();
 
     /*

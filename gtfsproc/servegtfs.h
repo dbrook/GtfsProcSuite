@@ -52,6 +52,7 @@ public:
               qint32   rtInterval,
               QString  frozenTime,
               bool     showProtobuf,
+              bool     use12h,
               QObject *parent        = nullptr);
     virtual ~ServeGTFS();
 

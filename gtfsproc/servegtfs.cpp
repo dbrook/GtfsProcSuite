@@ -35,6 +35,7 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
                      qint32   rtInterval,
                      QString  frozenTime,
                      bool     showProtobuf,
+                     bool     use12h,
                      QObject *parent) :
     TcpServer(parent)
 {
@@ -43,7 +44,7 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
     data.initDataPath(dbRootPath);
 
     // Populate each data set
-    data.initStatus(frozenTime);         // "Status" is special, it holds process, feed_info.txt, and agency.txt data
+    data.initStatus(frozenTime, use12h); // "Status" is special, it holds process, feed_info.txt, and agency.txt data
     data.initRoutes();                   // Fill the Routes database from routes.txt
     data.initOperatingDay();             // Fill the calendar.txt and calendar_dates.txt
     data.initTrips();                    // Fill the trips.txt data
