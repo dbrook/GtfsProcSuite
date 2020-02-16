@@ -150,6 +150,9 @@ public:
                                     QMap<QString, QVector<QString>> &activeRouteTrips,
                                     QMap<QString, QVector<QString>> &cancelledRouteTrips) const;
 
+    // Dump a string-representation of the protobuf trip updates
+    void serializeTripUpdates(QString &output) const;
+
 signals:
 
 public slots:

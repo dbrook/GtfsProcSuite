@@ -102,9 +102,9 @@ void TripsServingRoute::fillResponseData(QJsonObject &resp)
         // Last Arrival of Trip
         const GTFS::StopTimeRec &lastStop = (*_stopTimesDB)[tripID].last();
         if (_onlyDate.isNull()) {
-            QTime localNoon    = QTime(12, 0, 0);
-            QTime firstStopDep = localNoon.addSecs(lastStop.arrival_time);
-            singleStopJSON["last_stop_arrival"] = firstStopDep.toString("hh:mm");
+            QTime localNoon   = QTime(12, 0, 0);
+            QTime lastStopArr = localNoon.addSecs(lastStop.arrival_time);
+            singleStopJSON["last_stop_arrival"] = lastStopArr.toString("hh:mm");
         } else {
             QDateTime localNoon(_onlyDate, QTime(12, 0, 0), getAgencyTime().timeZone());
             QDateTime lastStopArr = localNoon.addSecs(lastStop.arrival_time);

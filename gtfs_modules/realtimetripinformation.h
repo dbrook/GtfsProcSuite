@@ -69,6 +69,14 @@ public:
      */
     void fillResponseData(QJsonObject &resp);
 
+    /*
+     * Return a pure-JSON version of the stored realtime trip updates.
+     *
+     * This is really more for debugging and not public consumption, it does not follow the standard output format
+     * (message_type, message_time, proc_time_ms, error).
+     */
+    void dumpRealTime(QString &decodedRealtime);
+
 private:
     // Realtime Gateway
     GTFS::RealTimeTripUpdate *_rTrips;

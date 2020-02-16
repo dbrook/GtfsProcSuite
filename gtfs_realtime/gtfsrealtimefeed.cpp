@@ -25,6 +25,7 @@
 #include <fstream>
 
 #include <google/protobuf/text_format.h>
+#include <google/protobuf/util/json_util.h>
 
 namespace GTFS {
 
@@ -427,6 +428,15 @@ void RealTimeTripUpdate::getAllTripsWithPredictions(QMap<QString, QVector<QStrin
         QString qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
         cancelledRouteTrips[qRouteId].push_back(tripID);
     }
+}
+
+void RealTimeTripUpdate::serializeTripUpdates(QString &output) const
+{
+    std::string data;
+//    google::protobuf::TextFormat::PrintToString(_tripUpdate, &data);
+    google::protobuf::util::MessageToJsonString(_tripUpdate, &data);
+
+    output = QString::fromStdString(data);
 }
 
 void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)

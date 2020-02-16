@@ -55,7 +55,7 @@ GtfsRequestProcessor::GtfsRequestProcessor(QString userRequest) : request(userRe
 void GtfsRequestProcessor::run()
 {
     QJsonObject respJson;
-    QString SystemResponse;
+    QString     SystemResponse;
 
 //    qDebug() << "GtfsRequestProcessor: Answering on thread " << this;
 
@@ -166,6 +166,9 @@ void GtfsRequestProcessor::run()
                 GTFS::ServiceBetweenStops SBS(decodedStopIDs.at(0), decodedStopIDs.at(1), reqDate);
                 SBS.fillResponseData(respJson);
             }
+        } else if (! userApp.compare("DRT", Qt::CaseInsensitive)) {
+            GTFS::RealtimeTripInformation DRT;
+            DRT.dumpRealTime(SystemResponse);
         } else {
             // Return ERROR 1: Unknown request (userApp)
             respJson["error"] = 1;
@@ -178,8 +181,13 @@ void GtfsRequestProcessor::run()
     }
 
     // Serialize for Transport (Note: we append "\n" so clients can detect the end of the stream)
-    QJsonDocument jdoc(respJson);
-    emit Result(jdoc.toJson(QJsonDocument::Compact) + "\n");
+    if (!respJson.isEmpty()) {
+        QJsonDocument jdoc(respJson);
+        SystemResponse = jdoc.toJson(QJsonDocument::Compact) + "\n";
+    } else {
+        SystemResponse += "\n";
+    }
+    emit Result(SystemResponse);
 }
 
 QDate GtfsRequestProcessor::determineServiceDay(const QString &userReq, QString &remUserQuery)

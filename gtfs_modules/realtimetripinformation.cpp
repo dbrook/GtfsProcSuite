@@ -79,4 +79,13 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
     fillProtocolFields("RTI", 0, resp);
 }
 
+void RealtimeTripInformation::dumpRealTime(QString &decodedRealtime)
+{
+    if (_rTrips == nullptr) {
+        return;
+    }
+
+    _rTrips->serializeTripUpdates(decodedRealtime);
+}
+
 }  // Namespace GTFS
