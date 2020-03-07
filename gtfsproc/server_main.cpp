@@ -56,13 +56,13 @@ int main(int argc, char *argv[])
                                         QCoreApplication::translate("main", "port number"));
     QCommandLineOption realTimeOption(QStringList() << "r" << "realTimeData",
                                       QCoreApplication::translate("main", "Real-time (GTFS) data path."),
-                                      QCoreApplication::translate("main", "URL or local path"));
+                                      QCoreApplication::translate("main", "URL or file"));
     QCommandLineOption realTimeRefresh(QStringList() << "u" << "realTimeUpdate",
                                        QCoreApplication::translate("main", "Time between real-time updates."),
                                        QCoreApplication::translate("main", "nb. seconds"));
     QCommandLineOption fixedLocalTime(QStringList() << "f" << "fixedDateTime",
-                                      QCoreApplication::translate("main", "Freeze local time for NEX/NCF."),
-                                      QCoreApplication::translate("main", "yr,mo,dy,hrs,min,sec"));
+                                      QCoreApplication::translate("main", "Force local time for all modules."),
+                                      QCoreApplication::translate("main", "y,m,d,h,m,s"));
     QCommandLineOption dumpRTProtobuf(QStringList() << "x" << "examineRTPB",
                                       QCoreApplication::translate("main", "Examine GTFS-Realtime ProtoBuf."));
     QCommandLineOption ampmTimes(QStringList() << "a" << "use12hour",

@@ -255,6 +255,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
                 tripRecord.dropoffType     = 0;
                 tripRecord.pickupType      = 0;
                 tripRecord.tripID          = tripAndIndex.first;
+                tripRecord.vehicleRealTime = rActiveFeed->getOperatingVehicle(tripRecord.tripID);
 
                 // Calculate wait time and actual departure/arrivals if available
                 QDateTime prArrTime, prDepTime;

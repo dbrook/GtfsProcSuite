@@ -27,7 +27,7 @@
 
 namespace GTFS {
 
-TripScheduleDisplay::TripScheduleDisplay(const QString &tripID, bool useRealTimeData)
+TripScheduleDisplay::TripScheduleDisplay(const QString &tripID, bool useRealTimeData, const QDate &realTimeDate)
     : StaticStatus(), _tripID(tripID), _realTimeDataRequested(useRealTimeData), _realTimeDataAvailable(false)
 {
     _tripDB    = GTFS::DataGateway::inst().getTripsDB();
@@ -42,6 +42,7 @@ TripScheduleDisplay::TripScheduleDisplay(const QString &tripID, bool useRealTime
         _realTimeProc = GTFS::RealTimeGateway::inst().getActiveFeed();
         if (_realTimeProc != nullptr) {
             _realTimeDataAvailable = true;
+            _realTimeDate          = realTimeDate;
         }
     }
 }
@@ -139,7 +140,6 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
 
         // We will populate directly from the real-time feed so it will have somewhat fewer details than the static one
         QJsonArray                      tripStopArray;
-        QString                         route_id;
         QVector<GTFS::rtStopTimeUpdate> stopTimes;
         _realTimeProc->fillStopTimesForTrip(_tripID, (*_stopTimes)[_tripID], stopTimes);
 
@@ -153,6 +153,8 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
             resp["real_time_data_time"] =
                 _realTimeProc->getFeedTime().toTimeZone(getAgencyTime().timeZone()).toString("dd-MMM-yyyy hh:mm:ss t");
         }
+
+        QString route_id = _realTimeProc->getRouteID(_tripID, _realTimeDate);
 
         // Fill in some details (route specifically ... everything else should be added if I feel like it is useful)
         resp["route_id"]         = route_id;

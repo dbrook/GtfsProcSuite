@@ -102,6 +102,9 @@ public:
     // Figure out where an added trip is headed since no way to lookup headsign for a trip not in the static feed
     const QString getFinalStopIdForAddedTrip(const QString &trip_id) const;
 
+    // Retrieve the route ID that the trip relates to
+    const QString getRouteID(const QString &trip_id, const QDate &serviceDay) const;
+
     // Is the trip (that came from the static feed) actually running?
     bool scheduledTripIsRunning(const QString &trip_id, const QDate &operDateDMY) const;
 

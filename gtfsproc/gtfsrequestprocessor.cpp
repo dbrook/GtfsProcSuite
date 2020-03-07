@@ -74,7 +74,7 @@ void GtfsRequestProcessor::run()
             GTFS::AvailableRoutes RTE;
             RTE.fillResponseData(respJson);
         } else if (! userApp.compare("TRI", Qt::CaseInsensitive)) {
-            GTFS::TripScheduleDisplay TRI(userReq, false);
+            GTFS::TripScheduleDisplay TRI(userReq, false, QDate());
             TRI.fillResponseData(respJson);
         } else if (! userApp.compare("TSR", Qt::CaseInsensitive)) {
             QDate noDate;
@@ -142,7 +142,7 @@ void GtfsRequestProcessor::run()
             GTFS::StopsWithoutTrips SNT;
             SNT.fillResponseData(respJson);
         } else if (! userApp.compare("RTR", Qt::CaseInsensitive)) {
-            GTFS::TripScheduleDisplay TRI(userReq, true);
+            GTFS::TripScheduleDisplay TRI(userReq, true, QDate());
             TRI.fillResponseData(respJson);
         } else if (! userApp.compare("RDS", Qt::CaseInsensitive)) {
             GTFS::RealtimeStatus RDS;
@@ -193,21 +193,23 @@ void GtfsRequestProcessor::run()
 QDate GtfsRequestProcessor::determineServiceDay(const QString &userReq, QString &remUserQuery)
 {
     // First space indicates the separation between the date request and the remainder of the user query
-    QString dayDate = userReq.left(userReq.indexOf(" "));
-    QDateTime userDate;
-    QDate     userDateLocale;
+    QString   dayDate = userReq.left(userReq.indexOf(" "));
 
     const GTFS::Status *data  = GTFS::DataGateway::inst().getStatus();
     const QTimeZone &agencyTZ = data->getAgencyTZ();
+    QDateTime userDate = QDateTime::fromSecsSinceEpoch(QDateTime::currentSecsSinceEpoch());
+    QDate     userDateLocale;
+    QDateTime overrideDate = data->getOverrideDateTime();
+
+    if (!overrideDate.isNull()) {
+        userDate = overrideDate;
+    }
 
     if (!dayDate.compare("D", Qt::CaseInsensitive)) {
-        userDate = QDateTime::currentDateTimeUtc();
         userDateLocale = userDate.toTimeZone(agencyTZ).date();
     } else if (!dayDate.compare("Y", Qt::CaseInsensitive)) {
-        userDate = QDateTime::currentDateTimeUtc();
         userDateLocale = userDate.toTimeZone(agencyTZ).addDays(-1).date();
     } else if (!dayDate.compare("T", Qt::CaseInsensitive)) {
-        userDate = QDateTime::currentDateTimeUtc();
         userDateLocale = userDate.toTimeZone(agencyTZ).addDays(1).date();
     } else {
         // Assume that they wrote a date correctly

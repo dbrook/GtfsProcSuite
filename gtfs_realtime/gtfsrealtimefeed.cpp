@@ -153,6 +153,21 @@ const QString RealTimeTripUpdate::getFinalStopIdForAddedTrip(const QString &trip
     return QString::fromStdString(entity.trip_update().stop_time_update(lastStopTimeIdx).stop_id());
 }
 
+const QString RealTimeTripUpdate::getRouteID(const QString &trip_id, const QDate &serviceDay) const
+{
+    QString routeIDrt;
+    qint32  tripUpdateEntity;
+    bool    isSupplementalTrip;
+    if (!findEntityIndex(trip_id, tripUpdateEntity, isSupplementalTrip)) {
+        return routeIDrt;
+    }
+
+    // TODO: THE DATE NEEDS TO BE HANDLED?
+
+    routeIDrt = QString::fromStdString(_tripUpdate.entity(tripUpdateEntity).trip_update().trip().route_id());
+    return routeIDrt;
+}
+
 bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id, const QDate &operDate) const
 {
     if (_activeTrips.contains(trip_id)) {
