@@ -36,6 +36,7 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
                      QString  frozenTime,
                      bool     showProtobuf,
                      bool     use12h,
+                     bool     skipRTDateMatch,
                      QObject *parent) :
     TcpServer(parent)
 {
@@ -64,7 +65,7 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
     }
 
     GTFS::RealTimeGateway &rtData = GTFS::RealTimeGateway::inst();
-    rtData.setRealTimeFeedPath(realTimePath, rtInterval, showProtobuf);
+    rtData.setRealTimeFeedPath(realTimePath, rtInterval, showProtobuf, skipRTDateMatch);
     rtData.refetchData();
 
     // The real-time processor must be able to independently download new realtime protobuf files

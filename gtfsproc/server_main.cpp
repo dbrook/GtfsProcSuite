@@ -67,6 +67,8 @@ int main(int argc, char *argv[])
                                       QCoreApplication::translate("main", "Examine GTFS-Realtime ProtoBuf."));
     QCommandLineOption ampmTimes(QStringList() << "a" << "use12hour",
                                  QCoreApplication::translate("main", "Show times with 12-hour AM/PM."));
+    QCommandLineOption noRTDateMatch(QStringList() << "n" << "noRTDate",
+                                     QCoreApplication::translate("main", "Skip date match process for realtime."));
 
     parser.addOption(dataRootOption);
     parser.addOption(serverPortOption);
@@ -75,6 +77,7 @@ int main(int argc, char *argv[])
     parser.addOption(fixedLocalTime);
     parser.addOption(dumpRTProtobuf);
     parser.addOption(ampmTimes);
+    parser.addOption(noRTDateMatch);
     parser.process(a);
 
     QString unchangingLocalTime;
@@ -123,12 +126,18 @@ int main(int argc, char *argv[])
         use12HourTimes = true;
     }
 
+    bool skipRTDateMatching = false;
+    if (parser.isSet(noRTDateMatch)) {
+        skipRTDateMatching = true;
+    }
+
     ServeGTFS gtfsRequestServer(databaseRootPath,
                                 realTimePath,
                                 rtDataInterval,
                                 unchangingLocalTime,
                                 protobufToQDebug,
-                                use12HourTimes);
+                                use12HourTimes,
+                                skipRTDateMatching);
     gtfsRequestServer.displayDebugging();
 
     /*

@@ -29,8 +29,11 @@
 
 namespace GTFS {
 
-RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath, bool dumpProtobuf, QObject *parent)
-    : QObject(parent)
+RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath,
+                                       bool           dumpProtobuf,
+                                       bool           skipDateMatching,
+                                       QObject        *parent)
+    : QObject(parent), _noDateEnforcement(skipDateMatching)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -46,8 +49,11 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath, bool dumpProtobuf,
     processUpdateDetails(startUTC);
 }
 
-RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, bool dumpProtobuf, QObject *parent)
-    : QObject(parent)
+RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
+                                       bool              dumpProtobuf,
+                                       bool              skipDateMatching,
+                                       QObject          *parent)
+    : QObject(parent), _noDateEnforcement(skipDateMatching)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -118,7 +124,7 @@ bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id, const QDate &se
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_cancelledTrips[trip_id]);
         const QString startDate = QString::fromStdString(entity.trip_update().trip().start_date());
         const QString reqServDay = serviceDay.toString("yyyyMMdd");
-        if (startDate == reqServDay) {
+        if (_noDateEnforcement || startDate == reqServDay) {
             return true;
         }
     }
@@ -174,7 +180,7 @@ bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id, const QD
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_activeTrips[trip_id]);
         const QString startDate = QString::fromStdString(entity.trip_update().trip().start_date());
         const QString serviceDate = operDate.toString("yyyyMMdd");
-        if (startDate == serviceDate) {
+        if (_noDateEnforcement || startDate == serviceDate) {
             return true;
         }
     }
@@ -194,7 +200,9 @@ bool RealTimeTripUpdate::tripSkipsStop(const QString &stop_id,
             const QString startDate =
                     QString::fromStdString(_tripUpdate.entity(_activeTrips[trip_id]).trip_update().trip().start_date());
             const QString svcDate   = serviceDay.toString("yyyyMMdd");
-            if (stopList.first == trip_id && stopList.second == stopSeq && startDate == svcDate) {
+            if (stopList.first  == trip_id &&
+                stopList.second == stopSeq &&
+                (_noDateEnforcement || startDate == svcDate)) {
                 return true;
             }
         }
@@ -267,8 +275,7 @@ bool RealTimeTripUpdate::tripStopActualTime(const QString   &trip_id,
 
     // Either the realtime update is in POSIX-style seconds-since-UNIX-epoch UTC timestamps OR just offset-seconds
     for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
-        const transit_realtime::TripUpdate_StopTimeUpdate stu = tri.stop_time_update(stopTimeIdx);
-        const QString rtStopID = QString::fromStdString(stu.stop_id());
+        const transit_realtime::TripUpdate_StopTimeUpdate &stu = tri.stop_time_update(stopTimeIdx);
 
         /*
          * If stop sequence is available, it MUST be followed (this handles the case where a trip ID can be visited

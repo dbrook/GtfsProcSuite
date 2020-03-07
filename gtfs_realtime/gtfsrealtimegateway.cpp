@@ -42,7 +42,10 @@ RealTimeGateway &RealTimeGateway::inst()
     return *_instance;
 }
 
-void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath, qint32 refreshIntervalSec, bool showProtobuf)
+void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath,
+                                          qint32         refreshIntervalSec,
+                                          bool           showProtobuf,
+                                          bool           skipDateMatching)
 {
     // TODO : Make this more robust?
     if (realTimeFeedPath.startsWith("http://") || realTimeFeedPath.startsWith("https://")) {
@@ -59,6 +62,9 @@ void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath, qint3
 
     // Render the protocol buffer to QDebug every time one is received
     _debugProtobuf = showProtobuf;
+
+    //
+    _skipDateMatching = skipDateMatching;
 }
 
 qint64 RealTimeGateway::secondsToFetch() const
@@ -156,9 +162,9 @@ void RealTimeGateway::refetchData()
                 delete _sideA;
 
             if (!_dataPathLocal.isNull()) {
-                _sideA = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf);
+                _sideA = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf, _skipDateMatching);
             } else {
-                _sideA = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf);
+                _sideA = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf, _skipDateMatching);
             }
         } else if (currentSide == SIDE_A) {
             nextSide = SIDE_B;
@@ -167,9 +173,9 @@ void RealTimeGateway::refetchData()
                 delete _sideB;
 
             if (!_dataPathLocal.isNull()) {
-                _sideB = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf);
+                _sideB = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf, _skipDateMatching);
             } else {
-                _sideB = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf);
+                _sideB = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf, _skipDateMatching);
             }
         }
 

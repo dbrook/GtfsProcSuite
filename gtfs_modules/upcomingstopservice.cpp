@@ -62,6 +62,11 @@ UpcomingStopService::UpcomingStopService(QList<QString> stopIDs,
     _routes    = GTFS::DataGateway::inst().getRoutesDB();
     _stopTimes = GTFS::DataGateway::inst().getStopTimesDB();
     _tripDB    = GTFS::DataGateway::inst().getTripsDB();
+
+    // Override the service date if in the fixed debugging date mode
+    if (!_status->getOverrideDateTime().isNull()) {
+        _serviceDate = _status->getOverrideDateTime().date();
+    }
 }
 
 void UpcomingStopService::fillResponseData(QJsonObject &resp)

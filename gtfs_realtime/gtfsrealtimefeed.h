@@ -59,13 +59,24 @@ typedef struct {
  *  - Cancelled trips
  *  - Added trips (+all the stops they serve, since there would otherwise be no basis from which to compare)
  *  - Individual stop_ids which are skipped by running trips
+ *
+ * Agencies can use varying degrees of start date and start time (some use a start date of a realtime trip ID of the
+ * actual service date + times able to go beyond 24:00:00, while others use the actual service date + clocks which go
+ * to 23:59:59 and then 00:00:00. Use skipDateMatching == true to skip any enforcement of the start date when matching
+ * trip IDs in the realtime data set.
  */
 class RealTimeTripUpdate : public QObject
 {
     Q_OBJECT
 public:
-    explicit RealTimeTripUpdate(const QString &rtPath, bool dumpProtobuf, QObject *parent = nullptr);
-    explicit RealTimeTripUpdate(const QByteArray &gtfsRealTimeData, bool dumpProtobuf, QObject *parent = nullptr);
+    explicit RealTimeTripUpdate(const QString &rtPath,
+                                bool           dumpProtobuf,
+                                bool           skipDateMatching,
+                                QObject       *parent = nullptr);
+    explicit RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
+                                bool              dumpProtobuf,
+                                bool              skipDateMatching,
+                                QObject          *parent = nullptr);
     virtual ~RealTimeTripUpdate();
 
     /*
@@ -190,6 +201,9 @@ private:
 
     qint64 _downloadTimeMSec;
     qint64 _integrationTimeMSec;
+
+    // Skip start date/time matching process
+    bool   _noDateEnforcement;
 };
 
 } // namespace GTFS
