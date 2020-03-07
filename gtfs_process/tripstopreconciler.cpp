@@ -30,7 +30,6 @@ TripStopReconciler::TripStopReconciler(const QList<QString>     &stop_ids,
                                        QDate                     serviceDate,
                                        const QDateTime          &currAgencyTime,
                                        qint32                    futureMinutes,
-                                       qint32                    maxTripsForRoute,
                                        const Status             *status,
                                        const OperatingDay       *services,
                                        const StopData           *stopDB,
@@ -40,9 +39,8 @@ TripStopReconciler::TripStopReconciler(const QList<QString>     &stop_ids,
                                        const RealTimeTripUpdate *activeFeed,
                                        QObject                  *parent)
     : QObject(parent), _realTimeMode(realTimeProcess), _svcDate(serviceDate), _stopIDs(stop_ids),
-      _lookaheadMins(futureMinutes), _maxTripsPerRoute(maxTripsForRoute), _agencyTime(currAgencyTime),
-      sStatus(status), sService(services), sStops(stopDB), sRoutes(routeDB), sTripDB(tripDB), sStopTimes(stopTimeDB),
-      rActiveFeed(activeFeed)
+      _lookaheadMins(futureMinutes), _agencyTime(currAgencyTime), sStatus(status), sService(services), sStops(stopDB),
+      sRoutes(routeDB), sTripDB(tripDB), sStopTimes(stopTimeDB), rActiveFeed(activeFeed)
 {
     // Set the current time and other time-based parameters
     // First we will get the 3 days' worth of trips so we can start narrowing them down based on additional critera
@@ -307,20 +305,20 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
     }  // End of real-time data integration block
     }  // End of loop on stop ID list
 
+    // Invalidate trips which fall outside of the lookaheadTime
+    for (const QString &routeID : fullTrips.keys()) {
+        invalidateTrips(routeID, fullTrips, routeTrips);
+    }
+
     // Now that all requested stops and routes have been filled, each trip must be sorted by arrival time per route
     // or else the number-of-trips style of invalidation could miss supplemental trips. It is also possible that the
     // real-time data has altered the ordering of trip arrivals, so the sort is just a necessary evil.
-    for (const QString &routeID : fullTrips.keys()) {
-        std::sort(fullTrips[routeID].tripRecos.begin(),
-                  fullTrips[routeID].tripRecos.end(),
+    for (const QString &routeID : routeTrips.keys()) {
+        std::sort(routeTrips[routeID].tripRecos.begin(),
+                  routeTrips[routeID].tripRecos.end(),
                   [](const StopRecoTripRec &rt1, const StopRecoTripRec &rt2) {
             return rt1.waitTimeSec < rt2.waitTimeSec;
         });
-    }
-
-    // Invalidate trips which fall outside of the requested parameters (_maxTripsPerRoute or _lookaheadTime)
-    for (const QString &routeID : fullTrips.keys()) {
-        invalidateTrips(routeID, fullTrips, routeTrips);
     }
 }
 
@@ -416,11 +414,6 @@ void TripStopReconciler::invalidateTrips(const QString                   &routeI
             } else if (!tripRecord.schDepTime.isNull()) {
                 stopTime = tripRecord.schDepTime;
             }
-        }
-
-        // Mark trips as invalid if they are outside of the number of trips requested
-        if (_maxTripsPerRoute != 0 && nbTripsForRoute >= _maxTripsPerRoute) {
-            tripRecord.tripStatus = IRRELEVANT;
         }
 
         // Mark trips as invalid if they are outside the time window requested

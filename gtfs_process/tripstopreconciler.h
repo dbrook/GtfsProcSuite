@@ -105,7 +105,6 @@ public:
                                 QDate                     serviceDate,
                                 const QDateTime          &currAgencyTime,
                                 qint32                    futureMinutes,
-                                qint32                    maxTripsForRoute,
                                 const Status             *status,
                                 const OperatingDay       *services,
                                 const StopData           *stopDB,
@@ -167,7 +166,6 @@ private:
     QDate          _svcDate;
     QList<QString> _stopIDs;            // List of Stop IDs to compute all at once
     qint32         _lookaheadMins;      // If set to 0, it is ignored
-    qint32         _maxTripsPerRoute;
     bool           _realTimeOnly;
 
     QDate          _svcYesterday;

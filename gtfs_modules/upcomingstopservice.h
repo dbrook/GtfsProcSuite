@@ -67,8 +67,6 @@ public:
      *
      * futureMinutes    - number of minutes into the future that should be scanned for stop trip service (max of 4320)
      *
-     * maxTripsPerRoute - total number of trips that should be loaded per route serving the stop ID
-     *
      * nexCombFormat    - Send in true if the process should combine all upcoming service and sort by arrival time
      *                    (preferred) or if not available, then the departure time. Send in false if the upcoming
      *                    service should be sorted by time but grouped by each route
@@ -77,7 +75,6 @@ public:
      */
     UpcomingStopService(QList<QString> stopIDs,
                         qint32         futureMinutes,
-                        qint32         maxTripsPerRoute,
                         bool           nexCombFormat,
                         bool           realtimeOnly);
 
@@ -94,9 +91,6 @@ public:
      * As a consequence to this, you will only ever realistically be able to ask for trips until the end of the next
      * operating day, thus the effective logical maximum future time is 1440 minutes or 24 hours, however it can be
      * longer depending on the time of day you ask for future trips and how 'far into' the current operating day it is.
-     *
-     * If it's preferred (and with stops covered by a myriad of confusing routes it might be), you can instead request
-     * to show at most X future stops within the previous + current + next operating day using maxTripsPerRoute != 0.
      *
      * IDEA: A route-filtering mechanism would be a good idea for this, since parent stations can be VERY active
      *
@@ -191,7 +185,6 @@ private:
     QList<QString> _stopIDs;
     QDate          _serviceDate;
     qint32         _futureMinutes;
-    qint32         _maxTripsPerRoute;
     bool           _combinedFormat;
     bool           _realtimeOnly;
 

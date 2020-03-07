@@ -62,7 +62,7 @@ void StationDetailsDisplay::fillResponseData(QJsonObject &resp)
 
     // Sort the routes by route_id
     QJsonArray stopRouteArray;
-    QList<QString> listOfRoutes = routesServed.toList();
+    QList<QString> listOfRoutes = routesServed.values();
     std::sort(listOfRoutes.begin(), listOfRoutes.end());
 
     resp["stop_id"]    = _stopID;

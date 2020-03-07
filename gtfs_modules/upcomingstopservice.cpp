@@ -37,14 +37,12 @@ namespace GTFS {
 
 UpcomingStopService::UpcomingStopService(QList<QString> stopIDs,
                                          qint32         futureMinutes,
-                                         qint32         maxTripsPerRoute,
                                          bool           nexCombFormat,
                                          bool           realtimeOnly)
     : StaticStatus      (),
       _stopIDs          (stopIDs),
       _serviceDate      (QDate::currentDate()),
       _futureMinutes    (futureMinutes),
-      _maxTripsPerRoute (maxTripsPerRoute),
       _combinedFormat   (nexCombFormat),
       _realtimeOnly     (realtimeOnly),
       _rtData           (false)
@@ -83,7 +81,6 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
                                             _serviceDate,
                                             getAgencyTime(),
                                             _futureMinutes,
-                                            _maxTripsPerRoute,
                                             _status,
                                             _service,
                                             _stops,
@@ -167,8 +164,6 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
         QVector<QPair<GTFS::StopRecoTripRec, QString>> unifiedTrips;  // A trip and its associated routeID (QString)
 
         for (const QString &routeID : tripsForStopByRouteID.keys()) {
-            QJsonArray stopTrips;
-
             // Flatten trips into a single array (as opposed to the nesting by route present) to sorted times together
             for (const GTFS::StopRecoTripRec &rts : tripsForStopByRouteID[routeID].tripRecos) {
                 GTFS::TripRecStat tripStat = rts.tripStatus;

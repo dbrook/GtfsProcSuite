@@ -105,38 +105,24 @@ void GtfsRequestProcessor::run()
             qint32 futureMinutes = determineMinuteRange(userReq, remainingReq);
             QList<QString> decodedStopIDs;
             listifyStopIDs(remainingReq, decodedStopIDs);
-            if (futureMinutes < 0) {
-                // Requesting a maximum number of future trips per route serving a stop ID
-                // Time range is forced to 72 h so we can see today + tomorrow (including trips after midnight)
-                GTFS::UpcomingStopService NEX(decodedStopIDs, 4320, futureMinutes * -1, false, false);
-                NEX.fillResponseData(respJson);
-            } else {
-                // Requesting future trips for a time range, no limit on occurrences
-                GTFS::UpcomingStopService NEX(decodedStopIDs, futureMinutes, 0, false, false);
-                NEX.fillResponseData(respJson);
-            }
+            // Requesting future trips for a time range, no limit on occurrences
+            GTFS::UpcomingStopService NEX(decodedStopIDs, futureMinutes, false, false);
+            NEX.fillResponseData(respJson);
         } else if (! userApp.compare("NCF", Qt::CaseInsensitive)) {
             QString remainingReq;
             qint32 futureMinutes = determineMinuteRange(userReq, remainingReq);
             QList<QString> decodedStopIDs;
             listifyStopIDs(remainingReq, decodedStopIDs);
-            if (futureMinutes < 0) {
-                // Requesting a maximum number of future trips per route
-                // cap at 72-hours so we can see today + tomorrow even through hopefully all of its after-midnight trips
-                GTFS::UpcomingStopService NCF(decodedStopIDs, 4320, futureMinutes * -1, true, false);
-                NCF.fillResponseData(respJson);
-            } else {
-                // Requesting future trips for a time range, no limit on occurrences
-                GTFS::UpcomingStopService NCF(decodedStopIDs, futureMinutes, 0, true, false);
-                NCF.fillResponseData(respJson);
-            }
+            // Requesting future trips for a time range, no limit on occurrences
+            GTFS::UpcomingStopService NCF(decodedStopIDs, futureMinutes, true, false);
+            NCF.fillResponseData(respJson);
         } else if (! userApp.compare("NXR", Qt::CaseInsensitive)) {
             // Just like "NEX" but ONLY with realtime recommendations - useful for the daring? Formatted exactly like
             // NEX so the response is encoded with NEX for ease of parsing on the client side, so it would be up to the
             // client to warn about this particular usage/condition.
             QList<QString> decodedStopIDs;
             listifyStopIDs(userReq, decodedStopIDs);
-            GTFS::UpcomingStopService NXR(decodedStopIDs, 4320, 0, false, true);
+            GTFS::UpcomingStopService NXR(decodedStopIDs, 4320, false, true);
             NXR.fillResponseData(respJson);
         } else if (! userApp.compare("SNT", Qt::CaseInsensitive)) {
             GTFS::StopsWithoutTrips SNT;
