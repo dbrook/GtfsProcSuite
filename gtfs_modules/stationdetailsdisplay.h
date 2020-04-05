@@ -41,40 +41,7 @@ class StationDetailsDisplay : public StaticStatus
 public:
     StationDetailsDisplay(const QString &stopID);
 
-    /*
-     * Fills a JSON response with details a stopID/station in the static feed
-     *
-     * {
-     *   message_type     :string: Standard Content : "STA" indicates this is a Trip Stop Display message
-     *   message_time     :string: Standard Content : Message creation time (format: dd-MMM-yyyy hh:mm:ss t)
-     *   proc_time_ms     :int   : Standard Content : Milliseconds it took to populate the response after instantiation
-     *   error            :int   : Standard Content :   0: success
-     *                                                401: stop ID does not exist in the static data set
-     *
-     *   stop_id          :string: the stop ID that was requested
-     *   stop_name        :string: name of the stop requested (from stops.txt)
-     *   stop_desc        :string: description of the stop requested (from stops.txt)
-     *   parent_sta       :string: parent station (optional, used to link related stop_ids)
-     *   loc_lat          :double: latitude (decimal degrees) of stop
-     *   loc_lon          :double: longitude (decimal degrees) of stop
-     *
-     *   routes           :ARRAY : collection of routes that serve the stop at least once per the static feed
-     *   [
-     *     route_id         :string: route ID of the route
-     *     route_short_name :string: short name of the route (from routes.txt)
-     *     route_long_name  :string: long name of the route (from routes.txt)
-     *     route_color      :string: background color of the route branding (from routes.txt)
-     *     route_text_color :string: text/foreground color of the route branding (from routes.txt)
-     *   ]
-     *
-     *   stops_sharing_parent :ARRAY : collection of stop IDs which share the parent station of stop_id
-     *   [
-     *     stop_id        :string: stop ID of the stop that shares the parent
-     *     stop_name      :string: stop's name (from stops.txt)
-     *     stop_desc      :string: stop's description (from stops.txt)
-     *   ]
-     * }
-     */
+    /* See GTFSProc_Documentation.odt for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:

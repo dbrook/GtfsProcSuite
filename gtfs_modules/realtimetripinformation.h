@@ -42,31 +42,7 @@ class RealtimeTripInformation : public StaticStatus
 public:
     RealtimeTripInformation();
 
-    /*
-     * Fills a JSON response with details a stopID/station in the static feed
-     *
-     * {
-     *   message_type     :string: Standard Content : "RTI" indicates this is a realtime trip information message
-     *   message_time     :string: Standard Content : Message creation time (format: dd-MMM-yyyy hh:mm:ss t)
-     *   proc_time_ms     :int   : Standard Content : Milliseconds it took to populate the response after instantiation
-     *   error            :int   : Standard Content :   0: success (only value possible, just a debug transacttion)
-     *
-     *   route_id         :string: echoed back the requested route ID
-     *
-     *   active_trips     :OBJECT: scheduled trips which have realtime prediuctions (sorted by the route ID)
-     *   {
-     *     routeID        :ARRAY : array of strings representing the trip IDs with realtime information for routeID
-     *   }
-     *   cancelled_trips  :OBJECT: static dataset trips that are cancelled (sorted by the route ID)
-     *   {
-     *     routeID        :ARRAY : array of strings representing the trip IDs from the static feed which are cancelled
-     *   }
-     *   added_trips      :OBJECT: added trips which do not appear in the static dataset but have realtime predictions
-     *   {
-     *     routeID        :ARRAY : array of strings representing the trip IDs which are added by the realtime feed
-     *   }
-     * }
-     */
+    /* See GTFSProc_Documentation.odt for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
     /*

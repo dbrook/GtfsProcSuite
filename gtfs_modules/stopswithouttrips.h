@@ -38,26 +38,7 @@ class StopsWithoutTrips : public StaticStatus
 public:
     StopsWithoutTrips();
 
-    /*
-     * Fills a JSON response with details a stopID/station in the static feed
-     *
-     * {
-     *   message_type     :string: Standard Content : "SNT" indicates this is a "Stops [with] No Trips" message
-     *   message_time     :string: Standard Content : Message creation time (format: dd-MMM-yyyy hh:mm:ss t)
-     *   proc_time_ms     :int   : Standard Content : Milliseconds it took to populate the response after instantiation
-     *   error            :int   : Standard Content :   0: success (no reject possible as this is debugging)
-     *
-     *   stops            :ARRAY : collection of stop ID (except for parent stations!) which have no serving trip IDs
-     *   [
-     *     stop_id        :string: stop ID of the current stop
-     *     stop_name      :string: name associated with the stop ID (from stops.txt)
-     *     stop_desc      :string: description associated with the stop ID (from stops.txt)
-     *     loc_lat        :double: latitude of the stop (decimal degrees)
-     *     loc_lon        :double: longitude of the stop (decimal degrees)
-     *     parent_sta     :string: name of the parent station (to look up and see what other stops may be associated)
-     *   ]
-     * }
-     */
+    /* See GTFSProc_Documentation.odt for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:

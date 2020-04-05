@@ -51,38 +51,7 @@ public:
 
     /******************************************* Module-Specific Functions ********************************************/
 
-    /*
-     * Fills a JSON (resp) with server status information, formatted in the schema below
-     * {
-     *   message_type     :string: Standard Content : "SDS" indicates this is a status message
-     *   error            :int   : Standard Content : 0 indicates success (no other value possible)
-     *   message_time     :string: Standard Content : Message creation time (format: dd-MMM-yyyy hh:mm:ss t)
-     *   proc_time_ms     :int   : Standard Content : Milliseconds it took to populate the response after instantiation
-     *
-     *   application      :string: Process version information
-     *   records          :int   : Number of records loaded in the GTFS static feed
-     *   appuptime_ms     :int   : Milliseconds that the backend service has been running
-     *   dataloadtime_ms  :int   : Milliseconds elapsed (wall-clock-time) during GTFS static data load
-     *   threadpool_count :int   : Number of threads present in the thread-pool to handle incoming requests
-     *   processed_reqs   :int   : Number of requests processed during backend service uptime
-     *
-     *   feed_publisher   :string: GTFS static feed publisher
-     *   feed_url         :string: GTFS static feed publisher's URL
-     *   feed_lang        :string: Language in which the static feed is (principally) encoded
-     *   feed_valid_start :string: GTFS static feed validity range (beginning)
-     *   feed_valid_end   :string: GTFS static feed validity range (ending)
-     *   feed_version     :string: Free text version string provided by the GTFS static feed publisher
-     *   agencies:        :ARRAY : one for each agency appearing in the feed (see contents)
-     *   [
-     *     id             :string: Numeric ID of the agency
-     *     name           :string: Name of the agency
-     *     url            :string: URL for agency website
-     *     tz             :string: Timezone in which the agency (principally) operates
-     *     lang           :string: Language in which the agency provides feed information
-     *     phone          :string: Phone number to reach the agency
-     *   ]
-     * }
-     */
+    /* See GTFSProc_Documentation.odt for JSON response format */
     virtual void fillResponseData(QJsonObject &resp);
 
 private:

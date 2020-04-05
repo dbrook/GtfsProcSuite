@@ -72,45 +72,7 @@ public:
      */
     explicit ServiceBetweenStops(const QString &originStop, const QString &destinationStop, const QDate &serviceDate);
 
-    /*
-     * Fills a JSON response with the schedule information serving the two stop IDs requested in the constructor.
-     *
-     * {
-     *   message_type     :string: Standard Content : "SBS": service between two stop IDs
-     *   message_time     :string: Standard Content : Message creation time (format: dd-MMM-yyyy hh:mm:ss t)
-     *   proc_time_ms     :int   : Standard Content : Milliseconds it took to populate the response after instantiation
-     *   error            :int   : Standard Content :   0: success
-     *                                                701: the origin stop ID does not exist
-     *                                                702: the destination stop ID does not exist
-     *                                                703: there was no date provided or it was null
-     *                                          TODO: 704: the wrong number stops were requested (only 2 allowed)
-     *
-     *   ori_stop_id        :string: stop ID of the origin stop (from stops.txt)
-     *   ori_stop_name      :string: stop name of the origin stop (from stops.txt)
-     *   ori_stop_desc      :string: stop description of the origin stop (from stops.txt)
-     *   des_stop_id        :string: stop ID of the destination stop (from stops.txt)
-     *   des_stop_name      :string: stop name of the destination stop (from stops.txt)
-     *   des_stop_desc      :string: stop description of the destination stop (from stops.txt)
-     *   service_date       :string: the service date for which trips were compared (format dd-MMM-yyyy)
-     *
-     *   trips              :ARRAY :
-     *   [
-     *     trip_id          :string: trip ID of the trip for which times are rendered (from trips.txt dataset)
-     *     trip_short_name  :string: the short name of the trip ID (this is not always filled) (from trips.txt)
-     *     route_id         :string: route ID that the trip belongs to (from routes.txt dataset)
-     *     route_short_name :string: short name of the route ID
-     *     route_long_name  :string: long name of the route ID
-     *     headsign         :string: headsign on vehicle (it may be unique to the ori_stop_id or common to the trip_id)
-     *     ori_arrival      :string: scheduled arrival time of the vehicle at the ori_stop_id
-     *     ori_depature     :string: scheduled departure time of the vehicle at the ori_stop_id
-     *     ori_pick_up      :int   : pickup type at the origin stop (0, 2, or 3, see GTFS documentation)
-     *     des_arrival      :string: scheduled arrival time of the vehicle at the des_stop_id
-     *     des_departure    :string: scheduled departure time of the vehicle at the des_stop_id
-     *     des_drop_off     :int   : drop off type at the destination stop (0, 2, or 3, see GTFS documentation)
-     *     duration         :string: duration of the trip (hh:mm format)
-     *   ]
-     * }
-     */
+    /* See GTFSProc_Documentation.odt for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:

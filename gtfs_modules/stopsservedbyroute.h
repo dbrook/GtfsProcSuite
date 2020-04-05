@@ -42,36 +42,7 @@ class StopsServedByRoute : public StaticStatus
 public:
     StopsServedByRoute(const QString &routeID);
 
-    /*
-     * Fills a JSON response with details a stopID/station in the static feed
-     *
-     * {
-     *   message_type     :string: Standard Content : "SSR" indicates this is a stops-served-by-route message
-     *   message_time     :string: Standard Content : Message creation time (format: dd-MMM-yyyy hh:mm:ss t)
-     *   proc_time_ms     :int   : Standard Content : Milliseconds it took to populate the response after instantiation
-     *   error            :int   : Standard Content :   0: success
-     *                                                501: route ID does not exist in the static dataset
-     *
-     *   route_id         :string: echoed back the requested route ID
-     *   route_short_name :string: short name of the route (from routes.txt)
-     *   route_long_name  :string: long name of the route (from routes.txt)
-     *   route_desc       :string: description field of the route (from routes.txt)
-     *   route_type       :string: type of route (see GTFS specification, it is unwise to rely on this field)
-     *   route_url        :string: operator's dedicated URL for the route requested
-     *   route_color      :string: background color of route's "brand"
-     *   route_text_color :string: text/foreground color of route's "brand"
-     *
-     *   stops            :ARRAY : collection of stops that route's trips serve at least once per the static feed
-     *   [
-     *     stop_id        :string: stop ID served
-     *     stop_name      :string: name of stop (from stops.txt)
-     *     stop_desc      :string: description of the stop (from stops.txt)
-     *     stop_lat       :double: latitude coordinates (decimal degrees) (from stops.txt)
-     *     stop_lon       :double: longitude coordinates (decimal degrees) (from stops.txt)
-     *     trip_count     :int   : count of the number of trip IDs which serve the stop for this route ID
-     *   ]
-     * }
-     */
+    /* See GTFSProc_Documentation.odt for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:
