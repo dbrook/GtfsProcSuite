@@ -53,7 +53,7 @@ class TripsServingRoute : public StaticStatus
 public:
     explicit TripsServingRoute(const QString &routeID, const QDate &onlyDate);
 
-    /* See GTFSProc_Documentation.odt for JSON response format */
+    /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:

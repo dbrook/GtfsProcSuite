@@ -41,7 +41,7 @@ class StationDetailsDisplay : public StaticStatus
 public:
     StationDetailsDisplay(const QString &stopID);
 
-    /* See GTFSProc_Documentation.odt for JSON response format */
+    /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:

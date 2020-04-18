@@ -38,7 +38,7 @@ class StopsWithoutTrips : public StaticStatus
 public:
     StopsWithoutTrips();
 
-    /* See GTFSProc_Documentation.odt for JSON response format */
+    /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:

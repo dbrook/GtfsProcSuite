@@ -21,6 +21,7 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QDebug>
+#include <QThreadPool>
 #include <QTextStream>
 
 #include "servegtfs.h"
@@ -32,13 +33,13 @@ int main(int argc, char *argv[])
      */
     QCoreApplication a(argc, argv);
     QCoreApplication::setApplicationName("GtfsProc");
-    QCoreApplication::setApplicationVersion("1.1");
+    QCoreApplication::setApplicationVersion("1.2");
 
     QTextStream console(stdout);
     QString appName = QCoreApplication::applicationName();
     QString appVers = QCoreApplication::applicationVersion();
 
-    console << endl << appName.remove("\"") << " version " << appVers.remove("\"")
+    console << appName.remove("\"") << " version " << appVers.remove("\"")
             << " - Running on Process ID: " << QCoreApplication::applicationPid() << endl << endl;
 
     /*
@@ -54,6 +55,9 @@ int main(int argc, char *argv[])
     QCommandLineOption serverPortOption(QStringList() << "p" << "serverPort",
                                         QCoreApplication::translate("main", "Port to listen for requests."),
                                         QCoreApplication::translate("main", "port number"));
+    QCommandLineOption serverThreads(QStringList() << "t" << "threads",
+                                     QCoreApplication::translate("main", "Number of processing threads."),
+                                     QCoreApplication::translate("main", "nb threads"));
     QCommandLineOption realTimeOption(QStringList() << "r" << "realTimeData",
                                       QCoreApplication::translate("main", "Real-time (GTFS) data path."),
                                       QCoreApplication::translate("main", "URL or file"));
@@ -72,6 +76,7 @@ int main(int argc, char *argv[])
 
     parser.addOption(dataRootOption);
     parser.addOption(serverPortOption);
+    parser.addOption(serverThreads);
     parser.addOption(realTimeOption);
     parser.addOption(realTimeRefresh);
     parser.addOption(fixedLocalTime);
@@ -131,6 +136,12 @@ int main(int argc, char *argv[])
         skipRTDateMatching = true;
     }
 
+    int nbProcThreads = 1;
+    if (parser.isSet(serverThreads)) {
+        nbProcThreads = parser.value(serverThreads).toInt();
+    }
+    QThreadPool::globalInstance()->setMaxThreadCount(nbProcThreads);
+
     ServeGTFS gtfsRequestServer(databaseRootPath,
                                 realTimePath,
                                 rtDataInterval,
@@ -147,6 +158,8 @@ int main(int argc, char *argv[])
         console << endl << "SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS" << endl << endl;
     } else {
         qCritical() << gtfsRequestServer.errorString();
+        console << endl << "COULD NOT START SERVER - SEE ERROR STRING ABOVE" << endl;
+        return 1;
     }
 
     return a.exec();

@@ -1,0 +1,88 @@
+THIS RELEASE: VERSION 1.2 Features and Fixes:
+---------------------------------------------
+ - You can now specify the number of threads to dedicate to GtfsProc at startup (-t option)
+ - The word "canceled" is now spelled correctly in DRT responses
+ - To make NCF / NEX more efficient, the route details (colors, names, etc.) are moved out of the
+   responses (it makes no sense to pull this data for every transaction). Clients should instead
+   use RTE upon first connecting to a GtfsProc backend and store that information.
+ - Updated the client_cli to no longer try and render route information (NEX no longer sends it)
+ - Cleaned up runtime transaction debug output
+ - The Lat/Lon station locations should not be stored as doubles, but proper strings
+ - INSTALL and Release Notes file added to version control ... trying to make this a more legit project
+ - Correct capitalization of "GtfsProc" everywhere
+ - The documentation has been moved to a standalone HTML file instead of ODT
+
+SHOULD FIX (for Version 1.3):
+-----------------------------
+ > RTR should require a date? The whole notion of start_date is really poorly defined in realtime data...
+
+ > When processing local files (instead of a URL) ... for instance in a distributed capacity where the protobuf
+   might be stores on a NAS or external filesystem and shared between multiple backend machined (scalability FTW)
+   it would be good to watch that file location for changes and update the real time data gateway in an
+   event-driven way. Local file retrieval should not "just" be about debugging, it would be a good feature!
+
+
+PREVIOUS RELEASES:
+
+VERSION 1.1 Features and Fixes:
+-------------------------------
+ - Updated documentation for all transactions
+ - Segmentation fault when not requesting 2 stop IDs for SBS
+ - Support Parent Stations in SBS
+ - Fix for 11:59:59 bug (-1 seconds-from-local-noon) showing up as a non-existent time.
+    (qint32-max is now the undefined time value, this is how it should have been originally!)
+ - When no connections have been made for "a while" (3 minutes), stop refreshing realtime data
+    until another realtime-based transaction is attempted
+ - To better test stuff, make a date / time override input option so the date can be frozen along
+   with the input protobuf. This will allow testing of new features in a stable/unchanging environment
+    (start gtfsproc with option: -f y,m,d,h,m,s)
+ - Feature to use AM/PM instead of 24-hour times (default is 24-hour times) -- "-a" option
+    - This requires making more space on the terrible command line interface too... (+2 char everywhere)
+    - New format: "Wed 11:59p" vs "Thu 23:59"
+ - New module to dump realtime protobuf into JSON text: DRT
+
+Gtfs-Realtime Updates:
+ - Returning more information in the RTR command (like the start date infor, etc.) (new grammar outputs!)
+ - In realtime data: detection of actual timestamps vs. offsets being present (either are FULLY allowed)
+ - If stop sequences are not included, we should match the stop ID being scanned against the static 
+    list so that we can see if the trip already passed a stop (this is also expected behavior!)
+ - Refactored the duplicate codee in gtfsrealtimefeed.cpp
+ - New input option for gtfsproc: "-x" which will serialize gtfs-realtime protobufs everytime they are fetched
+    (Should obviously be used with care!)
+ - Supplemental trips do not have vehicle information shown in NEX/NCF but it does appear in RTR
+ - Performance: nobody will use the number-of-trips view, so maybe it should be killed. This would massively
+   boost the response time as well (since we don't need to load everything then sort by arrival time, merely
+   append the relevant trips within the lookahead window and then sort the result.
+ - Non-authoritarian date range enforcement (for when service date ranges are not valid or expired)
+
+VERSION 1.0:
+------------
+This should be considered obsolete and functionally unsound.
+Only use Version 1.1 and above due to a bad understanding of gtfs-realtime trip_update syntax in 1.0.
+
+
+MIGHT FIX:
+----------
+- When a real-time trip terminates after ending its journey early, the data provider typically expunges it.
+  Therefore, already-completed trips that did so early, end up showing up again as scheduled (v2 feeds).
+  With V1 feeds, the problem is worse because the trip sequence isn't included, so ANY trip leaving early
+  will get flagged with MISSING instead of just being removed.
+   >> A restructuring would be needed to put a flag on trips that were operating but completed before they
+      were supposed to, allowing us to hide them from future NEX uses. 
+      !! This would be the ONLY stateful aspect of this software so far, which could introduce strangeness?
+      In most public transit, nothing is ever truly "early", but misallocated trips (i.e. several hours early
+      due to a mixed-up Trip ID starting?) could leave scheduled trips that will never run after the fact.
+      This appears to be a problem even for Google Maps, so it is not clear this can even be handled.
+  (!) Verdict for now:  avoid introducing stateful logic between GTFS-Realtime updates (!)
+
+
+WISH-LIST FEATURES
+------------------
+- Frequency-based trips are not handled ... this is a pretty big oversight but almost no agencies use them.
+   The big challenge is trying to reliably process them with the realtime trips if they ever exist!
+    > Actually ... the gtfs-realtime specification specifically handles these trips (read it lol)
+      If we understand these trips and how the rt information interlinks, we can design a solution ???
+
+- Some kind of "last trip of the (service) day" feature? --> Might be nice for "getting trapped" worries
+    > Of course ... this would only be for the stop(s) requested, so if your return trip is at another stop
+      (like a bus stop across the street from where you boarded), you would need to do BOTH stops

@@ -72,7 +72,7 @@ public:
      */
     explicit ServiceBetweenStops(const QString &originStop, const QString &destinationStop, const QDate &serviceDate);
 
-    /* See GTFSProc_Documentation.odt for JSON response format */
+    /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:

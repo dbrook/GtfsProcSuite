@@ -40,7 +40,7 @@ Status::Status(const QString dataRootPath, const QString &frozenDateTime, bool u
 
     // the feed_info.txt is [unfortunately] not required, so don't assume you have it
     if (QFileInfo(dataRootPath + "/feed_info.txt").exists()) {
-        qDebug() << "Starting Feed Information Gathering...";
+        qDebug() << "Starting Feed Information Gathering ...";
         // Read in the feed information
         CsvProcess((dataRootPath + "/feed_info.txt").toUtf8(), &dataStore);
         qint8 pubPos, urlPos, lanPos, verPos, sDatePos, eDatePos;
@@ -81,7 +81,7 @@ Status::Status(const QString dataRootPath, const QString &frozenDateTime, bool u
 
     // Agency is always required
     {
-        qDebug() << "Starting Agency Gathering";
+        qDebug() << "Starting Agency Gathering ...";
         // Now let's load the agencies
         CsvProcess((dataRootPath + "/agency.txt").toUtf8(), &dataStore);
         qint8 idPos, namePos, urlPos, tzPos, langPos, phonePos;           // They can put e-mail instead of phone!

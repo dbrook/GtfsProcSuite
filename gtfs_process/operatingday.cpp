@@ -32,7 +32,7 @@ OperatingDay::OperatingDay(const QString dataRootPath, QObject *parent) : QObjec
 
     // Ingest the calendar information if it exists: NOTE: Either calendar_dates.txt and/or calendar.txt must exist
     if (QFileInfo(dataRootPath + "/calendar.txt").exists()) {
-        qDebug() << "Starting Calendar Information Process...";
+        qDebug() << "Starting Calendar Information Process ...";
         CsvProcess((dataRootPath + "/calendar.txt").toUtf8(), &dataStore);
         qint8 servicePos, monPos, tuePos, wedPos, thuPos, friPos, satPos, sunPos, sDatePos, eDatePos;
         calendarCSVOrder(dataStore.at(0),

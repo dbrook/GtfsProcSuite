@@ -42,7 +42,7 @@ class StopsServedByRoute : public StaticStatus
 public:
     StopsServedByRoute(const QString &routeID);
 
-    /* See GTFSProc_Documentation.odt for JSON response format */
+    /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:

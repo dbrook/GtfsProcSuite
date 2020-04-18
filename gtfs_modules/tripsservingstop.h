@@ -54,7 +54,7 @@ class TripsServingStop : public StaticStatus
 public:
     explicit TripsServingStop(const QString &stopID, const QDate serviceDay);
 
-    /* See GTFSProc_Documentation.odt for JSON response format */
+    /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:

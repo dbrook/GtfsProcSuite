@@ -1,0 +1,49 @@
+GtfsProc - How to Install / Run / Operate
+-----------------------------------------
+
+This small guide explains how to setup GtfsProc and synchronize it with transit
+agency data (which will [probably] change from time to time) so the process 
+stays mostly maintenance-free.
+
+GtfsProc relies on periodically-changing transit operator data, so running a
+standalone server for a long period of time means data will go out of sync with
+any updated schedules.
+
+Several individual moving parts will help in this process:
+1) The following are required to build GtfsProc, install from your package manager:
+   Note: this is heavily Debian biased ;-)
+    - qt5-default
+    - qt5-qmake
+    - qtdeclarative5-dev
+    - libcsv-dev
+    - protobuf-compiler
+    - libncurses-dev
+
+   The following packages are good to have for retrieving static data
+    - unzip and zip
+    - wget
+
+2) Optional: Setup a GtfsProc-specific UNIX user on which to run it
+
+3) Under the new user, download, build, and install GtfsProc:
+    A) Clone/extract/whatever the gtfsproc sources
+    B) qmake
+    C) make
+    D) sudo mkdir /opt/gtfsproc
+    E) sudo cp (GtfsProc's buildDirectory)/gtfsproc/gtfsproc /opt/gtfsproc/gtfsproc
+    F) sudo cp (GtfsProc's buildDirectory)/client_cli/client_cli /opt/gtfsproc/gtfsclient
+        (This step is optional, not everyone will want/need the test client!)
+
+4) For each agency you wish to support, copy the included gtfsproc_agent.sh file
+   into /opt/gtfsproc (for example: /opt/gtfsproc/agent_RIPTA.sh). See the 
+   instructions in gtfsproc_agent.sh. This file is responsible for:
+    A) Killing GtfsProc each night
+    B) Checking for new upstream data each night, if available, download and 
+         unzipping the new files in place of the old ones.
+    C) Restarting GtfsProc
+
+5) 
+
+The data retrieval from the realtime server is handled within the actual
+GtfsProc server, but the static dataset is downloaded separately.
+

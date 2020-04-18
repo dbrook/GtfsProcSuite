@@ -31,7 +31,7 @@ Stops::Stops(const QString dataRootPath, QObject *parent) : QObject(parent)
     QVector<QVector<QString>> dataStore;
 
     // Read feed information
-    qDebug() << "Starting Stops Information Process...";
+    qDebug() << "Starting Stops Information Process ...";
     CsvProcess((dataRootPath + "/stops.txt").toUtf8(), &dataStore);
     qint8 stopIdPos, stopNamePos, stopDescPos, stopLatPos, stopLonPos, parentStationPos;
     stopsCSVOrder(dataStore.at(0), stopIdPos, stopDescPos, stopNamePos, stopLatPos, stopLonPos, parentStationPos);
@@ -41,8 +41,8 @@ Stops::Stops(const QString dataRootPath, QObject *parent) : QObject(parent)
         StopRec stop;
         stop.stop_name      = dataStore.at(l).at(stopNamePos);
         stop.stop_desc      = dataStore.at(l).at(stopDescPos);
-        stop.stop_lat       = dataStore.at(l).at(stopLatPos).toDouble();
-        stop.stop_lon       = dataStore.at(l).at(stopLonPos).toDouble();
+        stop.stop_lat       = dataStore.at(l).at(stopLatPos);
+        stop.stop_lon       = dataStore.at(l).at(stopLonPos);
         stop.parent_station = dataStore.at(l).at(parentStationPos);
 
         this->stopsDb[dataStore.at(l).at(stopIdPos)] = stop;

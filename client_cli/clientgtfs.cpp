@@ -137,15 +137,9 @@ void ClientGtfs::repl()
             //qDebug() << "==> " << responseStr;
             if (responseStr.indexOf('\n') != -1) {
                 // We're done reading the stream if we found a newline
-//                qDebug() << "! Found Terminal: " << tempRespStr.indexOf('\n');
                 break;
             }
         }
-
-        //
-        // Display whole response in case decoding below doesn't happen
-        //
-//        screen << "> " << responseStr << endl << endl; screen.flush();
 
         // Deserialize from JSON so we can process the response type
         QJsonObject respObj;
@@ -160,8 +154,14 @@ void ClientGtfs::repl()
             this->disp.showError("Server response was badly encoded (Invalid JSON)");
         }
 
-        // Just cheat for now and show status
-        // TODO: Must be broken into separate classes
+        //
+        // GtfsProc valid response decoding
+        // TODO: It would be nice to break this into separate classes but the terminal view is just for debugging
+        //
+
+        /*
+         * SDS Response
+         */
         if (respObj["message_type"] == "SDS") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
@@ -192,7 +192,8 @@ void ClientGtfs::repl()
                                             << mins  << "m "
                                             << secs  << "s " << qSetFieldWidth(0) << endl;
             screen << "Data Load Time . . " << respObj["dataloadtime_ms"].toInt() << "ms" << endl;
-            screen << "Thread Pool  . . . " << respObj["threadpool_count"].toInt() << endl << endl;
+            screen << "Thread Pool  . . . " << respObj["threadpool_count"].toInt() << endl;
+            screen << "System Version . . " << respObj["application"].toString() << endl << endl;
 
             screen << "[ Static Feed Information ]" << endl;
             screen << "Publisher  . . . . " << respObj["feed_publisher"].toString() << endl;
@@ -223,6 +224,10 @@ void ClientGtfs::repl()
             screen.setFieldAlignment(QTextStream::AlignRight);
             screen << endl;
         }
+
+        /*
+         * RTE Response
+         */
         else if (respObj["message_type"] == "RTE") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
@@ -263,6 +268,10 @@ void ClientGtfs::repl()
             screen << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
+
+        /*
+         * TRI Response
+         */
         else if (respObj["message_type"] == "TRI") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
@@ -345,6 +354,10 @@ void ClientGtfs::repl()
             screen << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
+
+        /*
+         * TSR Response
+         */
         else if (respObj["message_type"] == "TSR") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
@@ -415,6 +428,9 @@ void ClientGtfs::repl()
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
+        /*
+         * TSS Response
+         */
         else if (respObj["message_type"] == "TSS") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
@@ -515,6 +531,9 @@ void ClientGtfs::repl()
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
+        /*
+         * STA Response
+         */
         else if (respObj["message_type"] == "STA") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
@@ -538,8 +557,8 @@ void ClientGtfs::repl()
                 screen << "Stop ID/Name . . . " << respObj["stop_id"].toString() << " :: "
                                                 << respObj["stop_name"].toString() << endl;
                 screen << "Stop Desc  . . . . " << respObj["stop_desc"].toString() << endl;
-                screen << "Location . . . . . " << respObj["loc_lat"].toDouble() << ", "
-                                                << respObj["loc_lon"].toDouble() << endl;
+                screen << "Location . . . . . " << respObj["loc_lat"].toString() << ", "
+                                                << respObj["loc_lon"].toString() << endl;
                 screen << "Parent Station . . " << respObj["parent_sta"].toString() << endl << endl;
 
                 // Show all the Routes associated with the station requested
@@ -582,6 +601,9 @@ void ClientGtfs::repl()
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
+        /*
+         * SSR Response
+         */
         else if (respObj["message_type"] == "SSR") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
@@ -630,8 +652,8 @@ void ClientGtfs::repl()
                            << qSetFieldWidth(c3) << so["stop_desc"].toString().left(c3) << qSetFieldWidth(1) << " ";
                     screen.setFieldAlignment(QTextStream::AlignRight);
                     screen << qSetFieldWidth(c4) << so["trip_count"].toInt()            << qSetFieldWidth(1) << " "
-                           << qSetFieldWidth(c5) << so["stop_lat"].toDouble()           << qSetFieldWidth(1) << ","
-                           << qSetFieldWidth(c5) << so["stop_lon"].toDouble()           << qSetFieldWidth(0) << endl;
+                           << qSetFieldWidth(c5) << so["stop_lat"].toString().left(c5)  << qSetFieldWidth(1) << ","
+                           << qSetFieldWidth(c5) << so["stop_lon"].toString().left(c5)  << qSetFieldWidth(0) << endl;
                     screen.setFieldAlignment(QTextStream::AlignLeft);
                 }
                 screen << endl;
@@ -639,6 +661,9 @@ void ClientGtfs::repl()
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
+        /*
+         * NEX Response
+         */
         else if (respObj["message_type"] == "NEX") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
@@ -683,9 +708,7 @@ void ClientGtfs::repl()
                 // Loop on all the routes
                 QJsonArray routes = respObj["routes"].toArray();
                 for (const QJsonValue ro : routes) {
-                    screen << "[ Route ID " << ro["route_id"].toString() << " :: "
-                                            << ro["route_short_name"].toString() << " :: "
-                                            << ro["route_long_name"].toString()  << " ]"   << endl;
+                    screen << "[ Route ID " << ro["route_id"].toString() << " ]"   << endl;
 
                     // Loop on all the trips
                     QJsonArray trips = ro["trips"].toArray();
@@ -809,6 +832,9 @@ void ClientGtfs::repl()
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
+        /*
+         * SNT Response
+         */
         else if (respObj["message_type"] == "SNT") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
@@ -842,9 +868,9 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c3)   << st["stop_desc"].toString().left(c3)
                        << qSetFieldWidth(1)    << " ";
                 screen.setFieldAlignment(QTextStream::AlignRight);
-                screen << qSetFieldWidth(c4/2) << st["loc_lat"].toDouble()
+                screen << qSetFieldWidth(c4/2) << st["loc_lat"].toString()
                        << qSetFieldWidth(1)    << ","
-                       << qSetFieldWidth(c4/2) << st["loc_lon"].toDouble()
+                       << qSetFieldWidth(c4/2) << st["loc_lon"].toString()
                        << qSetFieldWidth(0)    << endl;
                 screen.setFieldAlignment(QTextStream::AlignLeft);
             }
@@ -852,6 +878,9 @@ void ClientGtfs::repl()
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
+        /*
+         * RDS Response
+         */
         else if (respObj["message_type"] == "RDS") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
@@ -898,7 +927,7 @@ void ClientGtfs::repl()
     }
 
     // On exit (loop halted above)
-    screen << "*** GOOD BYE ***" << endl;
+    screen << "*** DISCONNECTING ***" << endl;
 }
 
 QString ClientGtfs::dropoffToChar(qint8 svcDropOff)

@@ -20,7 +20,6 @@
 
 #include "tripstopreconciler.h"
 
-#include <QDebug>
 #include <algorithm>
 
 namespace GTFS {

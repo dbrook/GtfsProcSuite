@@ -11,9 +11,7 @@
 
 GtfsConnection::GtfsConnection(QObject *parent) : TcpConnection(parent)
 {
-    // Start with only 2 threads so as not to blow things up
-    QThreadPool::globalInstance()->setMaxThreadCount(2);
-//    qDebug() << "GtfsConnection " << this << " created";
+//    QThreadPool::globalInstance()->setMaxThreadCount(processThreads);
 }
 
 GtfsConnection::~GtfsConnection()

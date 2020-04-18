@@ -42,16 +42,16 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
 
     _rTrips->getAllTripsWithPredictions(addedRouteTrips, activeRouteTrips, cancelledRouteTrips);
 
-    // Cancelled Trips
-    QJsonObject cancelledCollection;
+    // Canceled Trips
+    QJsonObject canceledCollection;
     for (const QString &routeID : cancelledRouteTrips.keys()) {
-        QJsonArray cancelledRoute;
+        QJsonArray canceledRoute;
         for (const QString &tripID : cancelledRouteTrips[routeID]) {
-            cancelledRoute.push_back(tripID);
+            canceledRoute.push_back(tripID);
         }
-        cancelledCollection[routeID] = cancelledRoute;
+        canceledCollection[routeID] = canceledRoute;
     }
-    resp["cancelled_trips"] = cancelledCollection;
+    resp["canceled_trips"] = canceledCollection;
 
     // Added Trips
     QJsonObject addedCollection;

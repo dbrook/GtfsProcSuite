@@ -132,11 +132,6 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
     if (!_combinedFormat) {
         for (const QString &routeID : tripsForStopByRouteID.keys()) {
             QJsonObject routeItem;
-            fillRouteData(tripsForStopByRouteID[routeID].shortRouteName,
-                          tripsForStopByRouteID[routeID].longRouteName,
-                          tripsForStopByRouteID[routeID].routeColor,
-                          tripsForStopByRouteID[routeID].routeTextColor,
-                          routeItem);
             routeItem["route_id"] = routeID;
 
             // Fetch the trips
@@ -163,9 +158,6 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
 
     // COMBINED-FORMAT MODE: "NCF" IS THE UPCOMING ARRIVALS IN ONE LINEAR ARRAY, SORTED BY ARRIVAL/DEPARTURE TIME
     else {
-        // Store all common route information to avoid massive duplication of route information per trip (makes the
-        // front-end work "a little" harder but it will drasticlly reduce information transfer over the network)
-        QJsonObject routeCollection;
         QVector<QPair<GTFS::StopRecoTripRec, QString>> unifiedTrips;  // A trip and its associated routeID (QString)
 
         for (const QString &routeID : tripsForStopByRouteID.keys()) {
@@ -175,15 +167,6 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
                 if ((tripStat == GTFS::IRRELEVANT) ||
                     (_realtimeOnly && (tripStat == GTFS::SCHEDULE || tripStat == GTFS::NOSCHEDULE))) {
                     continue;
-                }
-                if (!routeCollection.contains(routeID)) {
-                    QJsonObject routeItem;
-                    fillRouteData(tripsForStopByRouteID[routeID].shortRouteName,
-                                  tripsForStopByRouteID[routeID].longRouteName,
-                                  tripsForStopByRouteID[routeID].routeColor,
-                                  tripsForStopByRouteID[routeID].routeTextColor,
-                                  routeItem);
-                    routeCollection[routeID] = routeItem;
                 }
                 unifiedTrips.push_back(qMakePair(rts, routeID));
             }
@@ -204,7 +187,6 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
         }
 
         // Attach the routes and trips collections
-        resp["routes"] = routeCollection;
         resp["trips"]  = stopRouteArray;
     }
 
@@ -214,18 +196,6 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
     } else {
         fillProtocolFields("NEX", 0, resp);
     }
-}
-
-void UpcomingStopService::fillRouteData(const QString &shortName,
-                                        const QString &longName,
-                                        const QString &color,
-                                        const QString &textColor,
-                                        QJsonObject   &routeDetails)
-{
-    routeDetails["route_short_name"] = shortName;
-    routeDetails["route_long_name"]  = longName;
-    routeDetails["route_color"]      = color;
-    routeDetails["route_text_color"] = textColor;
 }
 
 void UpcomingStopService::fillTripData(const StopRecoTripRec &rts, QJsonObject &stopTripItem)

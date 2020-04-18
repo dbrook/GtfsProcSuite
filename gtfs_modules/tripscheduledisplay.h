@@ -56,7 +56,7 @@ public:
     /* Connects to a GTFS::DataGateway, Trips, Stops to prepare rendering of a specific Trip ID */
     explicit TripScheduleDisplay(const QString &tripID, bool useRealTimeData, const QDate &realTimeDate);
 
-    /* See GTFSProc_Documentation.odt for JSON response format */
+    /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:

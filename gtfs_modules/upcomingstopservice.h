@@ -37,7 +37,7 @@ namespace GTFS {
 
 /*
  * GTFS::UpcomingStopService
- * This was really the initial intent of the GTFSProc - a way to avoid the API call limitations that transit agencies
+ * This was really the initial intent of the GtfsProc - a way to avoid the API call limitations that transit agencies
  * enforce on their web services to get stop trip service wait times. Early forms of real-time data provided by the
  * Massachusetts Bay Transportation Authority (MBTA) in the Commonwealth of Massachusetts, U.S.A., but it was specific
  * to the agency and later decommissioned. A fully-standards-based replacement was envisioned, using the open General
@@ -78,7 +78,7 @@ public:
                         bool           nexCombFormat,
                         bool           realtimeOnly);
 
-    /* See GTFSProc_Documentation.odt for JSON response format */
+    /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
 private:
@@ -100,12 +100,6 @@ private:
     const GTFS::RealTimeTripUpdate *_realTimeProc;
 
     // Utility Functions
-    void fillRouteData(const QString &shortName,
-                       const QString &longName,
-                       const QString &color,
-                       const QString &textColor,
-                       QJsonObject   &routeDetails);
-
     void fillTripData(const GTFS::StopRecoTripRec &rts, QJsonObject &stopTripItem);
 };
 

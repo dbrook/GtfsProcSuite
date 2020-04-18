@@ -33,7 +33,7 @@ Routes::Routes(const QString dataRootPath, QObject *parent) : QObject(parent)
     QVector<QVector<QString>> dataStore;
 
     // Read in the feed information
-    qDebug() << "Starting Route Process...";
+    qDebug() << "Starting Route Process ...";
     CsvProcess((dataRootPath + "/routes.txt").toUtf8(), &dataStore);
     qint8 idPos, agencyIdPos, shortNamePos, longNamePos, descPos, typePos, urlPos, colorPos, textColorPos;
     routesCSVOrder(dataStore.at(0),

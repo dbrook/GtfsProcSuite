@@ -1,0 +1,2984 @@
+<!DOCTYPE html>
+<head>
+</head>
+    <meta charset="UTF-8">
+    <title>GtfsProc Server and Transaction Documentation (Version 1.2)</title>
+    <style>
+        .fixed {
+            font-family: monospace;
+        }
+        .fieldDocumentation {
+            width: 100%;
+        }
+        .fieldDocumentation th {
+            background: #F0F0F0;
+        }
+        .fieldDocumentation th:nth-child(1) {
+            width: 15em;
+        }
+        .fieldDocumentation th:nth-child(2) {
+            width: 7em;
+        }
+        .bResponseField {
+            background: #C0C0C0;
+        }
+        .abResponseField {
+            background: orange;
+        }
+    </style>
+</head>
+
+<body>
+<p>
+    Thank you for trying GtfsProc! This is a GTFS data processor to present stop, route, service, and schedule lookups, but its principal purpose is to provide wait time estimations for stops in a transit system, integrating GTFS-Realtime data where available. All data processing is done on a server process in response to client queries over a TCP connection. This allows the process to work over network connections or on local machines.
+</p>
+<p>
+    GTFSProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GTFSProc code is written by Daniel Brook, (c) 2018-2020, GPL v 3.
+</p>
+<p>
+    This is the documentation for <b>GtfsProc Version 1.2 (13-Apr-2020)</b>
+</p>
+
+<h1>Server Options</h1>
+<p>
+    The GTFSProc server can be started with a variety of options, encompassing testing / profiling and run-time production features (the binary is under the gtfsproc directory).
+</p>
+<ul>
+    <li><b class="fixed">-v, --version</b>: Just display the version information.</li>
+    <li><b class="fixed">-h, --help</b>: Displays all command line options.</li>
+    <li><b class="fixed">-d, --dataRoot {path to feed}</b>: File system location of the static feed (where stoptimes.txt, routes.txt, etc. are found).</li>
+    <li><b class="fixed">-p, --serverPort {port number}</b>: TCP port to open for client connections (defaults to 5000 if not specified).</li>
+    <li><b class="fixed">-t, --threads {number of threads}</b>: Specify the number of threads to dedicate to GTFSProc (this will equal the number of simultaneously-processed transactions, defaults to 1).</li>
+    <li><b class="fixed">-r, --realTimeData {URL or file path}</b>: URL or local file path of the protocol buffer GTFS-Realtime file (optional).</li>
+    <li><b class="fixed">-u, --realTimeUpdate {number of seconds}</b>: Specify the number of seconds between each attempt to refresh GTFS-Realtime data (defaults to 120 seconds).</li>
+    <li><b class="fixed">-f, --fixedDateTime {year,month,day,hour,minute,second}</b>: Force the time of all transactions to a fixed date and time (this is useful for debugging, in particular with integrating GTFS-Realtime information) where a naturally-advancing clock might make a condition/transaction unreproducible.</li>
+    <li><b class="fixed">-x, examineRTPB</b>: Dumps the GTFS-Realtime decoded into a JSON format to standard error.</li>
+    <li><b class="fixed">-a, use12hour</b>: Shows all times using a 12-hour format with AM/PM indicators (the default display is with 24-hour clocks).</li>
+    <li><b class="fixed">-n, noRTDate</b>: Performs a looser form of date matching for GTFS-Realtime trips (some agencies use start times with trips after midnight with the actual date instead of the service date to which the trip belongs, and this flag will not enforce that check).</li>
+</ul>
+
+<h2>Simple Server Startup Guide</h2>
+<p>
+    Looking to just start a server quickly? Here is an example workflow
+</p>
+<ol>
+    <li>Find your data source online. A site like OpenMobilityData archives known transit agency data repositories.</li>
+    <li>mkdir -p agency_data/MBTA && cd agency_data/MBTA</li>
+    <li>wget https://cdn.mbta.com/MBTA_GTFS.zip</li>
+    <li>unzip MBTA_GTFS.zip</li>
+    <li>gtfsproc -d agency_data/MBTA -r https://cdn.mbta.com/realtime/TripUpdates.pb -u 90 -p 5000 -t 5<br>
+    This starts GtfsProc with the data downloaded in the MBTA, refetches realtime trip update data every 90 seconds, has 5 worker threads to handle simultaneous transactions, and answers clients connecting to TCP port 5000. All the static transit data is loaded into an in-memory database. See the example output below!
+    </li>
+</ol>
+<div class="fixed">
+GtfsProc version 1.2 - Running on Process ID: 22112<br>
+<br>
+Starting Feed Information Gathering ... <br>
+Starting Agency Gathering ...<br>
+Starting Route Process ... <br>
+Starting Calendar Information Process ... <br>
+Starting Trip Process ... <br>
+Starting Stop-Time Process ... <br>
+&nbsp;&nbsp;Sort StopTimes by Sequence within each TripID ... <br>
+Starting Stops Information Process ... <br>
+&nbsp;&nbsp;(RTTU) Refetching realtime data at QDateTime(2020-03-27 16:48:01.184 UTC Qt::TimeSpec(UTC)) <br>
+&nbsp;&nbsp;(RTTU) GTFS-Realtime : LIVE Protobuf: 660863 bytes consisting of 931 real-time records. <br>
+<br>
+[ GTFS Static Data Information ] <br>
+Recs Loaded . . . . 1643018 <br>
+Server Start Time . QDateTime(2020-03-27 16:47:48.418 UTC Qt::TimeSpec(UTC)) <br>
+Feed Publisher&nbsp;&nbsp;. . "MBTA" <br>
+Feed URL&nbsp;&nbsp;. . . . . "http://www.mbta.com" <br>
+Feed Language . . . "EN" <br>
+Feed Start Date . . "17-Mar-2020" <br>
+Feed End Date . . . "14-May-2020" <br>
+Feed Version&nbsp;&nbsp;. . . "Spring 2020, 2020-03-24T21:32:17+00:00, version D" <br>
+<br>
+SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS<br>
+</div>
+<p>The moment the "READY TO ACCEPT INCOMING CONNECTIONS" message is shown, clients may start sending requests.</p>
+
+<h2>Automating the Data Retrieval and Server Restarts</h2>
+<p>
+    In the real world, agencies will periodically update transit data at an unknown schedule. The provided gtfsproc_agent.sh script can be updated per its instructions to stop the server, look for new data (downloading it if necessary) and reload the server automatically at an hour of your choosing each night.
+</p>
+
+<h1>Requesting and Viewing Data with a Client</h1>
+<p>
+    All requests for wait times, schedules, stops, etc. are made from clients using transaction codes and (if necessary) additional information. See the Modules section below for details on each of these messages. The responses are encoded in JavaScript Object Notion (JSON) as that seems to be all the rage these days.
+</p>
+<h2>Included Command-Line Client</h2>
+<p>
+    A rudimentary client command-line interface is included (the binary is in the client_cli directory). This tool allows you to send commands to the processor and then waits for the full JSON-encoded response (the end of a GTFSProc response is always indicated by a newline ‘\n’ character) to render the received data in a tabular format. Here is how to use it:
+</p>
+<p class="fixed">$ client_cli localhost 5000</p>
+<p>
+    This will connect to a server on localhost which receives requests on TCP port 5000. Upon startup, a small help window will display the supported transactions. If you resize the terminal window at all, the ncurses-based window geometry detection must be refreshed / "reinitialized" using "HOM" again.
+</p>
+<div class="fixed">
+GTFS Interactive Data Console -- Version: 0.1 <br>
+<br>
+[ System Information ] <br>
+SDS: Backend system and data load status <br>
+RDS: GTFS Real-Time data retrieval status <br>
+RTE: Routes available from the data set <br>
+SSR: List of all stops served by a single route <br>
+SNT: List all stops that have no trips (diagnostic) <br>
+<br>
+[ Full Schedule Lookup ] <br>
+STA: Stop information lookup by stop_id <br>
+TSR: List of trips serving a route_id <br>
+TSS: List of trips serving a stop_id <br>
+TRI: List all the stops served by a trip_id <br>
+RTR: List the real-time data of an active trip_id <br>
+<br>
+[ Data Lookup for Specific Date ] <br>
+TRD: List of trips serving a route_id on a date <br>
+TSD: List of trips serving a stop_id on a date <br>
+NEX: List upcoming trips serving a stop_id within a number of minutes <br>
+<br>
+Reinitialize the display with 'HOM', quit using 'BYE' <br>
+<br>
+%
+</div>
+<p>
+    Commands are entered at the ‘%’ prompt, but not all GtfsProc modules are supported by this interface. For how to enter commands, see the “Modules” section below. If you want to repeat a command, just type R + Enter at the prompt and the same command as used before will be resent to the server (this is basically how to do a “refresh” in the terminal view).
+</p>
+
+<h1>Modules</h1>
+<p>
+    There are 18 modules available for integrating schedule/stop information and retrieving them over a TCP socket. All responses from GTFSProc are encoded in JSON (JavaScript Object Notation) an terminated with a newline ‘\n’ character.
+</p>
+
+<h2>Standard Response Parameters</h2>
+<p>
+    All module responses are encoded in JSON. 
+</p>
+<p>
+    If a request is received for a module (3-letter code) that does not exist, the standard response is: “{"error":1,"user_string":"(your bad request)"}”.
+</p>
+<p>
+    If the unthinkable (an exception) is raised, the standard response is “{"error":2,"user_string":"(your original request)"}”.
+</p>
+<p>
+    These above two conditions should be checked against. Successful responses will always have an error code of 0 along with the 3-letter code of the module you requested. All other error codes are module-specific.
+</p>
+<p>
+    All GTFSProc modules have the following parameters in addition to the module-specific responses:
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            error
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Always a 0 for a successful transaction (individual modules have their own specific error codes)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            message_type
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Module name (3 letter code) of the response type
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            proc_time_ms
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of milliseconds it took to process the request (does not include any time in the queue waiting for an available thread)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            message_time
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Time at which the message began processing by a thread (format is either: “dd-MMM-yyyy hh:mm:ss z” or 12-hr format with AM/PM)
+        </td>
+    </tr>
+</table>
+
+<h2>System and Data Status (SDS)</h2>
+<p>
+    This module provides information about the server status like the number of transactions processed, up-time, and static feed information.
+</p>
+<h4>Request Format</h4>
+<p>SDS</p>
+<h4>Response Format</h4>
+<p>The "error" field will always be 0 for this transaction. The "message_type" is "SDS".</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            application
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Application name and version. For example: “GtfsProc version 1.1”
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            appuptime_ms
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of milliseconds the processor has been running.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            dataloadtime_ms
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of milliseconds it took to import and organize the static feed information.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            feed_lang
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Two-letter code representing the ISO language code of the feed.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            feed_publisher
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Agency that published the static feed.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            feed_url
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            URL of the agency that published the static feed.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            feed_valid_start
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            First date of the feed’s relevance/validity (format dd-MMM-yyyy)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            feed_valid_end
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Last date of the feed’s relevance/validity (format dd-MMM-yyyy)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            feed_version
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Free text of the version details from the data publisher.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            processed_reqs
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of requests processed by the backend.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            records
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of records (lines) read in from the static feed’s .txt files.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            threadpool_count
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of available threads for handling requests (basically the number of requests that can be handled simultaneously before queuing ... then you're at the mercy of, well, it's not clear ... the Qt framework? The PHP backend if you're using that?).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>agencies</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            Set of all agencies with information published in the feed.
+        </td>
+    </tr>
+</table>
+<p>The "agencies" array contents:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Agency ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            lang
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Language the agency principally operates with
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the Agency
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            phone
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Agency Telephone Number
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            tz
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Agency Timezone (this is the timezone that is used for determining service days and used in the "message_time" response field)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            url
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Agency URL
+        </td>
+    </tr>
+</table>
+
+<h2>Real-Time Data Buffer Status (RDS)</h2>
+<p>
+    This module provides information about the real-time prediction data used for producing the wait times of GTFSProc.
+</p>
+<h4>Request Format</h4>
+<p>RDS</p>
+<h4>Response Format</h4>
+<p>This, like SDS, is mostly for diagnostic purposes and not necessarily useful for client displays. The status returned is always 0: Success and the message type is always “RDS”.</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            seconds_to_next_fetch
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of seconds before the current real-time feed expires and a new one will be fetched.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            active_side
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            <b class="fixed">N/A&nbsp;</b>: Real-time data is not present / available / enabled on the server.<br>
+            <b class="fixed">A&nbsp;&nbsp;&nbsp;</b>: Data on the “A” buffer is being used to produce real-time predictions / countdown times.<br>
+            <b class="fixed">B&nbsp;&nbsp;&nbsp;</b>: Data on the “B” buffer is being used to produce real-time predictions / countdown times.<br>
+            <b class="fixed">IDLE</b>: No real-time-based transactions were requested within the last 3 minutes, so acquisition has been stopped.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            last_realtime_query
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Time and date of the most recent query that required real-time data (format is “dd-MMM-yyyy hh:mm:ss z”).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            active_rt_version
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            GTFS-Realtime version of the currently-active buffer.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            active_age_sec
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Time since the currently-active buffer was retrieved.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            active_feed_time
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Time that the active feed was received.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            active_download_ms
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Time (milliseconds) it took to download the currently-active real-time buffer.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            active_integration_ms
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Time (milliseconds) it took to process the currently-active real-time buffer.
+        </td>
+    </tr>
+</table>
+
+<h2>Real-Time Trip Information (RTI)</h2>
+<p>
+    This is a simple module for showing: a) scheduled trips which contain real-time prediction information, b) all canceled trips, c) any trips that are supplemental to the static schedule.
+</p>
+<h4>Request Format</h4>
+<p>RTI</p>
+<h4>Response Format</h4>
+<p>
+    This is purely for debugging / saving information for bug-reporting purposes and not for general consumption, so the response details will not be enumerated here. See the GTFS-Realtime specification for details about the feed format. This is the only GTFSProc module which does not obey the standard response fields.
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>active_trips</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all routes with scheduled trips with real-time predictions.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>canceled_trips</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all routes with at least one canceled trip.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>added_trips</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all routes with at least one added / supplemental trip.
+        </td>
+    </tr>
+</table>
+<p>
+    The “active_trips”, “cancelled_trips”, and “added_trips” contain named objects (one for each route ID) with an array of Trip IDs, for example:<br>
+    {"active_trips":{"Green-C":["43832582","43832587"]}}
+</p>
+
+<h2>Dump a JSON-Rendered Real-Time Feed (DRT)</h2>
+<p>
+    This module converts the GTFS-Realtime Protocol Buffer date into JSON format and returns it. This should not be used for general consumption but instead for debugging and/or saving feed information for bug reporting or other purposes.
+</p>
+<h4>Request Format</h4>
+<p>DRT</p>
+<h4>Response Format</h4>
+<p>This is purely for debugging / saving information for bug-reporting purposes and not for general consumption, so the response details will not be enumerated here. See the GTFS-Realtime specification for details about the feed format.</p>
+
+<h2>List of Route IDs (RTE)</h2>
+<p>
+    This module displays all the routes available from the static feed.
+</p>
+<h4>Request Format</h4>
+<p>RTE</p>
+<h4>Response Format</h4>
+<p>The ‘error’ field will always be 0 for this transaction. The ‘message_type’ is “RTE”. There is also an array named “routes”, the contents of which are below:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            The Route ID is the unique identifier of a single route in the feed
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            agency_id
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Agency to which a Route ID belongs
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the route
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            long_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Long name of the route
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            desc
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route’s description
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            type
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Type of the route (numerical value indicating bus, rail, etc. (not reliably used by agencies))
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            url
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            URL for details about the route
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            The text color for the route’s branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            text_color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            The background color for the route’s branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            nb_trips
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            The number of Trip IDs associated with the route
+        </td>
+    </tr>
+</table>
+
+<h2>Trip Schedules / Real-Time Predictions (TRI and RTR)</h2>
+<p>
+    This module will display trip schedules (TRI) or real-time predictions (RTR) for a requested trip ID.
+</p>
+<h4>Request Format</h4>
+<p>
+    TRI {tripID}<br>
+    RTR {tripID}
+</p>
+<h4>Response Format</h4>
+<p>
+    The ‘message_type’ is always “TRI”, even if you request RTR, but different fields will be filled depending on the request.<br>
+    Several error conditions are possible:
+    <ul>
+        <li>0: Success</li>
+        <li>101: The requested trip ID does not exist in the static data set</li>
+        <li>102: Real-time predictions were requested for a trip ID not in the real-time data set</li>
+        <li>103: Real-time predictions were requested but no real-time data was in the back end</li>
+    </ul>
+Fields in gray shadow are only available in TRI requests, fields in orange shadow are only available in RTR requests.
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            real_time
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the response contains real-time prediction, false if it contains trip schedule.
+        </td>
+    </tr>
+    <tr class="abResponseField">
+        <td class="fixed">
+            real_time_data_time
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Time for which the real-time data set was valid
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route ID to which the Trip ID belongs
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            The Trip ID requested
+        </td>
+    </tr>
+    <tr class="bResponseField">
+        <td class="fixed">
+            headsign
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Headsign of the trip (for the whole trip, note that stops can have unique headsigns along a trip)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the route to which the trip belongs
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_long_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Long name of the route to which the trip belongs
+        </td>
+    </tr>
+    <tr class="bResponseField">
+        <td class="fixed">
+            service_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Service ID to which the trip belongs
+        </td>
+    </tr>
+    <tr class="bResponseField">
+        <td class="fixed">
+            operate_days
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Days of the week on which the service_id operates
+        </td>
+    </tr>
+    <tr class="bResponseField">
+        <td class="fixed">
+            exception_dates
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            List of specific dates (dd-MMM-yyyy) that the service does not operate (despite operate_days, for example holidays)
+        </td>
+    </tr>
+    <tr class="bResponseField">
+        <td class="fixed">
+            added_dates
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            List of specific dates (dd-MMM-yyyy) that the service operates on (in addition to the operate_days listed)
+        </td>
+    </tr>
+    <tr class="bResponseField">
+        <td class="fixed">
+            svc_start_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Starting date of the date range on which the service is valid
+        </td>
+    </tr>
+    <tr class="bResponseField">
+        <td class="fixed">
+            svc_end_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Ending date of the date range on which the service is valid
+        </td>
+    </tr>
+    <tr class="abResponseField">
+        <td class="fixed">
+            vehicle
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Vehicle identifier of an operating trip
+        </td>
+    </tr>
+    <tr class="abResponseField">
+        <td class="fixed">
+            start_time
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Time at which an operating trip began (this might be in a greater-than-24-hour format)
+        </td>
+    </tr>
+    <tr class="abResponseField">
+        <td class="fixed">
+            start_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Date at which an operating trip began (this should be based on the operating service day for after-midnight trips)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>stops</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            The list of stops which the trip serves
+        </td>
+    </tr>
+</table>
+
+<p>The "stops" array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            arr_time
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Time of arrival at the stop (scheduled time in TRI, predicted time in RTR)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            dep_time
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Time of departure from the stop (scheduled time in TRI, predicted time in RTR)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            sequence
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Sequence number of the stop in the trip (must always increase per the GTFS core specification)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID of the stop in the sequence
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the stop in the sequence
+        </td>
+    </tr>
+    <tr class="bResponseField">
+        <td class="fixed">
+            drop_off_type
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            0/Empty = Regular drop-off, 1 = No drop-off, 2 = Call agency to arrange drop-off, 3 = Coordinate with operator
+        </td>
+    </tr>
+    <tr class="bResponseField">
+        <td class="fixed">
+            pickup_type
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            0/Empty = Regular pickup, 1 = No pickup, 2 = Call agency to arrange pickup, 3 = Arrange/Flag operator
+        </td>
+    </tr>
+    <tr class="abResponseField">
+        <td class="fixed">
+            skipped
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the stop will be skipped (real-time data only)
+        </td>
+    </tr>
+</table>
+
+<h2>Trips Serving a Route ID (TSR), Trips Serving a Route ID on a Specific Date (TRD)</h2>
+<p>
+    This module displays the trips that serve a requested Route ID from the static feed schedule.
+</p>
+<h4>Request Format</h4>
+<p>
+    TSR {route ID}
+    <ul>
+        <li>All trips serving the requested route ID</li>
+    </ul>
+    TRD {Y|D|T} {route ID}
+    <ul>
+        <li>Y – trips serving route ID yesterday (relative to agency timezone)</li>
+        <li>D – trips serving route ID today (relative to agency timezone)</li>
+        <li>T – trips serving route ID tomorrow (relative to agency timezone)</li>
+    </ul>
+    TRD {ddMMMyyyy} {route ID}
+    <ul>
+        <li>Trips serving route ID on the service date specified (example date in format: 03MAR2020)</li>
+    </ul>
+</p>
+<h4>Response Format</h4>
+<p>
+    The ‘message_type’ is “TSR”.<br>
+    Possible error values:
+    <ul>
+        <li>0: Success</li>
+        <li>201: The requested Route ID does not exist in the static data set</li>
+    </ul>
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route ID requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the Route ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_long_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Long name of the Route ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            service_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            (<b>Only displayed for TRD requests</b>) Service date requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Background color for the route branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_text_color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Text color for the route branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>trips</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            The list of trips operating on the Route ID requested (<b>for TRD requests: limited to specific operating date</b>)
+        </td>
+    </tr>
+</table>
+<p>The “trips” array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Trip ID operating on the route
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            headsign
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Overall headsign of the Trip ID (note that it might appear different depending on the stop ID within the trip)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            service_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Service ID to which the trip belongs
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            svc_start_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Start date range of the Service ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            svc_end_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            End date range of the Service ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            operate_days_condensed
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short text of the operating days of the Service ID (i.e. “MoTuFriSa”)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            supplements_other_days
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates specifically on days not covered by the day-of-week operating days
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            exceptions_present
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip does not always cover all the day-of-week operating days (like holiday services)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_mon
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Mondays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_tue
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Tuesdays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_wed
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Wednesdays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_thu
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Thursdays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_fri
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Fridays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_sat
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Saturdays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_sun
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Sundays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            first_stop_departure
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Time (in 12- or 24-hour formats as configured at server start time) of the first stop departure of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            first_stop_dst_on
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            (<b>For TRD requests only</b>) True if the first stop’s departure time is in daylight saving time
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            first_stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID of the first stop of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            first_stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the first stop of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            last_stop_arrival
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Time (in 12- or 24-hour formats as configured at server start time) of the arrival at the last stop of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            last_stop_dst_on
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            (<b>For TRD requests only</b>) True if the last stop’s arrival time is in daylight saving time
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            last_stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID of the last stop of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            last_stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the last stop of the trip
+        </td>
+    </tr>
+</table>
+
+<h2>Trips Serving a Stop ID (TSS) or Trips Serving a Stop ID on a Specific Date (TSD)</h2>
+<p>
+    This module displays the trips that serve a requested Stop ID (either all of them: TSS, or for a particular date: TSD).
+</p>
+<h4>Request Format</h4>
+<p>
+    TSS {stop ID}
+    <ul>
+        <li>All trips serving the requested stop ID</li>
+    </ul>
+    TSD {Y|D|T} {stop ID}
+    <ul>
+        <li>Y – trips serving stop ID yesterday (relative to agency timezone)</li>
+        <li>D – trips serving stop ID today (relative to agency timezone)</li>
+        <li>T – trips serving stop ID tomorrow (relative to agency timezone)</li>
+    </ul>
+    TSD {ddMMMyyyy} {stop ID}
+    <ul>
+        <li>Trips serving the stop ID on the service date specified</li>
+    </ul>
+</p>
+<h4>Response Format</h4>
+<p>
+    The ‘message_type’ is “TSS”, even if TSD is requested.<br>
+    Possible error values:
+    <ul>
+        <li>0: Success</li>
+        <li>301: The Stop ID does not exist in the static data set</li>
+    </ul>
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the requested Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_desc
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Description of the requested Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            parent_sta
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Parent Station ID of the requested Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            service_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            (<b>Only for TSD requests</b>) Service Date requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>routes</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all routes that have trips serving the requested Stop ID
+        </td>
+    </tr>
+</table>
+<p>The "routes" array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route ID that the Trip IDs within the trips array belong
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the Route ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_long_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Long name of the Route ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Background color for the route branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_text_color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Text color for the route branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>trips</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all trips that serve the route serving the requested Stop ID
+        </td>
+    </tr>
+</table>
+<p>The “trips” array (present within in entry in the “routes” array) contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Trip ID operating on the route that serves the requested Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            headsign
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Headsign of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            drop_off_type
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            0/Empty = Regular drop-off, 1 = No drop-off, 2 = Call agency to arrange drop-off, 3 = Coordinate with operator
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            pickup_type
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            0/Empty = Regular pickup, 1 = No pickup, 2 = Call agency to arrange pickup, 3 = Arrange/Flag operator
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            service_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Service ID to which the trip belongs
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            svc_start_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Start date range of the Service ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            svc_end_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            End date range of the Service ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            operate_days_condensed
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short text of the operating days of the Service ID (i.e. “MoTuFriSa”)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            supplements_other_days
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates specifically on days not covered by the day-of-week operating days
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            exceptions_present
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip does not always cover all the day-of-week operating days (like holiday services)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_mon
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Mondays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_tue
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Tuesdays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_wed
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Wednesdays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_thu
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Thursdays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_fri
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Fridays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_sat
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Saturdays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            op_sun
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the Service / Trip operates on Sundays
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            dep_time
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Departure time from the stop (<b>only corrected for daylight saving time in TSD requests</b>)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            arr_time
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Arrival time at the stop (<b>only corrected for daylight saving time in TSD requests</b>)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            dst_on
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            (<b>Only for TSD requests</b>) True if the time shown is in daylight saving time
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_terminates
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the trip terminates at the requested Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_begins
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the trip begins at the requested Stop ID
+        </td>
+    </tr>
+</table>
+
+<h2>Station / Stop ID Details Display (STA)</h2>
+<p>
+    This module displays details about a single stop ID, such as parent station, shared stops, location, name, and routes serving the stop.
+</p>
+<h4>Request Format</h4>
+<p>STA {stop ID}</p>
+<h4>Response Format</h4>
+<p>
+    The ‘message_type’ is “STA”.<br>
+    Possible error values:
+    <ul>
+        <li>0: Success</ul>
+        <li>401: The Stop ID does not exist in the static data set</ul>
+    </ul>
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the requested Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_desc
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Description of the requested Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            parent_sta
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Parent Station ID of the requested Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            loc_lat
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Latitude (decimal degrees) of stop’s location
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            loc_lon
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Longitude (decimal degrees) of stop’s location
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>routes</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of routes that serve the Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>stops_sharing_parent</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all Stop IDs which share the parent-station
+        </td>
+    </tr>
+</table>
+<p>The “routes” array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route ID that serves the requested Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route’s short name
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_long_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route’s long name
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Background color of the route’s branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_text_color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Text color of the route’s branding
+        </td>
+    </tr>
+</table>
+<p>The “stops_sharing_parent” array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID of the stop shared with the parent station
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the stop ID shared with the parent station
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_desc
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Description of the stop ID shared with the parent station
+        </td>
+    </tr>
+</table>
+
+<h2>Stops Served by a Route (SSR)</h2>
+<p>
+    This module displays the list of all stops served by a requested Route ID.
+</p>
+<h4>Request Format</h4>
+<p>SSR {route ID}</p>
+<h4>Response Format</h4>
+<p>
+    The ‘message_type’ is “SSR”.<br>
+    Possible error values:
+    <ul>
+        <li>0: Success</li>
+        <li>501: The Route ID requested does not exist in the static data set</li>
+    </ul>
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route ID requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the requested Route ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_long_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Long name of the requested Route ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_desc
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Description of the requested Route ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_type
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Type of the route (not a consistently-filled parameter, check the core GTFS Static documentation)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_url
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            URL pointing to a route-specific page/site
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Background color of the route’s branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_text_color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Text color of the route’s branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>stops</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all stops that are served by the requested Route ID
+        </td>
+    </tr>
+</table>
+<p>The “stops” array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID of the stop served by the requested Route ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_desc
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Description of the Stop ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            loc_lat
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Latitude (decimal degrees) of stop’s location
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            loc_lon
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Longitude (decimal degrees) of stop’s location
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_count
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            The number of trips which serve the listed stop for the Route ID
+        </td>
+    </tr>
+</table>
+
+<h2>Upcoming / Next Service for Stop ID(s)</h2>
+<p>
+    The primary purpose of GTFSProc was envisioned for this purpose: displaying the wait time for upcoming service at a particular stop, list of stops, or parent station. The NEX/NCF modules accomplish this by loading all relevant trips* for the number of future minutes requested. If real-time data is relevant on the server, then the scheduled trips operating, added service, and canceled trip IDs are all merged and then for all trips who have no departed a stop or have not yet arrived will be sorted by the wait time to get to the station (if no arrival time is available, we look at the departure time for the countdown).
+</p>
+<p>
+    * a “relevant” trip could come from a previous service day (when trips operate: a) after midnight on a previous service date render on the current date, b) the current date (naturally), and c) the next date (since the look-ahead time might have to pull trips from tomorrow’s service date).
+</p>
+
+<h3>Next Service for Stop ID(s) - Organized by Route ID (NEX)</h3>
+<p>This variation sorts all the upcoming services by route then wait time.</p>
+<h4>Request Format</h4>
+<p>
+NEX {look-ahead minutes} {stopID}<br>
+NEX {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
+</p>
+<h4>Response Format</h4>
+<p>
+    The ‘message_type’ is “NEX”.<br>
+    Possible error values:
+    <ul>
+        <li>0: Success</li>
+        <li>601: A requested stop ID does not exist</li>
+    </ul>
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID of the stop requested, or the parent station, or a “|” delimited list of all stop IDs requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the Stop ID or parent station (if one) or a “|” delimited list of all stop names requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_desc
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Description of the Stop ID or “Parent Station” if a parent station was requested, or “Multiple Stops” if a list of stops were requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>routes</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all routes that serve requested Stop ID
+        </td>
+    </tr>
+</table>
+<p>The “routes” array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route ID for the trip IDs contained within trips
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>trips</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all trips in order of wait_time_sec that serve requested Stop ID
+        </td>
+    </tr>
+</table>
+<p>The “trips” array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Unique identifier of the trip serving the stop
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            dep_time
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Trip scheduled departure time from the stop ID (format is: “ddd hh:mm” for 24-hour format or with AM/PM indicated if started with 12-hour formats)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            arr_time
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Trip scheduled arrival time at the stop ID (format is: “ddd hh:mm” for 24-hour format or with AM/PM indicated if started with 12-hour formats)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            wait_time_sec
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            The number of seconds until the trip arrives at the stop ID. If only departure time is available, then it is the wait time for the departure.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            headsign
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Display on the front of the vehicle operating on the trip (if the headsign is unique to this stop, it will be shown instead of the trip’s overall headsign)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            pickup_type
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            0/Empty = Regular drop-off, 1 = No drop-off, 2 = Call agency to arrange drop-off, 3 = Coordinate with operator
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            drop_off_type
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            0/Empty = Regular pickup, 1 = No pickup, 2 = Call agency to arrange pickup, 3 = Arrange/Flag operator
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_begins
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if this stop is the first stop of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_terminates
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if this stop if the last stop of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>realtime_data</b>
+        </td>
+        <td class="fixed">
+            object
+        </td>
+        <td>
+            Real-time information pertaining to this trip
+        </td>
+    </tr>
+</table>
+<p>The “realtime_data” set contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            status
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Four-character code indicating the status of the trip in relation to the requested stop ID:
+            <ul>
+                <li><b class="fixed">ARRV</b>: Vehicle is arriving at the stop (within 60 seconds, this is only possible if the trip has a real-time arrival time)</li>
+                <li><b class="fixed">BRDG</b>: Vehicle is stopped at the stop (system time is after arrival but before departure, real-time information for departure & arrival required)</li>
+                <li><b class="fixed">DPRT</b>: Vehicle has departed the stop (departure time required in the real-time feed)</li>
+                <li><b class="fixed">RNNG</b>: Vehicle has real-time trip information for this stop (i.e. the trip is “running” or otherwise has predictions available)</li>
+                <li><b class="fixed">SKIP</b>: Vehicle will skip the requested stop</li>
+                <li><b class="fixed">CNCL</b>: The trip has been canceled</li>
+                <li><b class="fixed">MSNG</b>: Real-time data is available for some of this trip, but not for the stop requested</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            actual_arrival
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Predicted arrival at the stop (format is: “ddd hh:mm” for 24-hour format or with AM/PM indicated if started with 12-hour formats)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            actual_departure
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Predicted departure from the stop (format is: “ddd hh:mm” for 24-hour format or with AM/PM indicated if started with 12-hour formats)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            offset_seconds
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            How late (positive value) or early (negative value) the trip is going to be at the requested stop
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            vehicle
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            The transit agency’s identifier of the [first, in case of a train, for example] vehicle operating on this trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            supplemental
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            This will be true if the trip is supplemental, and therefore lateness/scheduled information is not available
+        </td>
+    </tr>
+</table>
+
+<h3>Next Service for Stop ID(s) - Organized by Arrival Time (NCF)</h3>
+<p>This variation sorts all the upcoming services by wait time, regardless of route.</p>
+<h4>Request Format</h4>
+<p>
+NCF {look-ahead minutes} {stopID}<br>
+NCF {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
+</p>
+<h4>Response Format</h4>
+<p>
+    The ‘message_type’ is “NCF”.<br>
+    Possible error values:
+    <ul>
+        <li>0: Success</li>
+        <li>601: A requested stop ID does not exist</li>
+    </ul>
+    <b>The field contents are identical to "NEX" but there is no "routes" array grouping the trips:</b>
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID of the stop requested, or the parent station, or a “|” delimited list of all stop IDs requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the Stop ID or parent station (if one) or a “|” delimited list of all stop names requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_desc
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Description of the Stop ID or “Parent Station” if a parent station was requested, or “Multiple Stops” if a list of stops were requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>trips</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all trips that serve the requested Stop ID (each trip has a route_id in addition to the fields listed in NEX's trips array response)
+        </td>
+    </tr>
+</table>
+
+<h2>Schedule Service Between Stop IDs (SBS)</h2>
+<p>
+    This module displays the list of all trips that serve between two specified stops. A service must pickup from the origin stop and drop-off at the destination stop, or else it won’t be shown. No transfers / inter-tripID service is determined. Routing and trip planning is not really the intended scope of this application. This is mostly to provide schedule planning information and service frequency, with the added benefit of enforcing the pick-up / drop-off types.
+</p>
+<h4>Request Format</h4>
+<p>
+    SBS {ddMMMyyyy} {Origin}|{Destination}<br>
+    <b>Example</b>: "SBS 30MAR2020 Fitchburg|North Station"
+</p>
+<h4>Response Format</h4>
+<p>
+The ‘message_type’ is “SBS”.<br>
+Possible error values:
+    <ul>
+        <li>0: Success</li>
+        <li>701: Origin Stop ID does not exist</li>
+        <li>702: Destination Stop ID does not exist</li>
+        <li>703: No date was provided, or a date could not be created from the input</li>
+        <li>704: The wrong number of stops were requested (must be 2: an origin and a destination)</li>
+    </ul>
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            ori_stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID of the origin stop
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            ori_stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the origin stop
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            ori_stop_desc
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Description of the origin stop
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            ori_stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID of the destination stop
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            ori_stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the destination stop
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            ori_stop_desc
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Description of the destination stop
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            service_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            The service date for which schedules were requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>trips</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all trips that pickup at the origin and drop-off at the destination
+        </td>
+    </tr>
+</table>
+<p>The “trips” array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Trip ID of a trip serving between the two stop IDs
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the Trip ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route ID to which the Trip ID belongs
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the route to which the trip belongs
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_long_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Long name of the route to which the trip belongs
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            headsign
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Headsign of the trip at the origin stop ID (it might differ from the trip’s overall headsign)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            ori_arrival
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Arrival time at the origin Stop ID (format: “ddd hh:mm” in 12- or 24-hour formats)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            ori_departure
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Departure time from the origin Stop ID (format: “ddd hh:mm” in 12- or 24-hour formats)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            ori_pick_up
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            0/Empty = Regular pickup, 1 = No pickup, 2 = Call agency to arrange pickup, 3 = Arrange/Flag operator
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            des_arrival
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Arrival time at the destination Stop ID (format: “ddd hh:mm” in 12- or 24-hour formats)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            des_departure
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Departure time from the destination Stop ID (format: “ddd hh:mm” in 12- or 24-hour formats)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            des_drop_off
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            0/Empty = Regular drop-off, 1 = No drop-off, 2 = Call agency to arrange drop-off, 3 = Coordinate with operator
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            duration
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Duration of the trip from departure time at origin to drop off time at destination (format: “hh:mm”)
+        </td>
+    </tr>
+</table>
+
+<!--
+<h2>~</h2>
+<p>
+    ~
+</p>
+<h4>Request Format</h4>
+<p></p>
+<h4>Response Format</h4>
+<p></p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            
+        </td>
+        <td class="fixed">
+            
+        </td>
+        <td>
+            
+        </td>
+    </tr>
+</table>
+-->
+</body>
