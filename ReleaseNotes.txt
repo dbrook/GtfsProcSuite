@@ -11,6 +11,7 @@ THIS RELEASE: VERSION 1.2 Features and Fixes:
  - INSTALL and Release Notes file added to version control ... trying to make this a more legit project
  - Correct capitalization of "GtfsProc" everywhere
  - The documentation has been moved to a standalone HTML file instead of ODT
+ - Client (included command-line) can now render NCF responses
 
 SHOULD FIX (for Version 1.3):
 -----------------------------

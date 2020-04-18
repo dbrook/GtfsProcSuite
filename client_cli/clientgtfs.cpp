@@ -833,6 +833,174 @@ void ClientGtfs::repl()
         }
 
         /*
+         * NCF Response
+         */
+        else if (respObj["message_type"] == "NCF") {
+            // Scalable column width determination
+            qint32 totalCol = this->disp.getCols();
+            totalCol -= 29;                         // Remove space for fixed-width fields and spacers
+            qint32 c1 = totalCol * 0.15;            // 15% of open space for route ID
+            qint32 c2 = totalCol * 0.25;            // 25% of open space for trip ID
+            qint32 c3 = totalCol * 0.2;             // 20% of open space for the short name of the trip
+            qint32 c4 = totalCol - (c1 + c2 + c3);  // Remaining scalable range (~50%) Headsign
+            qint32 c5 = 1;                          // 1 space  (x3) for terminate + pickup/drop-off exception flags
+            qint32 c6 = 11;                         // 9 spaces for date-of-service field
+            qint32 c7 = 4;                          // 9 spaces for date-of-service field
+            qint32 c8 = 4;                          // 1 space  (x2) for exemption/supplement
+
+            this->disp.clearTerm();
+
+            // Standard Response Header
+            screen << "Upcoming Service at Stop"
+                   << qSetFieldWidth(this->disp.getCols() - 24)
+                   << respObj["message_time"].toString()
+                   << qSetFieldWidth(0) << endl << endl;
+
+            if (respObj["error"].toInt() == 601) {
+                screen << "Stop not found." << endl;
+            }
+            else {
+                // Count how many records were returned
+                qint32 tripsLoaded = 0;
+
+                screen << "Stop ID  . . . . . " << respObj["stop_id"].toString()   << endl
+                       << "Stop Name  . . . . " << respObj["stop_name"].toString() << endl
+                       << "Stop Desc  . . . . " << respObj["stop_desc"].toString() << endl << endl;
+
+                // ... then all the trips within each route
+                screen.setFieldAlignment(QTextStream::AlignLeft);
+                screen << qSetFieldWidth(c1)   << "ROUTE-ID"  << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c2)   << "TRIP-ID"   << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c3)   << "NAME"      << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c4)   << "HEADSIGN"  << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c5*3) << "TPD"       << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c6)   << "STOP-TIME" << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c7)   << "MINS"      << qSetFieldWidth(1) << " "
+                       << qSetFieldWidth(c8)   << "STAT"      << qSetFieldWidth(0) << endl;
+
+                // Loop on all the trips
+                QJsonArray trips = respObj["trips"].toArray();
+                for (const QJsonValue tr : trips) {
+                    QString headsign   = tr["headsign"].toString().left(c4);
+                    QString tripTerm;
+                    if (tr["trip_begins"].toBool()) {
+                        tripTerm = "S";
+                    } else if (tr["trip_terminates"].toBool()) {
+                        tripTerm = "T";
+                    } else {
+                        tripTerm = " ";
+                    }
+
+                    QString dropOff    = dropoffToChar(tr["drop_off_type"].toInt());
+                    QString pickUp     = pickupToChar(tr["pickup_type"].toInt());
+//                        QString dstIndic   = (tr["dst_on"].toBool()) ? "D" : "S";
+                    QString dstIndic   = " ";
+                    qint32 waitTimeMin = tr["wait_time_sec"].toInt() / 60;
+                    screen << qSetFieldWidth(c1) << tr["route_id"].toString().left(c1) << qSetFieldWidth(1) << " "
+                           << qSetFieldWidth(c2) << tr["trip_id"].toString().left(c2) << qSetFieldWidth(1) << " "
+                           << qSetFieldWidth(c3) << tr["short_name"].toString().left(c3) << qSetFieldWidth(1) << " "
+                           << qSetFieldWidth(c4) << headsign.left(c4)                 << qSetFieldWidth(1) << " "
+                           << qSetFieldWidth(c5) << tripTerm << pickUp << dropOff     << qSetFieldWidth(1) << " ";
+                    screen.setFieldAlignment(QTextStream::AlignRight);
+
+                    // Static schedule arrival/departure times
+                    QString depTimeSch = tr["dep_time"].toString();
+                    QString arrTimeSch = tr["arr_time"].toString();
+
+                    /*
+                     * Real-Time Processing -- Check if the "realtime_data" object is present
+                     */
+                    if (tr["realtime_data"].isObject()) {
+                        QJsonObject rt = tr["realtime_data"].toObject();
+
+                        QString rtStatus   = rt["status"].toString();
+                        QString depTimeAct = rt["actual_arrival"].toString();
+                        QString arrTimeAct = rt["actual_departure"].toString();
+
+                        // Print the actual time of arrival and countdown
+                        if (rtStatus == "SKIP") {
+                            screen << qSetFieldWidth(c6) << depTimeSch
+                                   << qSetFieldWidth(1) << " "
+                                   << qSetFieldWidth(c8) << "-" << qSetFieldWidth(1) << " ";
+                        } else if (rtStatus == "CNCL") {
+                            // Print regular schedule information with no add-ons
+                            screen << qSetFieldWidth(c6)  << depTimeSch
+                                   << qSetFieldWidth(1) << " " << qSetFieldWidth(c8) << " "
+                                   << qSetFieldWidth(1) << " " << qSetFieldWidth(0);
+                        } else {
+                            QString timeToShow;
+                            // Give priority to the actual arrival, then actual departure ... failing those,
+                            // we revert to the static arrival, then static departure
+                            if (!arrTimeAct.isEmpty()) {
+                                timeToShow = arrTimeAct;
+                            }
+                            else if (!depTimeAct.isEmpty()) {
+                                timeToShow = depTimeAct;
+                            }
+                            else if (!arrTimeSch.isEmpty()) {
+                                timeToShow = arrTimeSch;
+                            }
+                            else {
+                                timeToShow = depTimeSch;
+                            }
+
+                            screen << qSetFieldWidth(c6) << timeToShow
+                                   << qSetFieldWidth(1)       << " ";
+
+                            if (rtStatus == "ARRV" || rtStatus == "BRDG" || rtStatus == "DPRT") {
+                                screen << qSetFieldWidth(c8) << rtStatus << qSetFieldWidth(1) << " ";
+                            } else {
+                                screen << qSetFieldWidth(c8) << waitTimeMin << qSetFieldWidth(1) << " ";
+                            }
+                        }
+
+                        if (rtStatus == "RNNG" || rtStatus == "ARRV" || rtStatus == "BRDG" || rtStatus == "DPRT") {
+                            if (rt["supplemental"].toBool()) {
+                                // If a supplemental trip, there is no schedule to go off of, so it should be marked
+                                screen << qSetFieldWidth(c8) << "SPLM" << qSetFieldWidth(0);
+                            } else {
+                                // A running trip is either on-time, late, or early, depending on the offset
+                                qint64 offsetSec = rt["offset_seconds"].toInt();
+                                if (offsetSec < -60 || offsetSec > 60) {
+                                    screen.setNumberFlags(QTextStream::ForceSign);
+                                    screen << qSetFieldWidth(c8) << offsetSec / 60 << qSetFieldWidth(0);
+                                    noforcesign(screen);
+                                } else {
+                                    screen << qSetFieldWidth(c8) << "ONTM" << qSetFieldWidth(0);
+                                }
+                            }
+                        } else {
+                            screen << qSetFieldWidth(c8) << rtStatus << qSetFieldWidth(0);
+                        }
+                    } else {
+                        // Just print regular schedule information with no add-ons, preference is always given to
+                        // the arrival time, unless it is not available then use the departure
+                        if (arrTimeSch.isEmpty()) {
+                        screen << qSetFieldWidth(c6) << depTimeSch  << qSetFieldWidth(1) << " "
+                               << qSetFieldWidth(c8) << waitTimeMin << qSetFieldWidth(0);
+                        } else {
+                            screen << qSetFieldWidth(c6) << arrTimeSch  << qSetFieldWidth(1) << " "
+                                   << qSetFieldWidth(c8) << waitTimeMin << qSetFieldWidth(0);
+                        }
+                    }
+
+                    screen.setFieldAlignment(QTextStream::AlignLeft);
+                    screen << endl;
+
+                } // End loop on Trips-within-Route
+
+                tripsLoaded += trips.size();
+                screen << endl;
+
+                screen << "Query took " << respObj["proc_time_ms"].toInt() << " ms, "
+                       << tripsLoaded << " trips loaded" << endl;
+            }
+
+            screen << endl;
+            screen.setFieldAlignment(QTextStream::AlignRight);
+        }
+
+        /*
          * SNT Response
          */
         else if (respObj["message_type"] == "SNT") {
