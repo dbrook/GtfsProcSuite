@@ -24,7 +24,7 @@
 #include <QObject>
 #include <QString>
 #include <QVector>
-#include <QMap>
+#include <QHash>
 
 namespace GTFS {
 
@@ -40,7 +40,7 @@ typedef struct {
 } TripRec;
 
 // Map for all stop-times. String represents the trip_id, the vector is all the stops in sequence .
-typedef QMap<QString, TripRec> TripData;
+typedef QHash<QString, TripRec> TripData;
 
 /*
  * GTFS::Trips is a wrapper around the GTFS Feed's trips.txt file

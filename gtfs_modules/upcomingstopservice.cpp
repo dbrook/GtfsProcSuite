@@ -125,7 +125,7 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
 
     // Populate the valid upcoming routes with trips for the stop_id requested
     QJsonArray  stopRouteArray;
-    QMap<QString, GTFS::StopRecoRouteRec> tripsForStopByRouteID;
+    QHash<QString, GTFS::StopRecoRouteRec> tripsForStopByRouteID;
     tripStopLoader.getTripsByRoute(tripsForStopByRouteID);
 
     // DEFAULT MODE: "NEX" IS THE UPCOMING ARRIVALS GROUPED BY THE TRIP'S RESPECTIVE ROUTE ID

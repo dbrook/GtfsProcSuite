@@ -83,11 +83,11 @@ QString TripStopReconciler::getStopDesciption() const
     }
 }
 
-void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeTrips)
+void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &routeTrips)
 {
     // Trips will be built locally per route per stop ID, then invalidated based on the timeframe or number of stops
     // requested. Only the "relevant" trips will be stored in routeTrips for the JSON-building services to use.
-    QMap<QString, StopRecoRouteRec> fullTrips;
+    QHash<QString, StopRecoRouteRec> fullTrips;
 
     // For every stop requested, find all relevant trips
     for (const QString &stopID : _stopIDs) {
@@ -236,7 +236,7 @@ void TripStopReconciler::getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeT
 
         // Add the 'added' trips (mark with SUPPLEMENT)
         // We first fill a separate compatible data structure which will then merge into the vector of trip-records
-        QMap<QString, QVector<QPair<QString, quint32>>> addedTrips;
+        QHash<QString, QVector<QPair<QString, quint32>>> addedTrips;
         rActiveFeed->getAddedTripsServingStop(stopID, addedTrips);
         for (const QString &routeID : addedTrips.keys()) {
             for (const QPair<QString, quint32> &tripAndIndex : addedTrips[routeID]) {
@@ -392,9 +392,9 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
     }
 }
 
-void TripStopReconciler::invalidateTrips(const QString                   &routeID,
-                                         QMap<QString, StopRecoRouteRec> &fullTrips,
-                                         QMap<QString, StopRecoRouteRec> &relevantRouteTrips)
+void TripStopReconciler::invalidateTrips(const QString                    &routeID,
+                                         QHash<QString, StopRecoRouteRec> &fullTrips,
+                                         QHash<QString, StopRecoRouteRec> &relevantRouteTrips)
 {
     qint32 nbTripsForRoute = 0;
     for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {

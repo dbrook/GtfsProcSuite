@@ -23,7 +23,7 @@
 
 #include <QObject>
 #include <QVector>
-#include <QMap>
+#include <QHash>
 #include <QPair>
 #include <QString>
 #include <QDate>
@@ -108,7 +108,7 @@ public:
     // List the trip_ids which serve a stop_id (populates 'addedTrips' with new-found trips) across all added stops
     // We map all relevant routes to a vector of trips that serve the requested stop_id
     void getAddedTripsServingStop(const QString &stop_id,
-                                  QMap<QString, QVector<QPair<QString, quint32>>> &addedTrips) const;
+                                  QHash<QString, QVector<QPair<QString, quint32>>> &addedTrips) const;
 
     // Figure out where an added trip is headed since no way to lookup headsign for a trip not in the static feed
     const QString getFinalStopIdForAddedTrip(const QString &trip_id) const;
@@ -159,10 +159,10 @@ public:
     const QString getTripStartTime(const QString &tripID) const;
     const QString getTripStartDate(const QString &tripID) const;
 
-    // Get a map of routes with lists of trips with prediction information
-    void getAllTripsWithPredictions(QMap<QString, QVector<QString>> &addedRouteTrips,
-                                    QMap<QString, QVector<QString>> &activeRouteTrips,
-                                    QMap<QString, QVector<QString>> &cancelledRouteTrips) const;
+    // Get a hash of routes with lists of trips with prediction information
+    void getAllTripsWithPredictions(QHash<QString, QVector<QString>> &addedRouteTrips,
+                                    QHash<QString, QVector<QString>> &activeRouteTrips,
+                                    QHash<QString, QVector<QString>> &cancelledRouteTrips) const;
 
     // Dump a string-representation of the protobuf trip updates
     void serializeTripUpdates(QString &output) const;
@@ -192,12 +192,12 @@ private:
      */
     transit_realtime::FeedMessage   _tripUpdate;     // Hold the raw protobuf here, but it is not optimized for reading
 
-    QMap<QString, qint32>           _cancelledTrips; // Track cancelled trips with associated entity idx
-    QMap<QString, qint32>           _addedTrips;     // Trips running which do not correspond to the GTFS Static data
-    QMap<QString, qint32>           _activeTrips;    // Trips running with real-time data (to replace schedule times)
+    QHash<QString, qint32>          _cancelledTrips; // Track cancelled trips with associated entity idx
+    QHash<QString, qint32>          _addedTrips;     // Trips running which do not correspond to the GTFS Static data
+    QHash<QString, qint32>          _activeTrips;    // Trips running with real-time data (to replace schedule times)
 
     // Stop-IDs which have been skipped by any number of trips
-    QMap<QString, QVector<QPair<QString, quint32>>> _skippedStops;
+    QHash<QString, QVector<QPair<QString, quint32>>> _skippedStops;
 
     qint64 _downloadTimeMSec;
     qint64 _integrationTimeMSec;

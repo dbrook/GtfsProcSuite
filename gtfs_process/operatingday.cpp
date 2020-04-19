@@ -92,7 +92,7 @@ qint64 OperatingDay::getCalendarAndDatesDBSize() const
 bool OperatingDay::serviceRunning(QDate serviceDate, QString serviceName) const
 {
     // Try to find the current day in the overrides
-    QMap<QString, QVector<CalDateRec>>::const_iterator cdi = this->calendarDateDb.find(serviceName);
+    QHash<QString, QVector<CalDateRec>>::const_iterator cdi = this->calendarDateDb.find(serviceName);
 
     if (cdi != this->calendarDateDb.end()) {
         // We found the service, see if today is a holiday / overridden day
@@ -109,7 +109,7 @@ bool OperatingDay::serviceRunning(QDate serviceDate, QString serviceName) const
 
 
     // No clear resolution from the Calendar-Date Database, just go off the day of the week...
-    QMap<QString, CalendarRec>::const_iterator cri = this->calendarDb.find(serviceName);
+    QHash<QString, CalendarRec>::const_iterator cri = this->calendarDb.find(serviceName);
 
     if (cri == this->calendarDb.end()) {
         // This is actually not an error, the service requested may potentially exist only as a calendar_date
@@ -333,7 +333,7 @@ QDate OperatingDay::getServiceEndDate(const QString &serviceName) const
     return QDate();
 }
 
-const QMap<QString, CalendarRec> &OperatingDay::getServiceDB() const
+const QHash<QString, CalendarRec> &OperatingDay::getServiceDB() const
 {
     return this->calendarDb;
 }

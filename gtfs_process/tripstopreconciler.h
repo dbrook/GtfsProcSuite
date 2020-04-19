@@ -136,7 +136,7 @@ public:
      * SCHEDULE for a trip, then it is not based on any realtime data and should thus be understood as "hypothetical",
      * an INVALID trip-stop is one which no longer applies because it occurred in the past or is ahead of the lookahead
      */
-    void getTripsByRoute(QMap<QString, StopRecoRouteRec> &routeTrips);
+    void getTripsByRoute(QHash<QString, StopRecoRouteRec> &routeTrips);
 
 signals:
 
@@ -155,9 +155,9 @@ private:
     // Invalidate trips that fall outside the requested thresholds
     // The input is the fullTrips argument, the output (containing ONLY the trips which should be displayed per the
     // criteria set in the construction of this object) is found in relevantRouteTrips.
-    void invalidateTrips(const QString                   &routeID,
-                         QMap<QString, StopRecoRouteRec> &fullTrips,
-                         QMap<QString, StopRecoRouteRec> &relevantRouteTrips);
+    void invalidateTrips(const QString                    &routeID,
+                         QHash<QString, StopRecoRouteRec> &fullTrips,
+                         QHash<QString, StopRecoRouteRec> &relevantRouteTrips);
 
     /*
      * Data Members

@@ -22,7 +22,7 @@
 #define GTFSSTOPS_H
 
 #include <QObject>
-#include <QMap>
+#include <QHash>
 #include <QString>
 #include <QVector>
 #include <QPair>
@@ -44,14 +44,14 @@ typedef struct {
     QString parent_station;
 
     // All the trips serving an individual stop_id (for quicker trip-stop processing at runtime)
-    QMap<QString, QVector<tripStopSeqInfo>> stopTripsRoutes;
+    QHash<QString, QVector<tripStopSeqInfo>> stopTripsRoutes;
 } StopRec;
 
 // Map for all stops. String represents the stop_id.
-typedef QMap<QString, StopRec> StopData;
+typedef QHash<QString, StopRec> StopData;
 
 // Map for all parent stops. String represents the parent_station, and the vector within is the list of child stop_ids
-typedef QMap<QString, QVector<QString>> ParentStopData;
+typedef QHash<QString, QVector<QString>> ParentStopData;
 
 /*
  * GTFS::Stops is a wrapper around the GTFS feed's stops.txt file

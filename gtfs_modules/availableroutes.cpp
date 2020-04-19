@@ -24,6 +24,13 @@
 
 #include <QJsonArray>
 
+static inline void swap(QJsonValueRef v1, QJsonValueRef v2)
+{
+    QJsonValue temp(v1);
+    v1 = QJsonValue(v2);
+    v2 = temp;
+}
+
 GTFS::AvailableRoutes::AvailableRoutes() : StaticStatus()
 {
     _routes = GTFS::DataGateway::inst().getRoutesDB();
@@ -46,6 +53,14 @@ void GTFS::AvailableRoutes::fillResponseData(QJsonObject &resp)
         singleRouteJSON["nb_trips"]   = (*_routes)[routeID].trips.size();
         routeArray.push_back(singleRouteJSON);
     }
+
+    // The QHash holding the routes is not intrinsically sorted, so reading the output will be "annoying" unless it
+    // is sorted. The idea here is to sort the route ID lexicographically:
+    std::sort(routeArray.begin(), routeArray.end(),
+              [](const QJsonValue &routeA, const QJsonValue &routeB) {
+        return routeA.toObject()["id"].toString() < routeB.toObject()["id"].toString();
+    });
+
     resp["routes"] = routeArray;
 
     // Required GtfsProc protocol fields

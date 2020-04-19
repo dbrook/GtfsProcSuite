@@ -76,8 +76,8 @@ void DataGateway::initStops()
 
 void DataGateway::linkStopsTripsRoutes()
 {
-    QMap<QString, QVector<StopTimeRec>> sTimDB = _stopTimes->getStopTimesDB();
-    QMap<QString, TripRec> tripDB              = _trips->getTripsDB();
+    QHash<QString, QVector<StopTimeRec>> sTimDB = _stopTimes->getStopTimesDB();
+    QHash<QString, TripRec> tripDB              = _trips->getTripsDB();
 
     // For every StopTime in the database, bind its trip_id and route_id to its stop_id
     for (const QString &stopTimeTripID : sTimDB.keys()) {
@@ -134,8 +134,8 @@ void DataGateway::linkStopsTripsRoutes()
 
 void DataGateway::linkTripsRoutes()
 {
-    QMap<QString, TripRec>  tripDB  = this->_trips->getTripsDB();
-    QMap<QString, QVector<StopTimeRec>> stopTimeDB = this->_stopTimes->getStopTimesDB();
+    QHash<QString, TripRec>  tripDB  = this->_trips->getTripsDB();
+    QHash<QString, QVector<StopTimeRec>> stopTimeDB = this->_stopTimes->getStopTimesDB();
 
     // For every TripID in the database, bind it to its associated RouteID
     // (This will only insert them in the order from the data provider, which is difficult to grok) ...

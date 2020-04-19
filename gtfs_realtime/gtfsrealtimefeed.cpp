@@ -132,7 +132,7 @@ bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id, const QDate &se
 }
 
 void RealTimeTripUpdate::getAddedTripsServingStop(const QString &stop_id,
-                                                  QMap<QString, QVector<QPair<QString, quint32>>> &addedTrips) const
+                                                  QHash<QString, QVector<QPair<QString, quint32> > > &addedTrips) const
 {
     for (const QString &tripID : _addedTrips.keys()) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_addedTrips[tripID]);
@@ -429,9 +429,9 @@ const QString RealTimeTripUpdate::getTripStartDate(const QString &tripID) const
     return QString::fromStdString(tri.trip().start_date());
 }
 
-void RealTimeTripUpdate::getAllTripsWithPredictions(QMap<QString, QVector<QString> > &addedRouteTrips,
-                                                    QMap<QString, QVector<QString> > &activeRouteTrips,
-                                                    QMap<QString, QVector<QString> > &cancelledRouteTrips) const
+void RealTimeTripUpdate::getAllTripsWithPredictions(QHash<QString, QVector<QString> > &addedRouteTrips,
+                                                    QHash<QString, QVector<QString> > &activeRouteTrips,
+                                                    QHash<QString, QVector<QString> > &cancelledRouteTrips) const
 {
     for (const QString &tripID : _addedTrips.keys()) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_addedTrips[tripID]);

@@ -38,7 +38,7 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
         return;
     }
 
-    QMap<QString, QVector<QString> > addedRouteTrips, activeRouteTrips, cancelledRouteTrips;
+    QHash<QString, QVector<QString> > addedRouteTrips, activeRouteTrips, cancelledRouteTrips;
 
     _rTrips->getAllTripsWithPredictions(addedRouteTrips, activeRouteTrips, cancelledRouteTrips);
 

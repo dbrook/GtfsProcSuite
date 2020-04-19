@@ -12,6 +12,7 @@ THIS RELEASE: VERSION 1.2 Features and Fixes:
  - Correct capitalization of "GtfsProc" everywhere
  - The documentation has been moved to a standalone HTML file instead of ODT
  - Client (included command-line) can now render NCF responses
+ - Faster lookups are accomplished by using QHash instead of QMap, but this means having to sort output
 
 SHOULD FIX (for Version 1.3):
 -----------------------------

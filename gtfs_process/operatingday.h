@@ -25,7 +25,7 @@
 #include <QString>
 #include <QDate>
 #include <QVector>
-#include <QMap>
+#include <QHash>
 
 namespace GTFS {
 
@@ -120,7 +120,7 @@ public:
     /*
      * For individual trip lookup information (bypass the "is service running" stuff)
      */
-    const QMap<QString, CalendarRec> &getServiceDB() const;
+    const QHash<QString, CalendarRec> &getServiceDB() const;
 
 private:
     // Determine the order of the CSV table columns from calendar.txt
@@ -143,8 +143,8 @@ private:
                                       qint8 &exceptionPos);
 
     // Calendar Database
-    QMap<QString, CalendarRec>         calendarDb;
-    QMap<QString, QVector<CalDateRec>> calendarDateDb;
+    QHash<QString, CalendarRec>         calendarDb;
+    QHash<QString, QVector<CalDateRec>> calendarDateDb;
 };
 
 } // Namespace GTFS

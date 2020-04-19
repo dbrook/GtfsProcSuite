@@ -23,7 +23,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QMap>
+#include <QHash>
 #include <QVector>
 #include <QPair>
 
@@ -41,11 +41,11 @@ typedef struct {
     QString  route_color;
     QString  route_text_color;
     QVector<QPair<QString, qint32>> trips;  // Trips and their first departure time associated to each route
-    QMap<QString, qint32> stopService;      // Holds all the stops served by the route across all trips (+frequency)
+    QHash<QString, qint32> stopService;     // Holds all the stops served by the route across all trips (+frequency)
 } RouteRec;
 
 // Map for all routes. String represents the route_id.
-typedef QMap<QString, RouteRec> RouteData;
+typedef QHash<QString, RouteRec> RouteData;
 
 /*
  * GTFS::Routes is a wrapper around a GTFS feed's routes.txt data

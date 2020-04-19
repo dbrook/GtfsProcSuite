@@ -24,6 +24,13 @@
 
 #include <QJsonArray>
 
+static inline void swap(QJsonValueRef v1, QJsonValueRef v2)
+{
+    QJsonValue temp(v1);
+    v1 = QJsonValue(v2);
+    v2 = temp;
+}
+
 namespace GTFS {
 
 StopsServedByRoute::StopsServedByRoute(const QString &routeID)
@@ -62,6 +69,13 @@ void StopsServedByRoute::fillResponseData(QJsonObject &resp)
         singleStopJSON["trip_count"] = (*_routes)[_routeID].stopService[stopID];
         routeStopArray.push_back(singleStopJSON);
     }
+
+    // Sort the output by stop ID, otherwise the data coming from the hash will be in a seemingly random order
+    std::sort(routeStopArray.begin(), routeStopArray.end(),
+              [](const QJsonValue &routeA, const QJsonValue &routeB) {
+        return routeA.toObject()["stop_id"].toString() < routeB.toObject()["stop_id"].toString();
+    });
+
     resp["stops"] = routeStopArray;
 
     // Success, fill standard protocol information
