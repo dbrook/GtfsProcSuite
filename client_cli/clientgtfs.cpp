@@ -1036,9 +1036,9 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c3)   << st["stop_desc"].toString().left(c3)
                        << qSetFieldWidth(1)    << " ";
                 screen.setFieldAlignment(QTextStream::AlignRight);
-                screen << qSetFieldWidth(c4/2) << st["loc_lat"].toString()
+                screen << qSetFieldWidth(c4/2) << st["loc_lat"].toString().left(c4/2)
                        << qSetFieldWidth(1)    << ","
-                       << qSetFieldWidth(c4/2) << st["loc_lon"].toString()
+                       << qSetFieldWidth(c4/2) << st["loc_lon"].toString().left(c4/2)
                        << qSetFieldWidth(0)    << endl;
                 screen.setFieldAlignment(QTextStream::AlignLeft);
             }
