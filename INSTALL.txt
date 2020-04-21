@@ -19,8 +19,13 @@ Several individual moving parts will help in this process:
     - protobuf-compiler
     - libncurses-dev
 
-   The following packages are good to have for retrieving static data
+   The following packages are good to have for retrieving static data:
     - unzip and zip
+    - wget
+
+   If you wish to use the gtfsproc_agent.pl script, you will also need:
+    - perl
+    - curl
     - wget
 
 2) Optional: Setup a GtfsProc-specific UNIX user on which to run it
@@ -30,20 +35,15 @@ Several individual moving parts will help in this process:
     B) qmake
     C) make
     D) sudo mkdir /opt/gtfsproc
-    E) sudo cp (GtfsProc's buildDirectory)/gtfsproc/gtfsproc /opt/gtfsproc/gtfsproc
-    F) sudo cp (GtfsProc's buildDirectory)/client_cli/client_cli /opt/gtfsproc/gtfsclient
+    E) sudo chown (GtfsProc user's name) /opt/gtfsproc
+    E) cp (GtfsProc's buildDirectory)/gtfsproc/gtfsproc /opt/gtfsproc/gtfsproc
+    F) cp (GtfsProc's buildDirectory)/client_cli/client_cli /opt/gtfsproc/gtfsclient
         (This step is optional, not everyone will want/need the test client!)
 
-4) For each agency you wish to support, copy the included gtfsproc_agent.sh file
-   into /opt/gtfsproc (for example: /opt/gtfsproc/agent_RIPTA.sh). See the 
-   instructions in gtfsproc_agent.sh. This file is responsible for:
-    A) Killing GtfsProc each night
-    B) Checking for new upstream data each night, if available, download and 
-         unzipping the new files in place of the old ones.
-    C) Restarting GtfsProc
+    Note for E/F above: You could also just do a symbolic link to the binary.
 
-5) 
+5) Start the agent or gtfsproc binary itself in a screen session or however else
+   you like to keep stuff running in perpetuity. 
 
-The data retrieval from the realtime server is handled within the actual
-GtfsProc server, but the static dataset is downloaded separately.
+TODO: Include some kind of installer or service that can be run at system startup.
 

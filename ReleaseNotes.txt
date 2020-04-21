@@ -13,6 +13,8 @@ THIS RELEASE: VERSION 1.2 Features and Fixes:
  - The documentation has been moved to a standalone HTML file instead of ODT
  - Client (included command-line) can now render NCF responses
  - Faster lookups are accomplished by using QHash instead of QMap, but this means having to sort output
+ - Helper script added to facilitate daily data refresh attempts (gtfsproc_agent.pl)
+ - Transaction logging (to standard error) is more cleaned up (QTime serialization in particular)
 
 SHOULD FIX (for Version 1.3):
 -----------------------------

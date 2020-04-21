@@ -51,7 +51,9 @@ void GtfsConnection::readyRead()
     // Let's print the query sent in to the local debug
     QByteArray socketInput = m_socket->readAll();
     QString qSocketInput = socketInput;
-    qDebug() << "[" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd hh:mm:ss t") << "] " << qSocketInput;
+    qDebug().noquote().nospace()
+            << "[" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd hh:mm:ss t")
+            << "] '" << qSocketInput << "'";
 
     this->requestApplication(qSocketInput);
 }
