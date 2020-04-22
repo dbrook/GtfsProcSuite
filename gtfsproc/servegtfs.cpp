@@ -92,7 +92,7 @@ void ServeGTFS::displayDebugging() const
     qDebug() << "Feed Language . . ." << data->getLanguage();
     qDebug() << "Feed Start Date . ." << data->getStartDate().toString("dd-MMM-yyyy");
     qDebug() << "Feed End Date . . ." << data->getEndDate().toString("dd-MMM-yyyy");
-    qDebug() << "Feed Version  . . ." << data->getVersion();
+    qDebug() << "Feed Version  . . ." << data->getVersion() << endl;
 }
 
 void ServeGTFS::incomingConnection(qintptr descriptor)

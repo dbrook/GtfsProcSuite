@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
      * BEGIN LISTENING FOR CONNECTIONS
      */
     if (gtfsRequestServer.listen(QHostAddress::Any, portNum)) {
-        console << endl << "SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS" << endl << endl;
+        console << "SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS" << endl << endl;
     } else {
         console << gtfsRequestServer.errorString();
         console << endl << "(!) COULD NOT START SERVER - SEE ERROR STRING ABOVE" << endl;

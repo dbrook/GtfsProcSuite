@@ -8,6 +8,10 @@
 #
 # Make sure to fill in your local configuration parameters in the variables below
 #
+# After, just run this script and it will recheck daily (at the specified
+# $restartHour) if new data is available from the $agencyDataLoc. If it is, then
+# the server will be killed an restarted with the new data automatically.
+#
 # (c) 2020, Daniel Brook (danb358@gmail.com)
 ###################################################################################
 
@@ -53,8 +57,10 @@ my $restartHour    = "03";
 $gtfsProcLine = "$gtfsProcServer -d $staticDataLoc -p $portNum $addedProcOpts 2> /dev/null";
 
 # Check for new data using curl with header information
-sub CheckForUpdates
+sub UpdateAvailable
 {
+    my $newData = 0;
+
     # Read in the current configuration (if possible)
     open my $fileHandle, '<', $staticDataStat;
     chomp(my @fileLines = <$fileHandle>);
@@ -66,7 +72,7 @@ sub CheckForUpdates
     # Find the currently-held static dataset's updated time
     foreach $line (@fileLines) {
         if ($line =~ /^last-modified/i) {
-            print "<SDSR> My Last Modified:       $line\n";
+            print "****** Local's Last Modified:  $line\n";
             $lastModif = $line;
             $newModif  = $line;    # Safety precaution in case the remote is dead
             last;
@@ -82,7 +88,7 @@ sub CheckForUpdates
     close $newFileHandle;
     foreach $line (@newFileLines) {
         if ($line =~ /^last-modified/i) {
-            print "<SDSR> Agency's Last Modified: $line\n";
+            print "****** Agency's Last Modified: $line\n";
             $newModif = $line;
             last;
         }
@@ -90,8 +96,8 @@ sub CheckForUpdates
 
     # If newer than what we have, download and extract the data
     if ($lastModif ne $newModif) {
-        print "<SDSR> NEW DATA IS AVAILABLE FROM AGENCY!\n";
-        print "<SDSR> Purge old repository\n";
+        print "****** New data is available from the agency! Purge old local repository.\n";
+
         opendir(DIR, $staticDataLoc) or die $!;
         while (my $staticDataFile = readdir(DIR)) {
             # Unlink all files so we can redownload
@@ -99,18 +105,23 @@ sub CheckForUpdates
                 unlink "$staticDataLoc/$staticDataFile";
             }
         }
-        print "\n<SDSR> Downloading new data\n";
+
+        print "****** Downloading new data\n";
         `wget -O $staticDataLoc/agencydata.zip $agencyDataLoc`;
 
-        print "<SDSR> Extracting data\n";
+        print "****** Extracting data\n";
         `unzip $staticDataLoc/agencydata.zip -d $staticDataLoc`;
-        
+
         # Overwrite the old version tracking file
         `cp $tmpStaticStat $staticDataStat`;
+
+        $newData = 1;
     } else {
-        print "<SDSR> NO NEW DATA AVAILABLE\n";
+        print "****** No new data available.\n";
     }
+
     print "\n";
+    return ($newData);
 }
 
 # Every hour, check if it is the time of day to attempt an update
@@ -119,25 +130,26 @@ sub HourlyCheckIfRestartTime
     my $serverPID = $_[0];
     while (1) {
         sleep(3600);
-        print "<SDSR> Do we need to restart GtfsProc from PID $serverPID ?   --> ";
+        print "****** Check for a new static dataset? --> ";
         my $currentHour = `date +%H`;
         if ($currentHour == $restartHour) {
             print "YES!\n";
 
-            # Kill the existing server
-            kill('TERM', $serverPID);
-            waitpid($serverPID, 0);
-
             # Get new data if it is available
-            CheckForUpdates();
+            if (UpdateAvailable() == 1) {
+                # Kill the existing server
+                print "****** Restarting GtfsProc from PID $serverPID\n";
+                kill('TERM', $serverPID);
+                waitpid($serverPID, 0);
 
-            # Restart server
-            $serverPID = fork();
-            die "Unable to fork: $!" unless defined($serverPID);
-            if (!$serverPID) {
-                exec($gtfsProcLine);
-                die "Unable to execute $!";
-                exit;
+                # Restart server
+                $serverPID = fork();
+                die "Unable to fork: $!" unless defined($serverPID);
+                if (!$serverPID) {
+                    exec($gtfsProcLine);
+                    die "Unable to execute $!";
+                    exit;
+                }
             }
         } else {
             print "NO\n";
@@ -146,9 +158,9 @@ sub HourlyCheckIfRestartTime
 }
 
 # Execute - The first will ensure the data is present
-print "***** GtfsProc - Static Data and Server Recycler *****\n\n";
+print "****** GtfsProc  -  Static Dataset Updater  -  Server Recycler ******\n\n";
 
-CheckForUpdates();
+UpdateAvailable();
 
 my $gtfsPID = fork();
 die "Unable to fork: $!" unless defined($gtfsPID);
