@@ -19,12 +19,9 @@ Several individual moving parts will help in this process:
     - protobuf-compiler
     - libncurses-dev
 
-   The following packages are good to have for retrieving static data:
-    - unzip and zip
-    - wget
-
-   If you wish to use the gtfsproc_agent.pl script, you will also need:
+   If you wish to use the GtfsProc_Agent.pl script, you will also need these tools:
     - perl
+    - unzip
     - curl
     - wget
 
@@ -34,16 +31,14 @@ Several individual moving parts will help in this process:
     A) Clone/extract/whatever the gtfsproc sources
     B) qmake
     C) make
-    D) sudo mkdir /opt/gtfsproc
+    D) sudo mkdir -p /opt/gtfsproc
     E) sudo chown (GtfsProc user's name) /opt/gtfsproc
     E) cp (GtfsProc's buildDirectory)/gtfsproc/gtfsproc /opt/gtfsproc/gtfsproc
-    F) cp (GtfsProc's buildDirectory)/client_cli/client_cli /opt/gtfsproc/gtfsclient
-        (This step is optional, not everyone will want/need the test client!)
-
-    Note for E/F above: You could also just do a symbolic link to the binary.
+        -or-
+       ln -s (GtfsProc's buildDirectory)/gtfsproc/gtfsproc /opt/gtfsproc/gtfsproc
+    F) (OPTIONAL) Do the same for the client_cli program for command line processing
 
 5) Start the agent or gtfsproc binary itself in a screen session or however else
-   you like to keep stuff running in perpetuity. 
-
-TODO: Include some kind of installer or service that can be run at system startup.
-
+   you like to keep stuff running in perpetuity.
+    -or-
+   Create a SysV-style init or systemd init script to have it load on system startup?
