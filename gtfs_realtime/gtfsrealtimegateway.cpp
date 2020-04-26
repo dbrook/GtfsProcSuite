@@ -103,10 +103,13 @@ void RealTimeGateway::refetchData()
         }
 
         // If no realtime requests have been sent recently (> 3 minutes), disable the realtime fetching
-        qDebug() << "  (RTTU) Last realtime request more than 3 minutes ago, stop fetching";
-        _nextFetchTimeUTC = QDateTime();
-        setActiveFeed(IDLED);
-        return;
+        // Do not bother idling when using locally-sourced data (annoying for local testing when data disappears)
+        if (_dataPathLocal.isEmpty()) {
+            qDebug() << "  (RTTU) Last realtime request more than 3 minutes ago, stop fetching";
+            _nextFetchTimeUTC = QDateTime();
+            setActiveFeed(IDLED);
+            return;
+        }
     } else if (latestTxn.secsTo(currentUTC) <= 180 && current == IDLED) {
         // Otherwise we will have to restart the retrieval
         qDebug() << "  (RTTU) Last realtime request less than 3 minutes ago and we were idled, start fetching again";

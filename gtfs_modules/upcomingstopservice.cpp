@@ -234,13 +234,11 @@ void UpcomingStopService::fillTripData(const StopRecoTripRec &rts, QJsonObject &
             statusString = "SKIP";
         else if (tripStat == GTFS::CANCEL)
             statusString = "CNCL";
-        else if (tripStat == GTFS::MISSING)
-            statusString = "MSNG";
 
-        realTimeData["status"]           = statusString;
-        realTimeData["supplemental"]     = rts.supplementalTrip;
-        realTimeData["offset_seconds"]   = rts.realTimeOffsetSec;
-        realTimeData["vehicle"]          = rts.vehicleRealTime;
+        realTimeData["status"]         = statusString;
+        realTimeData["stop_status"]    = rts.stopStatus;
+        realTimeData["offset_seconds"] = rts.realTimeOffsetSec;
+        realTimeData["vehicle"]        = rts.vehicleRealTime;
 
         if (getStatus()->format12h()) {
             realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd h:mma");
@@ -250,7 +248,7 @@ void UpcomingStopService::fillTripData(const StopRecoTripRec &rts, QJsonObject &
             realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd hh:mm");
         }
 
-        stopTripItem["realtime_data"]    = realTimeData;
+        stopTripItem["realtime_data"] = realTimeData;
     }
 }
 

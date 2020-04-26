@@ -118,7 +118,6 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                 if (rActiveFeed->tripIsCancelled(tripRecord.tripID, tripRecord.tripServiceDate)) {
                     tripRecord.tripStatus = CANCEL;
                     tripRecord.realTimeDataAvail = true;
-                    tripRecord.supplementalTrip  = false;
                 }
             }
         }
@@ -130,7 +129,6 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                                                tripRecord.stopSequenceNum, tripRecord.tripServiceDate)) {
                     tripRecord.tripStatus = SKIP;
                     tripRecord.realTimeDataAvail = true;
-                    tripRecord.supplementalTrip  = false;
                 }
             }
         }
@@ -146,9 +144,12 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                     QDateTime schedDepUTC = tripRecord.schDepTime.toUTC();
 
                     // Parameters filled by the "actual time" service (returned in UTC)
-                    QDateTime predictedArr = QDateTime();
-                    QDateTime predictedDep = QDateTime();
+                    QDateTime predictArrUTC = QDateTime();
+                    QDateTime predictDepUTC = QDateTime();
                     if (tripRecord.tripStatus != SKIP && tripRecord.tripStatus != CANCEL) {
+                        // At this point, consider a trip as RUNNING (the status will be broken down further here
+                        tripRecord.tripStatus = RUNNING;
+
                         if (rActiveFeed->scheduledTripAlreadyPassed(tripRecord.tripID,
                                                                     tripRecord.stopSequenceNum,
                                                                     (*sStopTimes)[tripRecord.tripID])) {
@@ -159,8 +160,6 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                             continue;
                         }
 
-                        tripRecord.supplementalTrip = false;
-
                         // It is possible that a trip only has partial real-time information, and this stop isn't
                         // covered by it even though it is on the trip's static schedule and NOT explicitly skipped.
                         rActiveFeed->tripStopActualTime(tripRecord.tripID,
@@ -168,50 +167,32 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                                                         tripRecord.stopID,
                                                         schedArrUTC,
                                                         schedDepUTC,
-                                                        predictedArr,
-                                                        predictedDep);
+                                                        predictArrUTC,
+                                                        predictDepUTC);
 
-                        bool rtMissingForStop   = true;
-                        bool rtArrivalMissing   = true;
-                        bool rtDepartureMissing = true;
-
-                        if (!predictedArr.isNull()) {
-                            tripRecord.realTimeArrival = predictedArr.toTimeZone(_agencyTime.timeZone());
-                            rtArrivalMissing           = false;
-                        }
-                        if (!predictedDep.isNull()) {
-                            tripRecord.realTimeDeparture = predictedDep.toTimeZone(_agencyTime.timeZone());
-                            rtDepartureMissing           = false;
-                        }
-
-                        tripRecord.realTimeOffsetSec = 0;
-                        if (!tripRecord.schArrTime.isNull() && !predictedArr.isNull()) {
-                            rtMissingForStop = false;
-                            tripRecord.realTimeOffsetSec = tripRecord.schArrTime.secsTo(predictedArr);
-                            tripRecord.waitTimeSec       = _agencyTime.secsTo(predictedArr);
-                        } else if (!tripRecord.schDepTime.isNull() && !predictedDep.isNull()) {
-                            rtMissingForStop = false;
-                            tripRecord.realTimeOffsetSec = tripRecord.schDepTime.secsTo(predictedDep);
-                            tripRecord.waitTimeSec       = _agencyTime.secsTo(predictedDep);
-                        }
-
-                        // Time-based statuses (arriving/early/late/on-time), or no real-time data for stop
-                        if ((rtArrivalMissing && rtDepartureMissing) || rtMissingForStop)
-                            tripRecord.tripStatus = MISSING;
-                        else
-                            tripRecord.tripStatus = RUNNING;
+                        // The logic to determine how many seconds to fill for the wait time and what level of real-time
+                        // versus schedule information available to compute lateness is actually rather complex.
+                        fillStopStatWaitTimeOffset(schedArrUTC,
+                                                      schedDepUTC,
+                                                      predictArrUTC,
+                                                      predictDepUTC,
+                                                      tripRecord.stopStatus,
+                                                      tripRecord.waitTimeSec,
+                                                      tripRecord.realTimeOffsetSec,
+                                                      tripRecord.realTimeArrival,
+                                                      tripRecord.realTimeDeparture);
 
                         // Trip has an arrival time, so we can mark a trip as arriving withing 30 seconds
-                        if (!predictedArr.isNull() && _agencyTime.secsTo(predictedArr) < 30)
+                        if (!predictArrUTC.isNull() && _agencyTime.secsTo(predictArrUTC) < 30)
                             tripRecord.tripStatus = ARRIVE;
 
                         // Trip has already departed but still shows up in the feed
-                        if (!predictedDep.isNull() && _agencyTime > predictedDep)
+                        if (!predictDepUTC.isNull() && _agencyTime > predictDepUTC)
                             tripRecord.tripStatus = DEPART;
 
                         // Trip is boarding (current time is between the drop-off and pickup - requires both times))
-                        if (!predictedArr.isNull() && !predictedDep.isNull()) {
-                            if (_agencyTime >= predictedArr && _agencyTime < predictedDep)
+                        if (!predictArrUTC.isNull() && !predictDepUTC.isNull()) {
+                            if (_agencyTime >= predictArrUTC && _agencyTime < predictDepUTC)
                                 tripRecord.tripStatus = BOARD;
                         }
 
@@ -221,7 +202,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
 
                         // Make a stop irrelevant if it has no arrival nor departure data and its schedule time is
                         // purely in the past -- Could this be handled in invalidateTrips() better?
-                        if (rtArrivalMissing && rtDepartureMissing) {
+                        if (predictArrUTC.isNull() && predictDepUTC.isNull()) {
                             if (!tripRecord.schDepTime.isNull() && _agencyTime > tripRecord.schDepTime) {
                                 tripRecord.tripStatus = IRRELEVANT;
                             }
@@ -242,8 +223,10 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
             for (const QPair<QString, quint32> &tripAndIndex : addedTrips[routeID]) {
                 // Make a new tripRecord so we have a place to add current trip information
                 StopRecoTripRec tripRecord;
+
+                // A supplemental trip has a special status for the stop, but as a trip will be considered RUNNING
                 tripRecord.tripStatus        = RUNNING;
-                tripRecord.supplementalTrip  = true;
+                tripRecord.stopStatus        = "SPLM";
                 tripRecord.realTimeDataAvail = true;
 
                 // We cannot reliably map information of a real-time-only trip
@@ -399,7 +382,7 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
     qint32 nbTripsForRoute = 0;
     for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
         QDateTime stopTime;
-        if (tripRecord.realTimeDataAvail && tripRecord.tripStatus != MISSING) {
+        if (tripRecord.realTimeDataAvail && tripRecord.stopStatus != "SCHD") {
             // Use real-time data for the lookahead determination unless the trip is running but no data is present...
             if (!tripRecord.realTimeArrival.isNull()) {
                 stopTime = tripRecord.realTimeArrival;
@@ -417,8 +400,9 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
 
         // Mark trips as invalid if they are outside the time window requested
         if (_lookaheadMins != 0 &&
-            (((tripRecord.tripStatus == SCHEDULE || tripRecord.tripStatus == MISSING) && stopTime > _lookaheadTime) ||
-             (tripRecord.tripStatus == NOSCHEDULE && tripRecord.schSortTime > _lookaheadTime)   )) {
+            (((tripRecord.tripStatus == SCHEDULE || tripRecord.stopStatus == "SCHD")
+              && stopTime > _lookaheadTime) ||
+             (tripRecord.tripStatus == NOSCHEDULE && tripRecord.schSortTime > _lookaheadTime))) {
             tripRecord.tripStatus = IRRELEVANT;
         }
 
@@ -465,6 +449,90 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
         if (tripRecord.tripStatus != IRRELEVANT) {
             ++nbTripsForRoute;
             relevantRouteTrips[routeID].tripRecos.push_back(tripRecord);
+        }
+    }
+}
+
+void TripStopReconciler::fillStopStatWaitTimeOffset(const QDateTime &schArrUTC,
+                                                       const QDateTime &schDepUTC,
+                                                       const QDateTime &preArrUTC,
+                                                       const QDateTime &preDepUTC,
+                                                       QString         &tripStopStatus,
+                                                       qint64          &waitTimeSeconds,
+                                                       qint64          &realTimeOffsetSec,
+                                                       QDateTime       &realTimeArrLT,
+                                                       QDateTime       &realTimeDepLT) const
+{
+    /*
+     * There are 3 different flags an operating trip may have based on the presence of both the
+     * scheduled and predicted times. This chart demonstrates the combination of these times and
+     * the expected tripStatus tag that will be assigned under each. As the primary use of this
+     * moduled is to compute wait times at a stop, preference is given to the arrival time when
+     * possible, but if real-time predictions are available but not scheduled, then try to show the
+     * wait time based on the real-time.
+     *
+     * If we have...                    ... then:
+     * | Scheduled | Predicted |
+     * | Arr | Dep | Arr | Dep |      | waitTimeSec = seconds until:   | tripStopStatus |
+     * +-----+-----+-----+-----+      +--------------------------------+----------------+
+     * |  N  |  N  |  N  |  N  |  ->  | sort-time from static data set |      SCHD      |
+     * |  N  |  N  |  N  |  Y  |  ->  | predicted departure            |      PRED      |
+     * |  N  |  N  |  Y  |  N  |  ->  | predicted arrival              |      PRED      |
+     * |  N  |  N  |  Y  |  Y  |  ->  | predicted arrival              |      PRED      |
+     * |  N  |  Y  |  N  |  N  |  ->  | scheduled departure            |      SCHD      |
+     * |  N  |  Y  |  N  |  Y  |  ->  | predicted departure            |      FULL      |
+     * |  N  |  Y  |  Y  |  N  |  ->  | predicted arrival              |      PRED      |
+     * |  N  |  Y  |  Y  |  Y  |  ->  | predicted departure            |      FULL      |
+     * |  Y  |  N  |  N  |  N  |  ->  | scheduled arrival              |      SCHD      |
+     * |  Y  |  N  |  N  |  Y  |  ->  | predicted departure            |      PRED      |
+     * |  Y  |  N  |  Y  |  N  |  ->  | predicted arrival              |      FULL      |
+     * |  Y  |  N  |  Y  |  Y  |  ->  | predicted arrival              |      FULL      |
+     * |  Y  |  Y  |  N  |  N  |  ->  | scheduled arrival              |      SCHD      |
+     * |  Y  |  Y  |  N  |  Y  |  ->  | predicted departure            |      FULL      |
+     * |  Y  |  Y  |  Y  |  N  |  ->  | predicted arrival              |      FULL      |
+     * |  Y  |  Y  |  Y  |  Y  |  ->  | predicted arrival              |      FULL      |
+     * +-----+-----+-----+-----+      +--------------------------------+----------------+
+     *
+     *                               * Note that this function does not set the SPLM (supplemental / added trip status)
+     */
+
+    // Fill the tripStatus for the stop (FULL / SCHD / PRED)
+    if (preArrUTC.isNull() && preDepUTC.isNull()) {
+        tripStopStatus = "SCHD";
+    } else if ((schArrUTC.isNull() && schDepUTC.isNull()) ||
+               (schArrUTC.isNull() && !schDepUTC.isNull() && !preArrUTC.isNull() && preDepUTC.isNull()) ||
+               (!schArrUTC.isNull() && schDepUTC.isNull() && preArrUTC.isNull() && !preDepUTC.isNull())) {
+        tripStopStatus = "PRED";
+    } else {
+        tripStopStatus = "FULL";
+    }
+
+    // Fill the real-time arrival and departure times if available
+    if (!preArrUTC.isNull()) {
+        realTimeArrLT = preArrUTC.toTimeZone(_agencyTime.timeZone());
+    }
+    if (!preDepUTC.isNull()) {
+        realTimeDepLT = preDepUTC.toTimeZone(_agencyTime.timeZone());
+    }
+
+    // So long as a predicted time is available, the wait time can be rendered based off of it (choose arrival first)
+    // If neither are true, the waitTimeSeconds will be kept as it was from initialization.
+    if (!preArrUTC.isNull()) {
+        waitTimeSeconds = _agencyTime.secsTo(preArrUTC);
+    } else if (!preDepUTC.isNull()) {
+        waitTimeSeconds = _agencyTime.secsTo(preDepUTC);
+    }
+    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ TODO: This should be aligned with mega comment above!
+
+    // Compute the offsets (lateness/earliness) from the scheduled time, if available (tripStatus must be FULL)
+    // Per the specification, preference is given to the arrival time if available.
+    realTimeOffsetSec = 0;
+
+    if (tripStopStatus == "FULL") {
+        if (!schArrUTC.isNull() && !preArrUTC.isNull()) {
+            realTimeOffsetSec = schArrUTC.secsTo(preArrUTC);
+        } else if (!schDepUTC.isNull() && !preDepUTC.isNull()) {
+            realTimeOffsetSec = schDepUTC.secsTo(preDepUTC);
         }
     }
 }

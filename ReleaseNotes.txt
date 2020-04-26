@@ -1,5 +1,31 @@
-THIS RELEASE: VERSION 1.2 Features and Fixes:
+THIS RELEASE: Version 1.3 Features and Fixes:
 ---------------------------------------------
+ - Bug discovered with CT Transit - scheduled trips that have a real time prediction but no scheduled arrival/
+   departure time from which to base offsets were flagged as "data missing". As a result, the NEX/NCF responses
+   had their "supplemental" field replaced with a more exotic stop_status, which can hold:
+    - "FULL" - schedule and predicted times are available and the offset_seconds is valid
+   In these stop_status responses, the offset_seconds should not be used as there is nothing to show:
+    - "SPLM" - the trip is from the supplemental realtime data
+    - "SCHD" - trip is in the realtime feed but has no prediction for the particular stop ID(s) requested
+    - "PRED" - arrival/departure time comes only from the realtime feed (predictions) and no
+ - When pulling in local trip updates (using -r with a local file at server startup), the 3-minute rule for
+   most recent realtime transactions is not enforced (making debugging easier)
+ - Documentation spelling fixes
+
+SHOULD FIX (for Version 1.4):
+-----------------------------
+ > RTR should require a date? The whole notion of start_date is really poorly defined in realtime data...
+
+ > When processing local files (instead of a URL) ... for instance in a distributed capacity where the protobuf
+   might be stores on a NAS or external filesystem and shared between multiple backend machined (scalability FTW)
+   it would be good to watch that file location for changes and update the real time data gateway in an
+   event-driven way. Local file retrieval should not "just" be about debugging, it would be a good feature!
+
+
+PREVIOUS RELEASES:
+
+VERSION 1.2 Features and Fixes:
+-------------------------------
  - You can now specify the number of threads to dedicate to GtfsProc at startup (-t option)
  - The word "canceled" is now spelled correctly in DRT responses
  - To make NCF / NEX more efficient, the route details (colors, names, etc.) are moved out of the
@@ -15,18 +41,6 @@ THIS RELEASE: VERSION 1.2 Features and Fixes:
  - Faster lookups are accomplished by using QHash instead of QMap, but this means having to sort output
  - Helper script added to facilitate daily data refresh attempts (gtfsproc_agent.pl)
  - Transaction logging (to standard error) is more cleaned up (QTime serialization in particular)
-
-SHOULD FIX (for Version 1.3):
------------------------------
- > RTR should require a date? The whole notion of start_date is really poorly defined in realtime data...
-
- > When processing local files (instead of a URL) ... for instance in a distributed capacity where the protobuf
-   might be stores on a NAS or external filesystem and shared between multiple backend machined (scalability FTW)
-   it would be good to watch that file location for changes and update the real time data gateway in an
-   event-driven way. Local file retrieval should not "just" be about debugging, it would be a good feature!
-
-
-PREVIOUS RELEASES:
 
 VERSION 1.1 Features and Fixes:
 -------------------------------

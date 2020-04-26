@@ -36,13 +36,12 @@ typedef enum {
     SCHEDULE,   // Trip appears in the static schedule / has no real-time data associated
     NOSCHEDULE, // Trip appears in the static schedule, no real-time data associated, but also has no schedule time
     IRRELEVANT, // Trip information is too old (no longer running, for ex.) or beyond cutoff: should not appear
-    RUNNING,    // Trip is running - compare expected times to determine lateness (offset from schedule)
     DEPART,     // Trip has departed the stop_id (but it still appears in the real-time feed)
     BOARD,      // Trip is at the stop (current time is between arrival and departure time)
     ARRIVE,     // Trip is arriving at the stop_id (< 30 seconds)
     SKIP,       // Trip is skipping the stop_id
     CANCEL,     // Trip is cancelled and will not serve any stop (especially this one)
-    MISSING     // Trip shows as operating but has no time associated for this stop_id
+    RUNNING     // Trip is running, is not skipping the stop, nor is it canceled
 } TripRecStat;
 
 /*
@@ -66,10 +65,10 @@ typedef struct {
     qint32       stopSequenceNum;     // Stop Sequence within the trip (some trips can serve a stop_id multiple times!)
     QString      stopID;              // Stop ID of the stop in question
     qint32       stopTimesIndex;      // Offset index of stop into the stop_times table of the stop within the trip
-    bool         supplementalTrip;    // TRUE if the trip_id is a supplemental one (no corresponding static schedule)
     bool         beginningOfTrip;     // TRUE if the stop_id is at the beginning of the trip
     bool         endOfTrip;           // TRUE if the stop_id is at the end of the trip
     QString      vehicleRealTime;     // Vehicle ID of an operating trip with real-time data
+    QString      stopStatus;          // 4-letter code indicating validity of realTimeOffsetSec
 } StopRecoTripRec;
 
 /*
@@ -158,6 +157,22 @@ private:
     void invalidateTrips(const QString                    &routeID,
                          QHash<QString, StopRecoRouteRec> &fullTrips,
                          QHash<QString, StopRecoRouteRec> &relevantRouteTrips);
+
+    // Determines the running type of a scheduled trip with real-time information at a particular stop.
+    // (In particular: RUN_FULLPRD vs. RUN_PR_ONLY vs. RUN_SC_ONLY)
+    // Depending on the schedule vs. real-time information present, the wait time is also filled.
+    //
+    // Fill schArrUTC, schDepUTC, preArrUTC, preDepUTC from the results of calling tripStopActualTime()
+    // The output parameters are the tripStopStatus, waitTimeSeconds, realTimeArrLT, realTimeDepLT (of StopRecoTripRec)
+    void fillStopStatWaitTimeOffset(const QDateTime &schArrUTC,
+                                    const QDateTime &schDepUTC,
+                                    const QDateTime &preArrUTC,
+                                    const QDateTime &preDepUTC,
+                                    QString         &tripStopStatus,
+                                    qint64          &waitTimeSeconds,
+                                    qint64          &realTimeOffsetSec,
+                                    QDateTime       &realTimeArrLT,
+                                    QDateTime       &realTimeDepLT) const;
 
     /*
      * Data Members

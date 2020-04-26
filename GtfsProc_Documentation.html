@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 1.2)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 1.3)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -33,15 +33,15 @@
     Thank you for trying GtfsProc! This is a GTFS data processor to present stop, route, service, and schedule lookups, but its principal purpose is to provide wait time estimations for stops in a transit system, integrating GTFS-Realtime data where available. All data processing is done on a server process in response to client queries over a TCP connection. This allows the process to work over network connections or on local machines.
 </p>
 <p>
-    GTFSProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GTFSProc code is written by Daniel Brook, (c) 2018-2020, GPL v 3.
+    GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook, (c) 2018-2020, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 1.2 (13-Apr-2020)</b>
+    This is the documentation for <b>GtfsProc Version 1.3 (26-Apr-2020)</b>
 </p>
 
 <h1>Server Options</h1>
 <p>
-    The GTFSProc server can be started with a variety of options, encompassing testing / profiling and run-time production features (the binary is under the gtfsproc directory).
+    The GtfsProc server can be started with a variety of options, encompassing testing / profiling and run-time production features (the binary is under the gtfsproc directory).
 </p>
 <ul>
     <li><b class="fixed">-v, --version</b>: Just display the version information.</li>
@@ -71,7 +71,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 1.2 - Running on Process ID: 22112<br>
+GtfsProc version 1.3 - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>
@@ -100,7 +100,7 @@ SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS<br>
 
 <h2>Automating the Data Retrieval and Server Restarts</h2>
 <p>
-    In the real world, agencies will periodically update transit data at an unknown schedule. The provided gtfsproc_agent.sh script can be updated per its instructions to stop the server, look for new data (downloading it if necessary) and reload the server automatically at an hour of your choosing each night.
+    In the real world, agencies will periodically update transit data at an unknown schedule. The provided GtfsProc_Agent.pl script can be updated per its instructions to stop the server, look for new data (downloading it if necessary) and reload the server automatically at an hour of your choosing each night.
 </p>
 
 <h1>Requesting and Viewing Data with a Client</h1>
@@ -2462,7 +2462,7 @@ NEX {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
             integer
         </td>
         <td>
-            The number of seconds until the trip arrives at the stop ID. If only departure time is available, then it is the wait time for the departure.
+            The number of seconds until the trip arrives at the stop ID. If only departure time is available, then it is the wait time for the departure. Note that for trips with no scheduled arrival/departure times nor any predictions available, the wait time displayed is actually for the next available predicted time in the sequence of the trip.
         </td>
     </tr>
     <tr>
@@ -2549,13 +2549,12 @@ NEX {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
         <td>
             Four-character code indicating the status of the trip in relation to the requested stop ID:
             <ul>
-                <li><b class="fixed">ARRV</b>: Vehicle is arriving at the stop (within 60 seconds, this is only possible if the trip has a real-time arrival time)</li>
-                <li><b class="fixed">BRDG</b>: Vehicle is stopped at the stop (system time is after arrival but before departure, real-time information for departure & arrival required)</li>
-                <li><b class="fixed">DPRT</b>: Vehicle has departed the stop (departure time required in the real-time feed)</li>
-                <li><b class="fixed">RNNG</b>: Vehicle has real-time trip information for this stop (i.e. the trip is “running” or otherwise has predictions available)</li>
+                <li><b class="fixed">ARRV</b>: Vehicle is arriving at the stop (within 30 seconds, this is only possible if the trip has a real-time arrival time)</li>
+                <li><b class="fixed">BRDG</b>: Vehicle is stopped at the stop (system time is after arrival but before departure, real-time information for departure and arrival required)</li>
+                <li><b class="fixed">DPRT</b>: Vehicle has departed the stop (departure time required in the real-time feed, this status is only shown so long as the stop is still in the realtime feed)</li>
+                <li><b class="fixed">RNNG</b>: Trip has real-time information </li>
                 <li><b class="fixed">SKIP</b>: Vehicle will skip the requested stop</li>
                 <li><b class="fixed">CNCL</b>: The trip has been canceled</li>
-                <li><b class="fixed">MSNG</b>: Real-time data is available for some of this trip, but not for the stop requested</li>
             </ul>
         </td>
     </tr>
@@ -2589,7 +2588,7 @@ NEX {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
             integer
         </td>
         <td>
-            How late (positive value) or early (negative value) the trip is going to be at the requested stop
+            How late (positive value) or early (negative value) the trip is going to be at the requested stop. <b>This is only valid if stop_status is "FULL"</b>.
         </td>
     </tr>
     <tr>
@@ -2605,13 +2604,19 @@ NEX {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
     </tr>
     <tr>
         <td class="fixed">
-            supplemental
+            stop_status
         </td>
         <td class="fixed">
-            Boolean
+            string
         </td>
         <td>
-            This will be true if the trip is supplemental, and therefore lateness/scheduled information is not available
+            Four-character code indicating the presence of real-time vs. scheduled data:
+            <ul>
+                <li><b class="fixed">FULL</b>: The wait_time_sec and offset_seconds are filled based on scheduled and real-time information for the stop ID.</li>
+                <li><b class="fixed">SCHD</b>: Real-time data is available for the trip at large, but not for this particular stop (usually the current time is too far in the future  and the whole trip is not populated with predictions yet (use RTR {trip ID} to see). The wait_time_sec field is therefore based off the scheduled time available and offset_seconds should be ignored.</li>
+                <li><b class="fixed">PRED</b>: The wait_time_sec field has been filled based off of prediction data, but there was no scheduled time from which to base offset_seconds (which should be ignored).</li>
+                <li><b class="fixed">SPLM</b>: The trip is supplemental (from the added_trips set) and therefore will no have schedule times from which to compute offset_seconds (which should be ignored).</li>
+            </ul>
         </td>
     </tr>
 </table>

@@ -786,9 +786,10 @@ void ClientGtfs::repl()
                             }
 
                             if (rtStatus == "RNNG" || rtStatus == "ARRV" || rtStatus == "BRDG" || rtStatus == "DPRT") {
-                                if (rt["supplemental"].toBool()) {
-                                    // If a supplemental trip, there is no schedule to go off of, so it should be marked
-                                    screen << qSetFieldWidth(c7) << "SPLM" << qSetFieldWidth(0);
+                                // If a supplemental trip or a trip without schedul / departure information, note it
+                                QString stopStatus = rt["stop_status"].toString();
+                                if (stopStatus == "SPLM" || stopStatus == "SCHD" || stopStatus == "PRED") {
+                                    screen << qSetFieldWidth(c7) << stopStatus << qSetFieldWidth(0);
                                 } else {
                                     // A running trip is either on-time, late, or early, depending on the offset
                                     qint64 offsetSec = rt["offset_seconds"].toInt();
@@ -955,9 +956,10 @@ void ClientGtfs::repl()
                         }
 
                         if (rtStatus == "RNNG" || rtStatus == "ARRV" || rtStatus == "BRDG" || rtStatus == "DPRT") {
-                            if (rt["supplemental"].toBool()) {
-                                // If a supplemental trip, there is no schedule to go off of, so it should be marked
-                                screen << qSetFieldWidth(c8) << "SPLM" << qSetFieldWidth(0);
+                            // If a supplemental trip or a trip without schedul / departure information, note it
+                            QString stopStatus = rt["stop_status"].toString();
+                            if (stopStatus == "SPLM" || stopStatus == "SCHD" || stopStatus == "PRED") {
+                                screen << qSetFieldWidth(c7) << stopStatus << qSetFieldWidth(0);
                             } else {
                                 // A running trip is either on-time, late, or early, depending on the offset
                                 qint64 offsetSec = rt["offset_seconds"].toInt();
