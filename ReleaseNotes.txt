@@ -12,6 +12,12 @@ THIS RELEASE: Version 1.3 Features and Fixes:
    most recent realtime transactions is not enforced (making debugging easier)
  - Documentation spelling fixes
 
+Addendum: Patch Release 1.3a:
+-----------------------------
+ - In NEX transactions, the route-level organization is lexicographically done by route ID.
+   (this means that the route sorting in output will match however the route IDs were defined by agencies)
+
+
 SHOULD FIX (for Version 1.4):
 -----------------------------
  > RTR should require a date? The whole notion of start_date is really poorly defined in realtime data...

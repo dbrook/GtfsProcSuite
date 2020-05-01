@@ -23,15 +23,12 @@
 #include <QJsonArray>
 #include <QDebug>
 
-// Ridiculous sort function for the NCF module
-inline void swap(QJsonValueRef left, QJsonValueRef right)
+static inline void swap(QJsonValueRef v1, QJsonValueRef v2)
 {
-    // This seems horrible!
-    QJsonValue temp(left);
-    left  = QJsonValue(right);
-    right = temp;
+    QJsonValue temp(v1);
+    v1 = QJsonValue(v2);
+    v2 = temp;
 }
-
 
 namespace GTFS {
 
@@ -151,6 +148,13 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
             routeItem["trips"] = stopTrips;
             stopRouteArray.push_back(routeItem);
         }
+
+        // Sort routes lexicographically by route ID ...
+        // (agencies are wildly inconsistent about how route IDs match short/long names, so there's no ideal/normal way)
+        std::sort(stopRouteArray.begin(), stopRouteArray.end(),
+                  [](const QJsonValue &routeA, const QJsonValue &routeB) {
+            return routeA.toObject()["route_id"].toString() < routeB.toObject()["route_id"].toString();
+        });
 
         // Finally, attach the route list!
         resp["routes"] = stopRouteArray;
