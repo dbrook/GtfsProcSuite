@@ -149,6 +149,7 @@ public:
     // Fill an array of all the stop times for a requested real-time trip_id
     // Passes back route_id and stopTimes
     void fillStopTimesForTrip(const QString              &tripID,
+                              const QTimeZone            &agencyTZ,
                               const QVector<StopTimeRec> &tripTimes,
                               QVector<rtStopTimeUpdate>  &rtStopTimes) const;
 

@@ -319,6 +319,7 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
 }
 
 void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID,
+                                              const QTimeZone            &agencyTZ,
                                               const QVector<StopTimeRec> &tripTimes,
                                               QVector<rtStopTimeUpdate>  &rtStopTimes) const
 {
@@ -333,16 +334,16 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID
 
     // Determine the service date of the trip based on the realtime start date information
     // This is needed for purely-offset-based trip updates since the offset must be computed to an actual DateTime
-    // TODO: this needs to be tested with trips-after-midnight because I have a feeling it won't work...
     QString decodedSvcDate = QString::fromStdString(tri.trip().start_date());
-    QDate  serviceDate(decodedSvcDate.mid(0, 4).toInt(),
-                       decodedSvcDate.mid(4, 2).toInt(),
-                       decodedSvcDate.mid(6, 2).toInt());
-    QTime  localNoon(12, 0, 0);
+    QDate rtServiceDate(decodedSvcDate.mid(0, 4).toInt(),
+                        decodedSvcDate.mid(4, 2).toInt(),
+                        decodedSvcDate.mid(6, 2).toInt());
+    QDate feedActualDate = QDateTime::fromSecsSinceEpoch(_tripUpdate.header().timestamp()).toUTC().date();
+    QDate preferredDate  = rtServiceDate.isValid() ? rtServiceDate : feedActualDate;
+    QDateTime localNoon  = QDateTime(preferredDate, QTime(12, 0, 0), agencyTZ);
 
     for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
         rtStopTimeUpdate stu;
-
         stu.stopID = QString::fromStdString(tri.stop_time_update(stopTimeIdx).stop_id());
 
         /*
@@ -357,8 +358,8 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID
                 // Given a stop sequence try and find the scheduled times from the static feed (supplemental trips N/A)
                 for (const StopTimeRec &stopRec : tripTimes) {
                     if (stopRec.stop_sequence == tri.stop_time_update(stopTimeIdx).stop_sequence()) {
-                        schArrTime = QDateTime(serviceDate, localNoon.addSecs(stopRec.arrival_time));
-                        schDepTime = QDateTime(serviceDate, localNoon.addSecs(stopRec.departure_time));
+                        schArrTime = localNoon.addSecs(stopRec.arrival_time);
+                        schDepTime = localNoon.addSecs(stopRec.departure_time);
                         break;
                     }
                 }
@@ -374,8 +375,8 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID
                 // Given a stop sequence try and find the scheduled times from the static feed (supplemental trips N/A)
                 for (const StopTimeRec &stopRec : tripTimes) {
                     if (stopRec.stop_id == QString::fromStdString(tri.stop_time_update(stopTimeIdx).stop_id())) {
-                        schArrTime = QDateTime(serviceDate, localNoon.addSecs(stopRec.arrival_time));
-                        schDepTime = QDateTime(serviceDate, localNoon.addSecs(stopRec.departure_time));
+                        schArrTime = localNoon.addSecs(stopRec.arrival_time);
+                        schDepTime = localNoon.addSecs(stopRec.departure_time);
                         stu.stopSequence = stopRec.stop_sequence;
                         break;
                     }

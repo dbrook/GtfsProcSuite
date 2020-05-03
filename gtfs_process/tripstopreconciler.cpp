@@ -173,14 +173,14 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                         // The logic to determine how many seconds to fill for the wait time and what level of real-time
                         // versus schedule information available to compute lateness is actually rather complex.
                         fillStopStatWaitTimeOffset(schedArrUTC,
-                                                      schedDepUTC,
-                                                      predictArrUTC,
-                                                      predictDepUTC,
-                                                      tripRecord.stopStatus,
-                                                      tripRecord.waitTimeSec,
-                                                      tripRecord.realTimeOffsetSec,
-                                                      tripRecord.realTimeArrival,
-                                                      tripRecord.realTimeDeparture);
+                                                   schedDepUTC,
+                                                   predictArrUTC,
+                                                   predictDepUTC,
+                                                   tripRecord.stopStatus,
+                                                   tripRecord.waitTimeSec,
+                                                   tripRecord.realTimeOffsetSec,
+                                                   tripRecord.realTimeArrival,
+                                                   tripRecord.realTimeDeparture);
 
                         // Trip has an arrival time, so we can mark a trip as arriving withing 30 seconds
                         if (!predictArrUTC.isNull() && _agencyTime.secsTo(predictArrUTC) < 30)
