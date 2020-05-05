@@ -45,7 +45,8 @@ RealTimeGateway &RealTimeGateway::inst()
 void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath,
                                           qint32         refreshIntervalSec,
                                           bool           showProtobuf,
-                                          bool           skipDateMatching)
+                                          bool           skipDateMatching,
+                                          bool           propagateOffsetSec)
 {
     // TODO : Make this more robust?
     if (realTimeFeedPath.startsWith("http://") || realTimeFeedPath.startsWith("https://")) {
@@ -63,8 +64,9 @@ void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath,
     // Render the protocol buffer to QDebug every time one is received
     _debugProtobuf = showProtobuf;
 
-    //
+    // Run-time matching and offset parameters
     _skipDateMatching = skipDateMatching;
+    _propOffsetSec    = propagateOffsetSec;
 }
 
 qint64 RealTimeGateway::secondsToFetch() const
@@ -165,9 +167,9 @@ void RealTimeGateway::refetchData()
                 delete _sideA;
 
             if (!_dataPathLocal.isNull()) {
-                _sideA = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf, _skipDateMatching);
+                _sideA = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf, _skipDateMatching, _propOffsetSec);
             } else {
-                _sideA = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf, _skipDateMatching);
+                _sideA = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf, _skipDateMatching, _propOffsetSec);
             }
         } else if (currentSide == SIDE_A) {
             nextSide = SIDE_B;
@@ -176,9 +178,9 @@ void RealTimeGateway::refetchData()
                 delete _sideB;
 
             if (!_dataPathLocal.isNull()) {
-                _sideB = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf, _skipDateMatching);
+                _sideB = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf, _skipDateMatching, _propOffsetSec);
             } else {
-                _sideB = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf, _skipDateMatching);
+                _sideB = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf, _skipDateMatching, _propOffsetSec);
             }
         }
 

@@ -47,6 +47,7 @@ public:
      *                   NOTE: this is in the timezone of the GTFS agency.txt file time
      * showProtobuf:    set to true to print realtime updates to a string on QDebug each time an update is received
      * skipRTDateMatch: do not perform realtime start date matching (some agencies don't use 24+hr clock for rt updates)
+     * propOffsetSec:
      */
     ServeGTFS(QString  dbRootPath,
               QString  realTimePath,
@@ -55,6 +56,7 @@ public:
               bool     showProtobuf,
               bool     use12h,
               bool     skipRTDateMatch,
+              bool     propOffsetSec,
               QObject *parent        = nullptr);
     virtual ~ServeGTFS();
 

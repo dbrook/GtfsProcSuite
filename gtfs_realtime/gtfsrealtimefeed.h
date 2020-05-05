@@ -64,6 +64,9 @@ typedef struct {
  * actual service date + times able to go beyond 24:00:00, while others use the actual service date + clocks which go
  * to 23:59:59 and then 00:00:00. Use skipDateMatching == true to skip any enforcement of the start date when matching
  * trip IDs in the realtime data set.
+ *
+ * Agencies may also only provide a prediction for the next stop in a running trip. The departure offset can be
+ * cascaded to all stops in the trip by setting propagateOffsetSec to true.
  */
 class RealTimeTripUpdate : public QObject
 {
@@ -72,10 +75,12 @@ public:
     explicit RealTimeTripUpdate(const QString &rtPath,
                                 bool           dumpProtobuf,
                                 bool           skipDateMatching,
+                                bool           propagateOffsetSec,
                                 QObject       *parent = nullptr);
     explicit RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
                                 bool              dumpProtobuf,
                                 bool              skipDateMatching,
+                                bool              propagateOffsetSec,
                                 QObject          *parent = nullptr);
     virtual ~RealTimeTripUpdate();
 
@@ -205,6 +210,9 @@ private:
 
     // Skip start date/time matching process
     bool   _noDateEnforcement;
+
+    // Spread offset-seconds to all subsequent stops in a trip with realtime information
+    bool   _extrapolateOffset;
 };
 
 } // namespace GTFS

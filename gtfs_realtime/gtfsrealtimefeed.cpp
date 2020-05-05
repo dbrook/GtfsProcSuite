@@ -32,8 +32,9 @@ namespace GTFS {
 RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath,
                                        bool           dumpProtobuf,
                                        bool           skipDateMatching,
+                                       bool           propagateOffsetSec,
                                        QObject        *parent)
-    : QObject(parent), _noDateEnforcement(skipDateMatching)
+    : QObject(parent), _noDateEnforcement(skipDateMatching), _extrapolateOffset(propagateOffsetSec)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -52,8 +53,9 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath,
 RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
                                        bool              dumpProtobuf,
                                        bool              skipDateMatching,
+                                       bool              propagateOffsetSec,
                                        QObject          *parent)
-    : QObject(parent), _noDateEnforcement(skipDateMatching)
+    : QObject(parent), _noDateEnforcement(skipDateMatching), _extrapolateOffset(propagateOffsetSec)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -169,6 +171,8 @@ const QString RealTimeTripUpdate::getRouteID(const QString &trip_id, const QDate
     }
 
     // TODO: THE DATE NEEDS TO BE HANDLED?
+    //       sit on this longer ... given the SEPTA and RTC Southern Nevada agencies using no start date/time in their
+    //       real time trip IDs, this is more complicated than I thought
 
     routeIDrt = QString::fromStdString(_tripUpdate.entity(tripUpdateEntity).trip_update().trip().route_id());
     return routeIDrt;
@@ -273,6 +277,7 @@ bool RealTimeTripUpdate::tripStopActualTime(const QString   &trip_id,
 
     const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
 
+    // Conventional flow (when trip update has multiple stops encoded)
     // Either the realtime update is in POSIX-style seconds-since-UNIX-epoch UTC timestamps OR just offset-seconds
     for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
         const transit_realtime::TripUpdate_StopTimeUpdate &stu = tri.stop_time_update(stopTimeIdx);
@@ -286,6 +291,16 @@ bool RealTimeTripUpdate::tripStopActualTime(const QString   &trip_id,
             fillPredictedTime(stu, schedArrTimeUTC, schedDepTimeUTC, realArrTimeUTC, realDepTimeUTC);
             return true;
         }
+    }
+
+    /*
+     * If no exact match for the stop id or sequence was found, the server might have been configured to extrapolate
+     * whatever the last-known offset is present into the rest of the trip ID
+     */
+    if (_extrapolateOffset) {
+        // Apply the last-known offsets to the scheduled time if possible
+        const transit_realtime::TripUpdate_StopTimeUpdate &stu = tri.stop_time_update(tri.stop_time_update_size() - 1);
+        fillPredictedTime(stu, schedArrTimeUTC, schedDepTimeUTC, realArrTimeUTC, realDepTimeUTC);
     }
 
     // Exhausted the dataset with no success, indicate nothing could be filled

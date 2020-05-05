@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 1.3)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 1.3b)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook, (c) 2018-2020, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 1.3 (26-Apr-2020)</b>
+    This is the documentation for <b>GtfsProc Version 1.3b (05-May-2020)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -52,9 +52,11 @@
     <li><b class="fixed">-r, --realTimeData {URL or file path}</b>: URL or local file path of the protocol buffer GTFS-Realtime file (optional).</li>
     <li><b class="fixed">-u, --realTimeUpdate {number of seconds}</b>: Specify the number of seconds between each attempt to refresh GTFS-Realtime data (defaults to 120 seconds).</li>
     <li><b class="fixed">-f, --fixedDateTime {year,month,day,hour,minute,second}</b>: Force the time of all transactions to a fixed date and time (this is useful for debugging, in particular with integrating GTFS-Realtime information) where a naturally-advancing clock might make a condition/transaction unreproducible.</li>
-    <li><b class="fixed">-x, examineRTPB</b>: Dumps the GTFS-Realtime decoded into a JSON format to standard error.</li>
-    <li><b class="fixed">-a, use12hour</b>: Shows all times using a 12-hour format with AM/PM indicators (the default display is with 24-hour clocks).</li>
-    <li><b class="fixed">-n, noRTDate</b>: Performs a looser form of date matching for GTFS-Realtime trips (some agencies use start times with trips after midnight with the actual date instead of the service date to which the trip belongs, and this flag will not enforce that check).</li>
+    <li><b class="fixed">-x, --examineRTPB</b>: Dumps the GTFS-Realtime decoded into a JSON format to standard error.</li>
+    <li><b class="fixed">-a, --use12hour</b>: Shows all times using a 12-hour format with AM/PM indicators (the default display is with 24-hour clocks).</li>
+    <li><b class="fixed">-n, --noRTDate</b>: Performs a looser form of date matching for GTFS-Realtime trips (some agencies use start times with trips after midnight with the actual date instead of the service date to which the trip belongs, and this flag will not enforce that check).</li>
+    <li><b class="fixed">-e, --extrapRT</b>: Extrapolates / copies the last arrival/departure information of a real time trip update to the rest of the stops along the trip's schedule. This should only be used with agencies that provide offset_seconds and not an actual arrival / departure time in POSIX-seconds-since-epoch format.
+    </li>
 </ul>
 
 <h2>Simple Server Startup Guide</h2>
@@ -71,7 +73,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 1.3 - Running on Process ID: 22112<br>
+GtfsProc version 1.3b - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>

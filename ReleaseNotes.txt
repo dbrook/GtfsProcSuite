@@ -17,6 +17,13 @@ Addendum: Patch Release 1.3a:
  - In NEX transactions, the route-level organization is lexicographically done by route ID.
    (this means that the route sorting in output will match however the route IDs were defined by agencies)
 
+Addendum: Patch Release 1.3b:
+-----------------------------
+ - Created "-e" option for allowing the last-known real-time information to "cascade" through the rest of the
+   trip (specifically done for SEPTA Rail and RTC Southern Nevada feeds which only have one update per real-
+   time trip update. These agencies also do not provide start dates/times in those feeds, so the "-n" option
+   was used to test and validate the new feature.)
+
 
 SHOULD FIX (for Version 1.4):
 -----------------------------

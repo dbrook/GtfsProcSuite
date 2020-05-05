@@ -49,7 +49,8 @@ public:
     void setRealTimeFeedPath(const QString &realTimeFeedPath,
                              qint32         refreshIntervalSec,
                              bool           showProtobuf,
-                             bool           skipDateMatching);
+                             bool           skipDateMatching,
+                             bool           propagateOffsetSec);
 
     // How long until the next fetch?
     qint64 secondsToFetch() const;
@@ -96,6 +97,7 @@ private:
     QDateTime           _latestRealTimeTxn;  // Stores the date of the most recent transaction requesting realtime data
     bool                _debugProtobuf;      // true if a protobuf should be serialized each time it is received
     bool                _skipDateMatching;   // true to skip all date matching from schedule trips and realtime feed
+    bool                _propOffsetSec;      // true to propagate the last real-time offset to remaining stops in trip
     RealTimeTripUpdate *_sideA;
     RealTimeTripUpdate *_sideB;
 };

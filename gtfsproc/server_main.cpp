@@ -73,6 +73,8 @@ int main(int argc, char *argv[])
                                  QCoreApplication::translate("main", "Show times with 12-hour AM/PM."));
     QCommandLineOption noRTDateMatch(QStringList() << "n" << "noRTDate",
                                      QCoreApplication::translate("main", "Skip date match process for realtime."));
+    QCommandLineOption extrapOffsets(QStringList() << "e" << "extrapRT",
+                                     QCoreApplication::translate("main", "Extend offset seconds in realtime trips."));
 
     parser.addOption(dataRootOption);
     parser.addOption(serverPortOption);
@@ -83,6 +85,7 @@ int main(int argc, char *argv[])
     parser.addOption(dumpRTProtobuf);
     parser.addOption(ampmTimes);
     parser.addOption(noRTDateMatch);
+    parser.addOption(extrapOffsets);
     parser.process(a);
 
     QString unchangingLocalTime;
@@ -136,6 +139,11 @@ int main(int argc, char *argv[])
         skipRTDateMatching = true;
     }
 
+    bool extrapolateRTOffset = false;
+    if (parser.isSet(extrapOffsets)) {
+        extrapolateRTOffset = true;
+    }
+
     int nbProcThreads = 1;
     if (parser.isSet(serverThreads)) {
         nbProcThreads = parser.value(serverThreads).toInt();
@@ -148,7 +156,8 @@ int main(int argc, char *argv[])
                                 unchangingLocalTime,
                                 protobufToQDebug,
                                 use12HourTimes,
-                                skipRTDateMatching);
+                                skipRTDateMatching,
+                                extrapolateRTOffset);
     gtfsRequestServer.displayDebugging();
 
     /*
