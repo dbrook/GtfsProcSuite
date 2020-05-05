@@ -87,8 +87,11 @@ public:
     /*
      * General status functions / diagnostics
      */
-    // Time of feed (in seconds since UNIX epoch - UTC)
+    // Time of feed (in a QDateTime)
     QDateTime getFeedTime() const;
+
+    // Time of feed (in seconds since UNIX epoch - UTC). If this returns 0, an empty buffer was downloaded
+    quint64 getFeedTimePOSIX() const;
 
     // Version of the GTFS-Realtime message
     const QString getFeedGTFSVersion() const;

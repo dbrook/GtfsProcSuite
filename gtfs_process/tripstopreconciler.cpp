@@ -186,8 +186,8 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                         if (!predictArrUTC.isNull() && _agencyTime.secsTo(predictArrUTC) < 30)
                             tripRecord.tripStatus = ARRIVE;
 
-                        // Trip has already departed but still shows up in the feed
-                        if (!predictDepUTC.isNull() && _agencyTime > predictDepUTC)
+                        // Trip has already departed, still shows up in the feed and departed more than 30 seconds ago
+                        if (!predictDepUTC.isNull() && _agencyTime.secsTo(predictDepUTC) < -30)
                             tripRecord.tripStatus = DEPART;
 
                         // Trip is boarding (current time is between the drop-off and pickup - requires both times))
@@ -268,7 +268,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                     tripRecord.tripStatus = ARRIVE;
 
                 // Trip has already departed but still shows up in the feed
-                if (!prDepTime.isNull() && _agencyTime > prDepTime)
+                if (!prDepTime.isNull() && _agencyTime.secsTo(prDepTime) < -30)
                     tripRecord.tripStatus = DEPART;
 
                 // Trip is boarding (current time is between the drop-off and pickup - requires both times))

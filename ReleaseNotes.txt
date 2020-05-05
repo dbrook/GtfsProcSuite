@@ -27,6 +27,9 @@ Addendum: Patch Release 1.3b:
  - Added documentation for how to use the -f / --fixedDateTime option for debugging a live feed
  - If an empty real-time-trip-update is retrieved, now the previous update is held until the next refresh
    interval is reached and tried again. This is for CTTransit, where empty feeds are sometimes found.
+ - DPRT (Departed) flag will show up for 30 second after departure time or when the real-time trip-update
+   is refreshed an no longer shows the stop in question for NEX/NCF transactions. Originally the display of
+   departed trips at a stop would persist until a new buffer was retrieved.
 
 
 SHOULD FIX (for Version 1.4):

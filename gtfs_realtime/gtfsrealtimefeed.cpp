@@ -84,6 +84,11 @@ QDateTime RealTimeTripUpdate::getFeedTime() const
     return QDateTime::fromSecsSinceEpoch(_tripUpdate.header().timestamp());
 }
 
+quint64 RealTimeTripUpdate::getFeedTimePOSIX() const
+{
+    return _tripUpdate.header().timestamp();
+}
+
 const QString RealTimeTripUpdate::getFeedGTFSVersion() const
 {
     return QString::fromStdString(_tripUpdate.header().gtfs_realtime_version());

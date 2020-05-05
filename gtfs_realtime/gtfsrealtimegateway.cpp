@@ -184,13 +184,24 @@ void RealTimeGateway::refetchData()
             }
         }
 
-        // Make the switch to the next side after the data is ingested
-        if (nextSide == SIDE_A) {
-            _sideA->setDownloadTimeMSec(end - start);
-            setActiveFeed(SIDE_A);
-        } else if (nextSide == SIDE_B) {
-            _sideB->setDownloadTimeMSec(end - start);
-            setActiveFeed(SIDE_B);
+        // Is the new RealTimeTripUpdate actually filled with anything?
+        // (Sometimes it trolls us by being empty, in which case just fall back to the version we have)
+        bool skipBufferSwitch = false;
+        if ((currentSide == SIDE_B && nextSide == SIDE_A && _sideA->getFeedTimePOSIX() == 0) ||
+            (currentSide == SIDE_A && nextSide == SIDE_B && _sideB->getFeedTimePOSIX() == 0)) {
+            qDebug() << "  (RTTU) EMPTY TRIP UPDATES FILE, Skipping buffer swap";
+            skipBufferSwitch = true;
+        }
+
+        // Make the switch to the next side after the data is successfully ingested
+        if (!skipBufferSwitch) {
+            if (nextSide == SIDE_A) {
+                _sideA->setDownloadTimeMSec(end - start);
+                setActiveFeed(SIDE_A);
+            } else if (nextSide == SIDE_B) {
+                _sideB->setDownloadTimeMSec(end - start);
+                setActiveFeed(SIDE_B);
+            }
         }
     } catch (...) {
         // If an exception is raised at any point, it should be considered the same as an empty dataset error
