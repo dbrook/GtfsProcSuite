@@ -23,24 +23,34 @@
 my $gtfsProcServer = "/opt/gtfsproc/gtfsproc";
 
 # Web location of Transit Operator's Static Dataset
-my $agencyDataLoc  = "https://cdn.mbta.com/MBTA_GTFS.zip";
+my $agencyDataLoc  = "";
+# Example:
+#my $agencyDataLoc  = "https://cdn.mbta.com/MBTA_GTFS.zip";
 
 # Local static dataset download directory (should ONLY hold the dataset, this entire
 # directory is purged when new data is downloaded!)
-my $staticDataLoc  = "/opt/gtfsproc/staticdata";
+my $staticDataLoc  = "";
+# Example:
+#my $staticDataLoc  = "/opt/gtfsproc/staticdata";
 
 # Local file to hold last-modified dataset time
-my $staticDataStat = "/opt/gtfsproc/staticdata_current.dat";
+my $staticDataStat = "";
+# Example:
+#my $staticDataStat = "/opt/gtfsproc/staticdata_current.dat";
 
 # Local file to stage the check of the [potentially] new data
-my $tmpStaticStat  = "/opt/gtfsproc/staticdata_staged.dat";
+my $tmpStaticStat  = "";
+# Example:
+#my $tmpStaticStat  = "/opt/gtfsproc/staticdata_staged.dat";
 
 # GtfsProc Server Port to listen on
 my $portNum        = "5000";
 
 # Additional options for GtfsProc, like realtime data location and refresh interval
 # See gtfsproc --help to find the other options (besides -p and -d which are mandatory)
-my $addedProcOpts  = "-t 1 -r https://cdn.mbta.com/realtime/TripUpdates.pb -u 90";
+my $addedProcOpts  = "-t 1";
+# Example:
+#my $addedProcOpts  = "-t 1 -r https://cdn.mbta.com/realtime/TripUpdates.pb -u 90";
 
 # The hour (in 24-hour format of the system's local time) to attempt to restart and fetch
 # You should pick an hour that fits your transit agency (like if they operate after midnight)
@@ -72,7 +82,7 @@ sub UpdateAvailable
     # Find the currently-held static dataset's updated time
     foreach $line (@fileLines) {
         if ($line =~ /^last-modified/i) {
-            print "****** Local's Last Modified:  $line\n";
+            print "**** Local's Last Modified:  $line\n";
             $lastModif = $line;
             $newModif  = $line;    # Safety precaution in case the remote is dead
             last;
@@ -88,7 +98,7 @@ sub UpdateAvailable
     close $newFileHandle;
     foreach $line (@newFileLines) {
         if ($line =~ /^last-modified/i) {
-            print "****** Agency's Last Modified: $line\n";
+            print "**** Agency's Last Modified: $line\n";
             $newModif = $line;
             last;
         }
@@ -96,7 +106,7 @@ sub UpdateAvailable
 
     # If newer than what we have, download and extract the data
     if ($lastModif ne $newModif) {
-        print "****** New data is available from the agency! Purge old local repository.\n";
+        print "**** New data is available from the agency! Purge old local repository.\n";
 
         opendir(DIR, $staticDataLoc) or die $!;
         while (my $staticDataFile = readdir(DIR)) {
@@ -106,10 +116,10 @@ sub UpdateAvailable
             }
         }
 
-        print "****** Downloading new data\n";
+        print "**** Downloading new data\n";
         `wget -O $staticDataLoc/agencydata.zip $agencyDataLoc`;
 
-        print "****** Extracting data\n";
+        print "**** Extracting data\n";
         `unzip $staticDataLoc/agencydata.zip -d $staticDataLoc`;
 
         # Overwrite the old version tracking file
@@ -117,7 +127,7 @@ sub UpdateAvailable
 
         $newData = 1;
     } else {
-        print "****** No new data available.\n";
+        print "**** No new data available.\n";
     }
 
     print "\n";
@@ -130,15 +140,14 @@ sub HourlyCheckIfRestartTime
     my $serverPID = $_[0];
     while (1) {
         sleep(3600);
-        print "****** Check for a new static dataset? --> ";
         my $currentHour = `date +%H`;
         if ($currentHour == $restartHour) {
-            print "YES!\n";
+            print "**** Check for a new static dataset now ...\n";
 
             # Get new data if it is available
             if (UpdateAvailable() == 1) {
                 # Kill the existing server
-                print "****** Restarting GtfsProc from PID $serverPID\n";
+                print "**** Restarting GtfsProc from PID $serverPID\n";
                 kill('TERM', $serverPID);
                 waitpid($serverPID, 0);
 
@@ -146,6 +155,7 @@ sub HourlyCheckIfRestartTime
                 $serverPID = fork();
                 die "Unable to fork: $!" unless defined($serverPID);
                 if (!$serverPID) {
+                    print "**** Starting with command: $gtfsProcLine\n";
                     exec($gtfsProcLine);
                     die "Unable to execute $!";
                     exit;
@@ -158,13 +168,14 @@ sub HourlyCheckIfRestartTime
 }
 
 # Execute - The first will ensure the data is present
-print "****** GtfsProc  -  Static Dataset Updater  -  Server Recycler ******\n\n";
+print "**** GtfsProc Static Dataset Updater and Service Recycler Agent ****\n\n";
 
 UpdateAvailable();
 
 my $gtfsPID = fork();
 die "Unable to fork: $!" unless defined($gtfsPID);
 if (!$gtfsPID) {
+    print "**** Starting with command: $gtfsProcLine\n";
     exec($gtfsProcLine);
     die "Unable to execute $!";
     exit;
