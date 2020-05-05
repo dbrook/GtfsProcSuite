@@ -33,7 +33,7 @@
     Thank you for trying GtfsProc! This is a GTFS data processor to present stop, route, service, and schedule lookups, but its principal purpose is to provide wait time estimations for stops in a transit system, integrating GTFS-Realtime data where available. All data processing is done on a server process in response to client queries over a TCP connection. This allows the process to work over network connections or on local machines.
 </p>
 <p>
-    GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook, (c) 2018-2020, GPL v 3.
+    GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2020, GPL v 3.
 </p>
 <p>
     This is the documentation for <b>GtfsProc Version 1.3b (05-May-2020)</b>
@@ -104,6 +104,31 @@ SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS<br>
 <p>
     In the real world, agencies will periodically update transit data at an unknown schedule. The provided GtfsProc_Agent.pl script can be updated per its instructions to stop the server, look for new data (downloading it if necessary) and reload the server automatically at an hour of your choosing each night.
 </p>
+
+<h2>Holding the Current Date for the GtfsProc system for testing</h2>
+<p>
+    When testing GTFS-Realtime data with a static schedule, having a live system with a naturally advancing clock and live updates can make reproducing a bug extremely difficult. Let's be honest: there WILL be bugs, live data is a fickle beast and capturing the exact conditions to reproduce said bugs makes investigation easier! To remedy this, the "-f" option can be used to force the entire GtfsProc instance to an exact time and date. For example: "-f 2020,5,4,17,55,0" will freeze GtfsProc at 04-May-2020 17:55:00 (5:55:00 pm) in the local time of the agency in the data feed. When used in combination with a locally cached real-time Protocol Buffer trip update file, this is a very handy way to give time to investigate a bug. Here is an example of how to use it:
+</p>
+<ul>
+    <li>Say that you found a real-time trip update for a trip starting after midnight on a NEX request at 05-May-2020 at 00:35:09 EDT which does not get shown.</li>
+    <li>Capture the Protocol Buffer file, let's take RIPTA for example:<br>
+        <b class="fixed">wget "http://realtime.ripta.com:81/api/tripupdates?format=gtfs.proto -O ripta_tripupdates.pb"</b></li>
+    <li>Run GtfsProc with the local file and a fixed date (that you observed the issue):<br>
+        <b class="fixed">gtfsproc -d /opt/gtfsproc/RIPTA -r ripta_tripupdates.pb -f 2020,5,5,0,35,9</b></li>
+    <li>Run your query or queries, to see that the issue persists in the cached file</li>
+    <li>Try using DRT from a client to decode the protocol buffer file into a human readable form</li>
+    <li>Try using RTR for the trip ID in question to see what is available to GtfsProc from this trip.</li>
+    <li>Rerun GtfsProc with the same command, but with any overrides/parameters (usually the issues encountered are about date enforcement (use -n) or very small trip updates (use -e).)</li>
+    <li>If you are really stumped, send me a mail with:</li>
+    <ul>
+        <li>the agency static zip file (or a link to it if it's big),</li>
+        <li>copy of the protocol buffer with the real time trip updates,</li>
+        <li>the GtfsProc server start command used (including the -f option for the correct time!),</li>
+        <li>the modules/commands to reproduce</li>
+        <li>a description of the issue you are encountering.</li>
+    </ul>
+    <li>NOTE: For the example here, I noticed that RIPTA does not enforce the service date (04-May-2020) in the real-time-trip update, instead opting to use the real start date (05-May-2020). Because of this, I know that the rigorous standard date checking of real-time trip updates is not wise to use for RIPTA, so I run GtfsProc with "-n" for handling RIPTA schedules.</li>
+</ul>
 
 <h1>Requesting and Viewing Data with a Client</h1>
 <p>

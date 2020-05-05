@@ -23,6 +23,10 @@ Addendum: Patch Release 1.3b:
    trip (specifically done for SEPTA Rail and RTC Southern Nevada feeds which only have one update per real-
    time trip update. These agencies also do not provide start dates/times in those feeds, so the "-n" option
    was used to test and validate the new feature.)
+ - Made included restarting agent less verbose, cleaned up traces, announce runtime command line
+ - Added documentation for how to use the -f / --fixedDateTime option for debugging a live feed
+ - If an empty real-time-trip-update is retrieved, now the previous update is held until the next refresh
+   interval is reached and tried again. This is for CTTransit, where empty feeds are sometimes found.
 
 
 SHOULD FIX (for Version 1.4):
