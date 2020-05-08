@@ -39,6 +39,9 @@ Addendum: Patch Release 1.3c:
        (this will be useful for RIPTA and CTTransit, who use the actual start time of trips after midnight!)
     + Using 2 will enforce no service or actual date process to a real-time trip update (SEPTA, RTC S. NV)
  - Removed verbose startup parameters, use the single character ones only
+
+Addendum: Patch Release 1.3d:
+-----------------------------
  - Fixed regression caused by departure time calculations never showing DEPART status anymore
 
 
