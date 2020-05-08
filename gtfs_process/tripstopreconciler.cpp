@@ -193,8 +193,13 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                             tripRecord.tripStatus = ARRIVE;
 
                         // Trip has already departed, still shows up in the feed and departed more than 30 seconds ago
-                        if (!predictDepUTC.isNull() && _agencyTime.secsTo(predictDepUTC) < -30)
-                            tripRecord.tripStatus = DEPART;
+                        qint64 secondsUntilDeparture = _agencyTime.secsTo(predictDepUTC);
+                        if (!predictDepUTC.isNull() && secondsUntilDeparture <= 0) {
+                            if (secondsUntilDeparture > -30)
+                                tripRecord.tripStatus = DEPART;
+                            else
+                                tripRecord.tripStatus = IRRELEVANT;
+                        }
 
                         // Trip is boarding (current time is between the drop-off and pickup - requires both times))
                         if (!predictArrUTC.isNull() && !predictDepUTC.isNull()) {
@@ -273,9 +278,14 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                 if (!prArrTime.isNull() && _agencyTime.secsTo(prArrTime) < 30)
                     tripRecord.tripStatus = ARRIVE;
 
-                // Trip has already departed but still shows up in the feed
-                if (!prDepTime.isNull() && _agencyTime.secsTo(prDepTime) < -30)
-                    tripRecord.tripStatus = DEPART;
+                // Trip has already departed but still shows up in the feed (and within 30 seconds since leaving)
+                qint64 secondsUntilDeparture = _agencyTime.secsTo(prDepTime);
+                if (!prDepTime.isNull() && secondsUntilDeparture <=0) {
+                    if (secondsUntilDeparture > -30)
+                        tripRecord.tripStatus = DEPART;
+                    else
+                        tripRecord.tripStatus = IRRELEVANT;
+                }
 
                 // Trip is boarding (current time is between the drop-off and pickup - requires both times))
                 if (!prArrTime.isNull() && !prDepTime.isNull()) {
