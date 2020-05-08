@@ -31,15 +31,14 @@ Addendum: Patch Release 1.3b:
    is refreshed an no longer shows the stop in question for NEX/NCF transactions. Originally the display of
    departed trips at a stop would persist until a new buffer was retrieved.
 
-
-SHOULD FIX (for Version 1.4):
+Addendum: Patch Release 1.3c:
 -----------------------------
- > RTR should require a date? The whole notion of start_date is really poorly defined in realtime data...
-
- > When processing local files (instead of a URL) ... for instance in a distributed capacity where the protobuf
-   might be stores on a NAS or external filesystem and shared between multiple backend machined (scalability FTW)
-   it would be good to watch that file location for changes and update the real time data gateway in an
-   event-driven way. Local file retrieval should not "just" be about debugging, it would be a good feature!
+ - The -n Boolean option has been replaced with -l and now takes an integer argument:
+    + The default is 0, meaning the full service-date is enforced when matching real-time trip updates
+    + Using 1 will enforce that the date in real-time trip-update should match the start date-time of the trip
+       (this will be useful for RIPTA and CTTransit, who use the actual start time of trips after midnight!)
+    + Using 2 will enforce no service or actual date process to a real-time trip update (SEPTA, RTC S. NV)
+ - Removed verbose startup parameters, use the single character ones only
 
 
 PREVIOUS RELEASES:

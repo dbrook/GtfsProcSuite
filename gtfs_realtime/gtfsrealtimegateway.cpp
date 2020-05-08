@@ -45,7 +45,7 @@ RealTimeGateway &RealTimeGateway::inst()
 void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath,
                                           qint32         refreshIntervalSec,
                                           bool           showProtobuf,
-                                          bool           skipDateMatching,
+                                          rtDateLevel    rtDateMatchLevel,
                                           bool           propagateOffsetSec)
 {
     // TODO : Make this more robust?
@@ -65,7 +65,7 @@ void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath,
     _debugProtobuf = showProtobuf;
 
     // Run-time matching and offset parameters
-    _skipDateMatching = skipDateMatching;
+    _skipDateMatching = rtDateMatchLevel;
     _propOffsetSec    = propagateOffsetSec;
 }
 

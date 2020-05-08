@@ -45,6 +45,12 @@ typedef struct {
     bool      stopSkipped;
 } rtStopTimeUpdate;
 
+typedef enum {
+    SERVICE_DATE = 0,
+    ACTUAL_DATE  = 1,
+    NO_MATCHING  = 2
+} rtDateLevel;
+
 /*
  * RealTimeTripUpdate is the main interface to the GTFS Realtime feed information. This class Qt-ifies the ProtoBuf
  * data so that it is quicker to search and provide useful real-time trip data to which the static feeds can be
@@ -74,12 +80,12 @@ class RealTimeTripUpdate : public QObject
 public:
     explicit RealTimeTripUpdate(const QString &rtPath,
                                 bool           dumpProtobuf,
-                                bool           skipDateMatching,
+                                rtDateLevel    skipDateMatching,
                                 bool           propagateOffsetSec,
                                 QObject       *parent = nullptr);
     explicit RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
                                 bool              dumpProtobuf,
-                                bool              skipDateMatching,
+                                rtDateLevel       skipDateMatching,
                                 bool              propagateOffsetSec,
                                 QObject          *parent = nullptr);
     virtual ~RealTimeTripUpdate();
@@ -111,7 +117,7 @@ public:
     bool tripExists(const QString &trip_id) const;
 
     // Is the trip cancelled based on the real-time data?
-    bool tripIsCancelled(const QString &trip_id, const QDate &serviceDay) const;
+    bool tripIsCancelled(const QString &trip_id, const QDate &serviceDate, const QDate &actualDate) const;
 
     // List the trip_ids which serve a stop_id (populates 'addedTrips' with new-found trips) across all added stops
     // We map all relevant routes to a vector of trips that serve the requested stop_id
@@ -125,10 +131,14 @@ public:
     const QString getRouteID(const QString &trip_id, const QDate &serviceDay) const;
 
     // Is the trip (that came from the static feed) actually running?
-    bool scheduledTripIsRunning(const QString &trip_id, const QDate &operDateDMY) const;
+    bool scheduledTripIsRunning(const QString &trip_id, const QDate &serviceDate, const QDate &actualDate) const;
 
     // Was the trip-update to specifically skip the stop?
-    bool tripSkipsStop(const QString &stop_id, const QString &trip_id, qint64 stopSeq, const QDate &serviceDay) const;
+    bool tripSkipsStop(const QString &stop_id,
+                       const QString &trip_id,
+                       qint64         stopSeq,
+                       const QDate   &serviceDate,
+                       const QDate   &actualDate) const;
 
     // Has the trip already passed the stop? This is useful for indicating that a trip went by early (i.e. don't care
     // about showing things which have already departed the stop)
@@ -208,14 +218,11 @@ private:
     // Stop-IDs which have been skipped by any number of trips
     QHash<QString, QVector<QPair<QString, quint32>>> _skippedStops;
 
-    qint64 _downloadTimeMSec;
-    qint64 _integrationTimeMSec;
+    qint64      _downloadTimeMSec;
+    qint64      _integrationTimeMSec;
 
-    // Skip start date/time matching process
-    bool   _noDateEnforcement;
-
-    // Spread offset-seconds to all subsequent stops in a trip with realtime information
-    bool   _extrapolateOffset;
+    rtDateLevel _dateEnforcement;   // Service / operating date enforcement level
+    bool        _extrapolateOffset; // Spread offset-seconds to all subsequent stops in a trip with realtime information
 };
 
 } // namespace GTFS

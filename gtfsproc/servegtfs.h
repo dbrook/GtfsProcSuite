@@ -40,14 +40,14 @@ public:
     /*
      * GTFS / TCP Server object, this persists through the entire process
      *
-     * dbRootPath:      path to the folder containing all GTFS *.txt files as the static dataset
-     * realTimePath:    path (local or URI) to the GTFS real-time data to supplement the processor
-     * rtInterval:      number of seconds to wait between each refresh of the real-time data feed
-     * frozenTime:      yyyy,mm,dd,hh,mm,ss to force the transactions to always process as if it is the date specified
-     *                   NOTE: this is in the timezone of the GTFS agency.txt file time
-     * showProtobuf:    set to true to print realtime updates to a string on QDebug each time an update is received
-     * skipRTDateMatch: do not perform realtime start date matching (some agencies don't use 24+hr clock for rt updates)
-     * propOffsetSec:
+     * dbRootPath:     path to the folder containing all GTFS *.txt files as the static dataset
+     * realTimePath:   path (local or URI) to the GTFS real-time data to supplement the processor
+     * rtInterval:     number of seconds to wait between each refresh of the real-time data feed
+     * frozenTime:     yyyy,mm,dd,hh,mm,ss to force the transactions to always process as if it is the date specified
+     *                     NOTE: this is in the timezone of the GTFS agency.txt file time
+     * showProtobuf:   set to true to print realtime updates to a string on QDebug each time an update is received
+     * rtDateMatchLev: real-time trip update date matching enforcement level
+     * propOffsetSec:  set to true to propagate the last-known offset time of a real-time trip to all remaining stops
      */
     ServeGTFS(QString  dbRootPath,
               QString  realTimePath,
@@ -55,7 +55,7 @@ public:
               QString  frozenTime,
               bool     showProtobuf,
               bool     use12h,
-              bool     skipRTDateMatch,
+              quint32  rtDateMatchLev,
               bool     propOffsetSec,
               QObject *parent        = nullptr);
     virtual ~ServeGTFS();

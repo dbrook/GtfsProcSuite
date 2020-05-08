@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
      */
     QCoreApplication a(argc, argv);
     QCoreApplication::setApplicationName("GtfsProc");
-    QCoreApplication::setApplicationVersion("1.3b");
+    QCoreApplication::setApplicationVersion("1.3c");
 
     QTextStream console(stdout);
     QString appName = QCoreApplication::applicationName();
@@ -49,43 +49,44 @@ int main(int argc, char *argv[])
     parser.setApplicationDescription("GTFS Processor written with the Qt Framework");
     parser.addVersionOption();
     parser.addHelpOption();
-    QCommandLineOption dataRootOption(QStringList() << "d" << "dataRoot",
-                                      QCoreApplication::translate("main", "GTFS static feed directory."),
-                                      QCoreApplication::translate("main", "path to feed"));
-    QCommandLineOption serverPortOption(QStringList() << "p" << "serverPort",
-                                        QCoreApplication::translate("main", "Port to listen for requests."),
-                                        QCoreApplication::translate("main", "port number"));
-    QCommandLineOption serverThreads(QStringList() << "t" << "threads",
-                                     QCoreApplication::translate("main", "Number of processing threads."),
-                                     QCoreApplication::translate("main", "nb threads"));
-    QCommandLineOption realTimeOption(QStringList() << "r" << "realTimeData",
-                                      QCoreApplication::translate("main", "Real-time (GTFS) data path."),
-                                      QCoreApplication::translate("main", "URL or file"));
-    QCommandLineOption realTimeRefresh(QStringList() << "u" << "realTimeUpdate",
-                                       QCoreApplication::translate("main", "Time between real-time updates."),
-                                       QCoreApplication::translate("main", "nb. seconds"));
-    QCommandLineOption fixedLocalTime(QStringList() << "f" << "fixedDateTime",
-                                      QCoreApplication::translate("main", "Force local time for all modules."),
-                                      QCoreApplication::translate("main", "y,m,d,h,m,s"));
-    QCommandLineOption dumpRTProtobuf(QStringList() << "x" << "examineRTPB",
-                                      QCoreApplication::translate("main", "Examine GTFS-Realtime ProtoBuf."));
-    QCommandLineOption ampmTimes(QStringList() << "a" << "use12hour",
-                                 QCoreApplication::translate("main", "Show times with 12-hour AM/PM."));
-    QCommandLineOption noRTDateMatch(QStringList() << "n" << "noRTDate",
-                                     QCoreApplication::translate("main", "Skip date match process for realtime."));
-    QCommandLineOption extrapOffsets(QStringList() << "e" << "extrapRT",
-                                     QCoreApplication::translate("main", "Extend offset seconds in realtime trips."));
+    QCommandLineOption dataRootOption(QStringList() << "d",
+                    QCoreApplication::translate("main", "GTFS static feed directory (local directory, unzipped)."),
+                    QCoreApplication::translate("main", "path"));
+    QCommandLineOption serverPortOption(QStringList() << "p",
+                    QCoreApplication::translate("main", "Port to listen for requests."),
+                    QCoreApplication::translate("main", "portNum"));
+    QCommandLineOption serverThreads(QStringList() << "t",
+                    QCoreApplication::translate("main", "Number of processing threads for simultaneous transactions."),
+                    QCoreApplication::translate("main", "nbThreads"));
+    QCommandLineOption realTimeOption(QStringList() << "r",
+                    QCoreApplication::translate("main", "GTFS-Realtime data location (remote or local)."),
+                    QCoreApplication::translate("main", "URL or file"));
+    QCommandLineOption realTimeRefresh(QStringList() << "u",
+                    QCoreApplication::translate("main", "Real-time fetch interval, check agency policies before use."),
+                    QCoreApplication::translate("main", "nbSeconds"));
+    QCommandLineOption ampmTimes(QStringList() << "a",
+                    QCoreApplication::translate("main", "Render all times with 12-hour AM/PM format, not 24-hour."));
+    QCommandLineOption noRTDateMatch(QStringList() << "l",
+                    QCoreApplication::translate("main", "Real-time date matching level (read the documentation!)."),
+                    QCoreApplication::translate("main", "0|1|2"));
+    QCommandLineOption extrapOffsets(QStringList() << "e",
+                    QCoreApplication::translate("main", "Extend offset seconds to remaining stops of realtime trips"));
+    QCommandLineOption fixedLocalTime(QStringList() << "f",
+                    QCoreApplication::translate("main", "Freeze GtfsProc on this local time for all requests."),
+                    QCoreApplication::translate("main", "y,m,d,h,m,s"));
+    QCommandLineOption dumpRTProtobuf(QStringList() << "x",
+                    QCoreApplication::translate("main", "Display GTFS-Realtime ProtoBuf to stderr upon receiving."));
 
     parser.addOption(dataRootOption);
     parser.addOption(serverPortOption);
     parser.addOption(serverThreads);
     parser.addOption(realTimeOption);
     parser.addOption(realTimeRefresh);
-    parser.addOption(fixedLocalTime);
-    parser.addOption(dumpRTProtobuf);
     parser.addOption(ampmTimes);
     parser.addOption(noRTDateMatch);
     parser.addOption(extrapOffsets);
+    parser.addOption(fixedLocalTime);
+    parser.addOption(dumpRTProtobuf);
     parser.process(a);
 
     QString unchangingLocalTime;
@@ -134,9 +135,13 @@ int main(int argc, char *argv[])
         use12HourTimes = true;
     }
 
-    bool skipRTDateMatching = false;
+    quint32 realTimeDateMatchLevel = 0;
     if (parser.isSet(noRTDateMatch)) {
-        skipRTDateMatching = true;
+        realTimeDateMatchLevel = parser.value(noRTDateMatch).toUInt();
+        if (realTimeDateMatchLevel > 2) {
+            qDebug() << "WARNING: An invalid date matching level (-l option) was found, defaulting to STRICTEST (0)";
+            realTimeDateMatchLevel = 0;
+        }
     }
 
     bool extrapolateRTOffset = false;
@@ -156,7 +161,7 @@ int main(int argc, char *argv[])
                                 unchangingLocalTime,
                                 protobufToQDebug,
                                 use12HourTimes,
-                                skipRTDateMatching,
+                                realTimeDateMatchLevel,
                                 extrapolateRTOffset);
     gtfsRequestServer.displayDebugging();
 

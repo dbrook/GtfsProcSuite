@@ -115,7 +115,9 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
         // Mark any cancelled trips as such (tripStatus)
         for (const QString &routeID : fullTrips.keys()) {
             for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
-                if (rActiveFeed->tripIsCancelled(tripRecord.tripID, tripRecord.tripServiceDate)) {
+                if (rActiveFeed->tripIsCancelled(tripRecord.tripID,
+                                                 tripRecord.tripServiceDate,
+                                                 tripRecord.tripFirstDeparture.date())) {
                     tripRecord.tripStatus = CANCEL;
                     tripRecord.realTimeDataAvail = true;
                 }
@@ -126,7 +128,9 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
         for (const QString &routeID : fullTrips.keys()) {
             for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
                 if (rActiveFeed->tripSkipsStop(stopID, tripRecord.tripID,
-                                               tripRecord.stopSequenceNum, tripRecord.tripServiceDate)) {
+                                               tripRecord.stopSequenceNum,
+                                               tripRecord.tripServiceDate,
+                                               tripRecord.tripFirstDeparture.date())) {
                     tripRecord.tripStatus = SKIP;
                     tripRecord.realTimeDataAvail = true;
                 }
@@ -136,7 +140,9 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
         // Inject realtime information in scheduled trips (realTimeActual, realTimeOffsetSec, waitTimeSec, tripStatus)
         for (const QString &routeID : fullTrips.keys()) {
             for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
-                if (rActiveFeed->scheduledTripIsRunning(tripRecord.tripID, tripRecord.tripServiceDate)) {
+                if (rActiveFeed->scheduledTripIsRunning(tripRecord.tripID,
+                                                        tripRecord.tripServiceDate,
+                                                        tripRecord.tripFirstDeparture.date())) {
                     // Scheduled trip arrival/departure converted to UTC for offset calculation standardization
                     // TODO: this might be unnecessary, but for the sake of all the subsequent time maths, it makes
                     //       more sense to leave the real-time library as "UTC-only" (for now at least)
@@ -292,9 +298,8 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
         invalidateTrips(routeID, fullTrips, routeTrips);
     }
 
-    // Now that all requested stops and routes have been filled, each trip must be sorted by arrival time per route
-    // or else the number-of-trips style of invalidation could miss supplemental trips. It is also possible that the
-    // real-time data has altered the ordering of trip arrivals, so the sort is just a necessary evil.
+    // Now that all requested stops and routes have been filled, each trip must be sorted by arrival time or else any
+    // reordering based on available real-time data will not be accounted for
     for (const QString &routeID : routeTrips.keys()) {
         std::sort(routeTrips[routeID].tripRecos.begin(),
                   routeTrips[routeID].tripRecos.end(),
@@ -353,6 +358,11 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
         } else {
             tripRec.schArrTime  = QDateTime();
         }
+
+        // Determine the actual date and time of the trip's first departure (needed when comparing actual dates
+        // for real-time date integration instead of the default stricter service-date-level comparison).
+        // Therefore it is assumed that the first stop MUST have a departure time for this to work.
+        tripRec.tripFirstDeparture = localNoon.addSecs((*sStopTimes)[curTripId].at(0).departure_time);
 
         // There is neither a departure nor arrival time from which to countdown
         // Some stops aren't timed at all, so the "next possible time" is used (called the sort time)

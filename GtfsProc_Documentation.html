@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2020, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 1.3b (05-May-2020)</b>
+    This is the documentation for <b>GtfsProc Version 1.3c (08-May-2020)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -46,17 +46,20 @@
 <ul>
     <li><b class="fixed">-v, --version</b>: Just display the version information.</li>
     <li><b class="fixed">-h, --help</b>: Displays all command line options.</li>
-    <li><b class="fixed">-d, --dataRoot {path to feed}</b>: File system location of the static feed (where stoptimes.txt, routes.txt, etc. are found).</li>
-    <li><b class="fixed">-p, --serverPort {port number}</b>: TCP port to open for client connections (defaults to 5000 if not specified).</li>
-    <li><b class="fixed">-t, --threads {number of threads}</b>: Specify the number of threads to dedicate to GTFSProc (this will equal the number of simultaneously-processed transactions, defaults to 1).</li>
-    <li><b class="fixed">-r, --realTimeData {URL or file path}</b>: URL or local file path of the protocol buffer GTFS-Realtime file (optional).</li>
-    <li><b class="fixed">-u, --realTimeUpdate {number of seconds}</b>: Specify the number of seconds between each attempt to refresh GTFS-Realtime data (defaults to 120 seconds).</li>
-    <li><b class="fixed">-f, --fixedDateTime {year,month,day,hour,minute,second}</b>: Force the time of all transactions to a fixed date and time (this is useful for debugging, in particular with integrating GTFS-Realtime information) where a naturally-advancing clock might make a condition/transaction unreproducible.</li>
-    <li><b class="fixed">-x, --examineRTPB</b>: Dumps the GTFS-Realtime decoded into a JSON format to standard error.</li>
-    <li><b class="fixed">-a, --use12hour</b>: Shows all times using a 12-hour format with AM/PM indicators (the default display is with 24-hour clocks).</li>
-    <li><b class="fixed">-n, --noRTDate</b>: Performs a looser form of date matching for GTFS-Realtime trips (some agencies use start times with trips after midnight with the actual date instead of the service date to which the trip belongs, and this flag will not enforce that check).</li>
-    <li><b class="fixed">-e, --extrapRT</b>: Extrapolates / copies the last arrival/departure information of a real time trip update to the rest of the stops along the trip's schedule. This should only be used with agencies that provide offset_seconds and not an actual arrival / departure time in POSIX-seconds-since-epoch format.
+    <li><b class="fixed">-d {path to feed}</b>: File system location of the static feed (where stoptimes.txt, routes.txt, etc. are found).</li>
+    <li><b class="fixed">-p {port number}</b>: TCP port to open for client connections (defaults to 5000 if not specified).</li>
+    <li><b class="fixed">-t {number of threads}</b>: Specify the number of threads to dedicate to GTFSProc (this will equal the number of simultaneously-processed transactions, defaults to 1).</li>
+    <li><b class="fixed">-r {URL or file path}</b>: URL or local file path of the protocol buffer GTFS-Realtime file (optional).</li>
+    <li><b class="fixed">-u {number of seconds}</b>: Specify the number of seconds between each attempt to refresh GTFS-Realtime data (defaults to 120 seconds).</li>
+    <li><b class="fixed">-a</b>: Shows all times using a 12-hour format with AM/PM indicators (the default display is with 24-hour clocks).</li>
+    <li><b class="fixed">-l</b>: Looseness parameter for enforcing the start date/time values provided by real-time trip updates. (0 is the default and rigorously enforces the start date/time to match the service date, 1 ensures that the start date/time matches the actual date which helps for agencies who fill the date with the actual date and not the service date, and 2 provides no matching at all for agencies which provide no start date). Loosening the date enforcement (especially option 1) may lead to bugs when a trip is started late from a scheduled time on the previous day. Option 2 makes it so multiple trips can potentially be flagged with the same time and should not be used for agencies providing POSIX-style seconds-since-epoch trip updates. Option 2 also has the side effect of marking trips that are also not really operating but merely are the same trip IDs for a subsequent service date.</li>
+    <li><b class="fixed">-e</b>: Extrapolates / copies the last arrival/departure information of a real time trip update to the rest of the stops along the trip's schedule. This should only be used with agencies that provide offset_seconds and not an actual arrival / departure time in POSIX-seconds-since-epoch format.
     </li>
+</ul>
+<p>The following options are only for debugging purposes</p>
+<ul>
+    <li><b class="fixed">-f {year,month,day,hour,minute,second}</b>: Force the time of all transactions to a fixed date and time (this is useful for debugging, in particular with integrating GTFS-Realtime information) where a naturally-advancing clock might make a condition/transaction unreproducible.</li>
+    <li><b class="fixed">-x</b>: Dumps the GTFS-Realtime decoded into a JSON format to standard error.</li>
 </ul>
 
 <h2>Simple Server Startup Guide</h2>
@@ -73,7 +76,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 1.3b - Running on Process ID: 22112<br>
+GtfsProc version 1.3c - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>
@@ -118,7 +121,7 @@ SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS<br>
     <li>Run your query or queries, to see that the issue persists in the cached file</li>
     <li>Try using DRT from a client to decode the protocol buffer file into a human readable form</li>
     <li>Try using RTR for the trip ID in question to see what is available to GtfsProc from this trip.</li>
-    <li>Rerun GtfsProc with the same command, but with any overrides/parameters (usually the issues encountered are about date enforcement (use -n) or very small trip updates (use -e).)</li>
+    <li>Rerun GtfsProc with the same command, but with any overrides/parameters (usually the issues encountered are about date enforcement (use -l 1 or -l 2) or very small trip updates (use -e).)</li>
     <li>If you are really stumped, send me a mail with:</li>
     <ul>
         <li>the agency static zip file (or a link to it if it's big),</li>
@@ -127,7 +130,7 @@ SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS<br>
         <li>the modules/commands to reproduce</li>
         <li>a description of the issue you are encountering.</li>
     </ul>
-    <li>NOTE: For the example here, I noticed that RIPTA does not enforce the service date (04-May-2020) in the real-time-trip update, instead opting to use the real start date (05-May-2020). Because of this, I know that the rigorous standard date checking of real-time trip updates is not wise to use for RIPTA, so I run GtfsProc with "-n" for handling RIPTA schedules.</li>
+    <li>NOTE: For the example here, I noticed that RIPTA does not enforce the service date (04-May-2020) in the real-time-trip update, instead opting to use the real start date (05-May-2020). Because of this, I know that the rigorous standard date checking of real-time trip updates is not wise to use for RIPTA, so I run GtfsProc with "-l 1" for handling RIPTA schedules.</li>
 </ul>
 
 <h1>Requesting and Viewing Data with a Client</h1>

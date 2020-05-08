@@ -69,6 +69,7 @@ typedef struct {
     bool         endOfTrip;           // TRUE if the stop_id is at the end of the trip
     QString      vehicleRealTime;     // Vehicle ID of an operating trip with real-time data
     QString      stopStatus;          // 4-letter code indicating validity of realTimeOffsetSec
+    QDateTime    tripFirstDeparture;  // The first departure of the trip (it's actual date and time)
 } StopRecoTripRec;
 
 /*

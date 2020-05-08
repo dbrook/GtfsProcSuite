@@ -31,10 +31,10 @@ namespace GTFS {
 
 RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath,
                                        bool           dumpProtobuf,
-                                       bool           skipDateMatching,
+                                       rtDateLevel    skipDateMatching,
                                        bool           propagateOffsetSec,
                                        QObject        *parent)
-    : QObject(parent), _noDateEnforcement(skipDateMatching), _extrapolateOffset(propagateOffsetSec)
+    : QObject(parent), _dateEnforcement(skipDateMatching), _extrapolateOffset(propagateOffsetSec)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -52,10 +52,10 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath,
 
 RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
                                        bool              dumpProtobuf,
-                                       bool              skipDateMatching,
+                                       rtDateLevel skipDateMatching,
                                        bool              propagateOffsetSec,
                                        QObject          *parent)
-    : QObject(parent), _noDateEnforcement(skipDateMatching), _extrapolateOffset(propagateOffsetSec)
+    : QObject(parent), _dateEnforcement(skipDateMatching), _extrapolateOffset(propagateOffsetSec)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -125,13 +125,18 @@ bool RealTimeTripUpdate::tripExists(const QString &trip_id) const
     return false;
 }
 
-bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id, const QDate &serviceDay) const
+bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id,
+                                         const QDate   &serviceDate,
+                                         const QDate   &actualDate) const
 {
     if (_cancelledTrips.contains(trip_id)) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_cancelledTrips[trip_id]);
         const QString startDate = QString::fromStdString(entity.trip_update().trip().start_date());
-        const QString reqServDay = serviceDay.toString("yyyyMMdd");
-        if (_noDateEnforcement || startDate == reqServDay) {
+        const QString serviceDateStr = serviceDate.toString("yyyyMMdd");
+        const QString actualDateStr  = actualDate.toString("yyyyMMdd");
+        if ((_dateEnforcement == NO_MATCHING) ||
+            (_dateEnforcement == SERVICE_DATE && startDate == serviceDateStr) ||
+            (_dateEnforcement == ACTUAL_DATE  && startDate == actualDateStr)) {
             return true;
         }
     }
@@ -139,7 +144,7 @@ bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id, const QDate &se
 }
 
 void RealTimeTripUpdate::getAddedTripsServingStop(const QString &stop_id,
-                                                  QHash<QString, QVector<QPair<QString, quint32> > > &addedTrips) const
+                                                  QHash<QString, QVector<QPair<QString, quint32>>> &addedTrips) const
 {
     for (const QString &tripID : _addedTrips.keys()) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_addedTrips[tripID]);
@@ -183,13 +188,29 @@ const QString RealTimeTripUpdate::getRouteID(const QString &trip_id, const QDate
     return routeIDrt;
 }
 
-bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id, const QDate &operDate) const
+bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id,
+                                                const QDate   &serviceDate,
+                                                const QDate   &actualDate) const
 {
     if (_activeTrips.contains(trip_id)) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_activeTrips[trip_id]);
-        const QString startDate = QString::fromStdString(entity.trip_update().trip().start_date());
-        const QString serviceDate = operDate.toString("yyyyMMdd");
-        if (_noDateEnforcement || startDate == serviceDate) {
+
+        const QString rtStartDateStr = QString::fromStdString(entity.trip_update().trip().start_date());
+        const QString serviceDateStr = serviceDate.toString("yyyyMMdd");
+        const QString actualDateStr  = actualDate.toString("yyyyMMdd");
+
+        /*
+         * If no date matching is requested: sure, this trip counts as running, no further check required
+         *
+         * When matching the actual date, trips are considered based on the actual local time they started (the
+         * agency opted to not use the greater-than-24-hour clock for after-midnight real-time trip updates)
+         *
+         * Strictest date matching (the default) means the real-time start date is that of the service date (which,
+         * for after-midnight trips (times >= 24:00:00) is technically the day before)
+         */
+        if ((_dateEnforcement == NO_MATCHING) ||
+            (_dateEnforcement == SERVICE_DATE && rtStartDateStr == serviceDateStr) ||
+            (_dateEnforcement == ACTUAL_DATE  && rtStartDateStr == actualDateStr)) {
             return true;
         }
     }
@@ -199,19 +220,23 @@ bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id, const QD
 bool RealTimeTripUpdate::tripSkipsStop(const QString &stop_id,
                                        const QString &trip_id,
                                        qint64         stopSeq,
-                                       const QDate   &serviceDay) const
+                                       const QDate   &serviceDate,
+                                       const QDate   &actualDate) const
 {
     /*
      * See if the stop is specifically skipped (based on a normally-schedule route)
      */
     if (_skippedStops.contains(stop_id)) {
+        const QString serviceDateStr = serviceDate.toString("yyyyMMdd");
+        const QString actualDateStr  = actualDate.toString("yyyyMMdd");
         for (const QPair<QString, quint32> &stopList : _skippedStops[stop_id]) {
-            const QString startDate =
+            const QString rtStartDateStr =
                     QString::fromStdString(_tripUpdate.entity(_activeTrips[trip_id]).trip_update().trip().start_date());
-            const QString svcDate   = serviceDay.toString("yyyyMMdd");
             if (stopList.first  == trip_id &&
                 stopList.second == stopSeq &&
-                (_noDateEnforcement || startDate == svcDate)) {
+                ((_dateEnforcement == NO_MATCHING) ||
+                 (_dateEnforcement == SERVICE_DATE && rtStartDateStr == serviceDateStr) ||
+                 (_dateEnforcement == ACTUAL_DATE  && rtStartDateStr == actualDateStr))) {
                 return true;
             }
         }
