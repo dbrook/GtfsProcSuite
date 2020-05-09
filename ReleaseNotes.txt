@@ -1,5 +1,17 @@
-THIS RELEASE: Version 1.3 Features and Fixes:
+THIS RELEASE: Version 1.4 Features and Fixes:
 ---------------------------------------------
+ - New option (-m) for NEX/NCF modules to not show scheduled trips which terminate at the stop
+ - New option (-s) to limit the number of trips that show per route in NEX responses to save wasted data
+   since front-ends will probably only want to show a fixed number of trips when organizing in such a way
+    - The default value is 4 trips per route
+ - Removed spurious "NO" in the GtfsProc_Agent.pl script
+ - 
+
+
+PREVIOUS RELEASES:
+
+Version 1.3 Features and Fixes:
+-------------------------------
  - Bug discovered with CT Transit - scheduled trips that have a real time prediction but no scheduled arrival/
    departure time from which to base offsets were flagged as "data missing". As a result, the NEX/NCF responses
    had their "supplemental" field replaced with a more exotic stop_status, which can hold:
@@ -43,9 +55,6 @@ Addendum: Patch Release 1.3c:
 Addendum: Patch Release 1.3d:
 -----------------------------
  - Fixed regression caused by departure time calculations never showing DEPART status anymore
-
-
-PREVIOUS RELEASES:
 
 VERSION 1.2 Features and Fixes:
 -------------------------------

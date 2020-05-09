@@ -29,8 +29,15 @@
 
 namespace GTFS {
 
-Status::Status(const QString dataRootPath, const QString &frozenDateTime, bool use12hClock, QObject *parent)
-    : QObject(parent)
+Status::Status(const QString dataRootPath,
+               const QString &frozenDateTime,
+               bool           use12hClock,
+               quint32        nbTripsPerRouteNEX,
+               bool           hideTermTrips,
+               QObject       *parent)
+    : QObject(parent),
+      numberTripsPerRouteNEX(nbTripsPerRouteNEX),
+      hideEndingTrips(hideTermTrips)
 {
     // We should pass the start time from the main server start?
     this->serverStartTimeUTC = QDateTime::currentDateTimeUtc();
@@ -184,6 +191,16 @@ const QDateTime &Status::getOverrideDateTime() const
 bool Status::format12h() const
 {
     return this->use12h;
+}
+
+quint32 Status::getNbTripsPerRoute() const
+{
+    return numberTripsPerRouteNEX;
+}
+
+bool Status::hideTerminatingTripsForNEXNCF() const
+{
+    return hideEndingTrips;
 }
 
 void Status::incrementRecordsLoaded(const qint64 &value)

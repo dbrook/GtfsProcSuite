@@ -36,13 +36,13 @@ UpcomingStopService::UpcomingStopService(QList<QString> stopIDs,
                                          qint32         futureMinutes,
                                          bool           nexCombFormat,
                                          bool           realtimeOnly)
-    : StaticStatus      (),
-      _stopIDs          (stopIDs),
-      _serviceDate      (QDate::currentDate()),
-      _futureMinutes    (futureMinutes),
-      _combinedFormat   (nexCombFormat),
-      _realtimeOnly     (realtimeOnly),
-      _rtData           (false)
+    : StaticStatus   (),
+      _stopIDs       (stopIDs),
+      _serviceDate   (QDate::currentDate()),
+      _futureMinutes (futureMinutes),
+      _combinedFormat(nexCombFormat),
+      _realtimeOnly  (realtimeOnly),
+      _rtData        (false)
 {
     // Realtime Data Determination
     RealTimeGateway::inst().realTimeTransactionHandled();
@@ -133,9 +133,10 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
 
             // Fetch the trips
             QJsonArray stopTrips;
+            quint32    tripsFoundForRoute = 0;
             for (const GTFS::StopRecoTripRec &rts : tripsForStopByRouteID[routeID].tripRecos) {
                 GTFS::TripRecStat tripStat = rts.tripStatus;
-                if ((tripStat == GTFS::IRRELEVANT) ||
+                if ((tripStat == GTFS::IRRELEVANT) || (_status->hideTerminatingTripsForNEXNCF() && rts.endOfTrip) ||
                     (_realtimeOnly && (tripStat == GTFS::SCHEDULE || tripStat == GTFS::NOSCHEDULE))) {
                     continue;
                 }
@@ -143,6 +144,11 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
                 QJsonObject stopTripItem;
                 fillTripData(rts, stopTripItem);
                 stopTrips.push_back(stopTripItem);
+
+                ++tripsFoundForRoute;
+                if (tripsFoundForRoute == _status->getNbTripsPerRoute()) {
+                    break;
+                }
             }
 
             routeItem["trips"] = stopTrips;
@@ -168,7 +174,7 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
             // Flatten trips into a single array (as opposed to the nesting by route present) to sorted times together
             for (const GTFS::StopRecoTripRec &rts : tripsForStopByRouteID[routeID].tripRecos) {
                 GTFS::TripRecStat tripStat = rts.tripStatus;
-                if ((tripStat == GTFS::IRRELEVANT) ||
+                if ((tripStat == GTFS::IRRELEVANT) || (_status->hideTerminatingTripsForNEXNCF() && rts.endOfTrip) ||
                     (_realtimeOnly && (tripStat == GTFS::SCHEDULE || tripStat == GTFS::NOSCHEDULE))) {
                     continue;
                 }

@@ -161,8 +161,6 @@ sub HourlyCheckIfRestartTime
                     exit;
                 }
             }
-        } else {
-            print "NO\n";
         }
     }
 }

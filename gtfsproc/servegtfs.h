@@ -48,6 +48,8 @@ public:
      * showProtobuf:   set to true to print realtime updates to a string on QDebug each time an update is received
      * rtDateMatchLev: real-time trip update date matching enforcement level
      * propOffsetSec:  set to true to propagate the last-known offset time of a real-time trip to all remaining stops
+     * nbTripsRtNEX:   number of trips per route that should be serialized in NEX responses
+     * hideTermTrips:  set to true if trips terminating at the requested stop should be hidden (NEX/NCF only)
      */
     ServeGTFS(QString  dbRootPath,
               QString  realTimePath,
@@ -57,6 +59,8 @@ public:
               bool     use12h,
               quint32  rtDateMatchLev,
               bool     propOffsetSec,
+              quint32  nbTripsRtNEX,
+              bool     hideTermTrips,
               QObject *parent        = nullptr);
     virtual ~ServeGTFS();
 

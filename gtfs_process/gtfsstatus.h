@@ -49,6 +49,8 @@ public:
     explicit Status(const QString  dataRootPath,
                     const QString &frozenDateTime,
                     bool           use12hClock,
+                    quint32        numberTripsPerRouteNEX,
+                    bool           hideEndingTrips,
                     QObject       *parent = nullptr);
 
     // Returns the number of records loaded from the agency.txt and feed_into.txt files
@@ -84,6 +86,12 @@ public:
 
     // Return true if 12-hour times with AM/PM indicators should be generated instead of the standard 24-hour times
     bool format12h() const;
+
+    // Get the number of trips allowed per route on a NEX response
+    quint32 getNbTripsPerRoute() const;
+
+    // Returns true if terminating trips are expected to not show up in output of NEX/NCF responses
+    bool hideTerminatingTripsForNEXNCF() const;
 
 private:
     // Determine order of CSV table columns from feed_info.txt
@@ -125,6 +133,12 @@ private:
 
     // A date and time to force the local time to for debugging purposes
     QDateTime  frozenAgencyTime;
+
+    // Number of trips to show per route in NEX responses
+    quint32 numberTripsPerRouteNEX;
+
+    // Hide trips which terminate in NEX/NCF responses (like Google Maps does)
+    bool hideEndingTrips;
 };
 
 }  // Namespace GTFS

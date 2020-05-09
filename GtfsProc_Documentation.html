@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2020, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 1.3d (08-May-2020)</b>
+    This is the documentation for <b>GtfsProc Version 1.4 (09-May-2020)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -53,8 +53,9 @@
     <li><b class="fixed">-u {number of seconds}</b>: Specify the number of seconds between each attempt to refresh GTFS-Realtime data (defaults to 120 seconds).</li>
     <li><b class="fixed">-a</b>: Shows all times using a 12-hour format with AM/PM indicators (the default display is with 24-hour clocks).</li>
     <li><b class="fixed">-l</b>: Looseness parameter for enforcing the start date/time values provided by real-time trip updates. (0 is the default and rigorously enforces the start date/time to match the service date, 1 ensures that the start date/time matches the actual date which helps for agencies who fill the date with the actual date and not the service date, and 2 provides no matching at all for agencies which provide no start date). Loosening the date enforcement (especially option 1) may lead to bugs when a trip is started late from a scheduled time on the previous day. Option 2 makes it so multiple trips can potentially be flagged with the same time and should not be used for agencies providing POSIX-style seconds-since-epoch trip updates. Option 2 also has the side effect of marking trips that are also not really operating but merely are the same trip IDs for a subsequent service date.</li>
-    <li><b class="fixed">-e</b>: Extrapolates / copies the last arrival/departure information of a real time trip update to the rest of the stops along the trip's schedule. This should only be used with agencies that provide offset_seconds and not an actual arrival / departure time in POSIX-seconds-since-epoch format.
-    </li>
+    <li><b class="fixed">-e</b>: Extrapolates / copies the last arrival/departure information of a real time trip update to the rest of the stops along the trip's schedule. This should only be used with agencies that provide offset_seconds and not an actual arrival / departure time in POSIX-seconds-since-epoch format.</li>
+    <li><b class="fixed">-s</b>: Limit of the number of trips that will appear in output per route of NEX module responses.</li>
+    <li><b class="fixed">-m</b>: Do not show terminating trips in NEX and NCF module responses (this is basically what Google Maps does).</li>
 </ul>
 <p>The following options are only for debugging purposes</p>
 <ul>
@@ -76,7 +77,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 1.3d - Running on Process ID: 22112<br>
+GtfsProc version 1.4 - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>

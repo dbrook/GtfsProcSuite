@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
      */
     QCoreApplication a(argc, argv);
     QCoreApplication::setApplicationName("GtfsProc");
-    QCoreApplication::setApplicationVersion("1.3d");
+    QCoreApplication::setApplicationVersion("1.4");
 
     QTextStream console(stdout);
     QString appName = QCoreApplication::applicationName();
@@ -66,6 +66,11 @@ int main(int argc, char *argv[])
                     QCoreApplication::translate("main", "nbSeconds"));
     QCommandLineOption ampmTimes(QStringList() << "a",
                     QCoreApplication::translate("main", "Render all times with 12-hour AM/PM format, not 24-hour."));
+    QCommandLineOption hideTermTrips(QStringList() << "m",
+                    QCoreApplication::translate("main", "Do not show terminating trips in NEX/NCF modules."));
+    QCommandLineOption tripsPerNEX(QStringList() << "s",
+                    QCoreApplication::translate("main", "Number of trips to show per route in NEX responses."),
+                    QCoreApplication::translate("main", "nbRtTrips"));
     QCommandLineOption noRTDateMatch(QStringList() << "l",
                     QCoreApplication::translate("main", "Real-time date matching level (read the documentation!)."),
                     QCoreApplication::translate("main", "0|1|2"));
@@ -83,6 +88,8 @@ int main(int argc, char *argv[])
     parser.addOption(realTimeOption);
     parser.addOption(realTimeRefresh);
     parser.addOption(ampmTimes);
+    parser.addOption(hideTermTrips);
+    parser.addOption(tripsPerNEX);
     parser.addOption(noRTDateMatch);
     parser.addOption(extrapOffsets);
     parser.addOption(fixedLocalTime);
@@ -155,6 +162,16 @@ int main(int argc, char *argv[])
     }
     QThreadPool::globalInstance()->setMaxThreadCount(nbProcThreads);
 
+    quint32 nbTripsPerNEXRoute = 4;
+    if (parser.isSet(tripsPerNEX)) {
+        nbTripsPerNEXRoute = parser.value(tripsPerNEX).toUInt();
+    }
+
+    bool hideTerminatingTripsNEXNCF = false;
+    if (parser.isSet(hideTermTrips)) {
+        hideTerminatingTripsNEXNCF = true;
+    }
+
     ServeGTFS gtfsRequestServer(databaseRootPath,
                                 realTimePath,
                                 rtDataInterval,
@@ -162,7 +179,9 @@ int main(int argc, char *argv[])
                                 protobufToQDebug,
                                 use12HourTimes,
                                 realTimeDateMatchLevel,
-                                extrapolateRTOffset);
+                                extrapolateRTOffset,
+                                nbTripsPerNEXRoute,
+                                hideTerminatingTripsNEXNCF);
     gtfsRequestServer.displayDebugging();
 
     /*

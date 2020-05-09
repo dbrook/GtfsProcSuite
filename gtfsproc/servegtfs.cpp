@@ -38,6 +38,8 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
                      bool     use12h,
                      quint32  rtDateMatchLev,
                      bool     propOffsetSec,
+                     quint32  numberTripsPerRouteNEX,
+                     bool     hideEndingTrips,
                      QObject *parent) :
     TcpServer(parent)
 {
@@ -46,7 +48,9 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
     data.initDataPath(dbRootPath);
 
     // Populate each data set
-    data.initStatus(frozenTime, use12h); // "Status" is special, it holds process, feed_info.txt, and agency.txt data
+
+    // "Status" is special, it holds process, feed_info.txt, and agency.txt data
+    data.initStatus(frozenTime, use12h, numberTripsPerRouteNEX, hideEndingTrips);
     data.initRoutes();                   // Fill the Routes database from routes.txt
     data.initOperatingDay();             // Fill the calendar.txt and calendar_dates.txt
     data.initTrips();                    // Fill the trips.txt data
