@@ -101,6 +101,9 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
         return;
     }
 
+    // Store dataset modification time
+    resp["static_data_modif"] = _status->getStaticDatasetModifiedTime().toString("dd-MMM-yyyy hh:mm:ss t");
+
     // Fill stop information in response
     if (parentStationMode) {
         resp["stop_id"] = parentStation;

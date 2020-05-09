@@ -42,6 +42,7 @@ Status::Status(const QString dataRootPath,
     // We should pass the start time from the main server start?
     this->serverStartTimeUTC = QDateTime::currentDateTimeUtc();
     this->recordsLoaded = 0;
+    this->staticDataRevision = QDateTime();
 
     QVector<QVector<QString>> dataStore;
 
@@ -86,7 +87,7 @@ Status::Status(const QString dataRootPath,
 
     dataStore.clear();
 
-    // Agency is always required
+    // Agency is always required.
     {
         qDebug() << "Starting Agency Gathering ...";
         // Now let's load the agencies
@@ -107,6 +108,11 @@ Status::Status(const QString dataRootPath,
 
         // TODO: I actually have no idea, let's just take the first timezone we find and reference it for proper stamps
         this->serverFeedTZ = QTimeZone(this->Agencies[0].agency_timezone.toUtf8());
+
+        // Store the modified date/time of this file. It will be considered as the modified date/time for the entire
+        // static dataset (which will be sent to NEX/NCF outputs so front-end clients can compare to their cached
+        // date/time to see if they can re-poll for new route information).
+        this->staticDataRevision = QFileInfo(dataRootPath + "/agency.txt").lastModified();
     }
 
     // Decode any date string from input in case the time of every transaction should always be the same. This might
@@ -201,6 +207,11 @@ quint32 Status::getNbTripsPerRoute() const
 bool Status::hideTerminatingTripsForNEXNCF() const
 {
     return hideEndingTrips;
+}
+
+QDateTime Status::getStaticDatasetModifiedTime() const
+{
+    return staticDataRevision;
 }
 
 void Status::incrementRecordsLoaded(const qint64 &value)

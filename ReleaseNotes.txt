@@ -5,7 +5,9 @@ THIS RELEASE: Version 1.4 Features and Fixes:
    since front-ends will probably only want to show a fixed number of trips when organizing in such a way
     - The default value is 4 trips per route
  - Removed spurious "NO" in the GtfsProc_Agent.pl script
- - 
+ - Added the static dataset modification time to NEX and NCF outputs (last-modified time taken from the
+   agency.txt file). This will allow front-ends using NEX/NCF to know when new data is available (in
+   particular so new route information, colors, names, etc. may be refetched).
 
 
 PREVIOUS RELEASES:

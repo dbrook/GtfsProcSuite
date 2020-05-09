@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 1.3b)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 1.4)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -2390,6 +2390,17 @@ NEX {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
         </td>
         <td>
             Description of the Stop ID or “Parent Station” if a parent station was requested, or “Multiple Stops” if a list of stops were requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            static_data_modif
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Last-modified time and date of the GTFS Static Dataset for the whole transit agency.
         </td>
     </tr>
     <tr>

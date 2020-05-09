@@ -93,6 +93,9 @@ public:
     // Returns true if terminating trips are expected to not show up in output of NEX/NCF responses
     bool hideTerminatingTripsForNEXNCF() const;
 
+    // Returns the last-modified time from the agency.txt file in the static dataset
+    QDateTime getStaticDatasetModifiedTime() const;
+
 private:
     // Determine order of CSV table columns from feed_info.txt
     static void feedInfoCSVOrder(const QVector<QString> csvHeader,
@@ -139,6 +142,9 @@ private:
 
     // Hide trips which terminate in NEX/NCF responses (like Google Maps does)
     bool hideEndingTrips;
+
+    // When was the static dataset last revised?
+    QDateTime staticDataRevision;
 };
 
 }  // Namespace GTFS
