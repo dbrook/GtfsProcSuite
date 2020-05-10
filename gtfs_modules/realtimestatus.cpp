@@ -58,7 +58,7 @@ void RealtimeStatus::fillResponseData(QJsonObject &resp)
         QDateTime activeFeedTime      = rTrips->getFeedTime();
         resp["active_rt_version"]     = rTrips->getFeedGTFSVersion();
         resp["active_side"]           = activeSideStr;
-        resp["active_age_sec"]        = activeFeedTime.secsTo(getUTCTime());
+        resp["active_age_sec"]        = activeFeedTime.secsTo(getAgencyTime());
         resp["active_download_ms"]    = rTrips->getDownloadTimeMSec();
         resp["active_integration_ms"] = rTrips->getIntegrationTimeMSec();
 

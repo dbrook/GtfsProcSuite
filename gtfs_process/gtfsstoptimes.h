@@ -74,15 +74,6 @@ public:
     // Database retrieval
     const StopTimeData &getStopTimesDB() const;
 
-    // Duplicate a Trip ID using offsets (headways) between two times
-    // (this is our hack to make frequencies.txt work without too much of a fuss..)
-    qint64 duplicateTripWithTimeRange(const QString    &trip_id,
-                                      const QString    &uniqueChar,
-                                      qint32            startRange,
-                                      qint32            endRange,
-                                      qint32            headway,
-                                      QVector<QString> &generatedTrips);
-
     // Sorter
     static bool compareByStopSequence(const StopTimeRec &a, const StopTimeRec &b);
 

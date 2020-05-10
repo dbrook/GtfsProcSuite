@@ -1,5 +1,15 @@
-THIS RELEASE: Version 1.4 Features and Fixes:
+THIS RELEASE: Version 1.5 Features and Fixes:
 ---------------------------------------------
+ - NEX and NCF responses now share the age of the data used to generate real-time predictions, which
+   allows front-ends to share how close-to-reality the predictions may be (or show a warning, etc.)
+ - The RDS command renders the age of the dataset relative to the agency time (even if frozen using -f)
+ - Cleaned up unused code related to never-materialized frequency-based-trip processing
+
+
+PREVIOUS RELEASES:
+
+Version 1.4 Features and Fixes:
+-------------------------------
  - New option (-m) for NEX/NCF modules to not show scheduled trips which terminate at the stop
  - New option (-s) to limit the number of trips that show per route in NEX responses to save wasted data
    since front-ends will probably only want to show a fixed number of trips when organizing in such a way
@@ -8,9 +18,6 @@ THIS RELEASE: Version 1.4 Features and Fixes:
  - Added the static dataset modification time to NEX and NCF outputs (last-modified time taken from the
    agency.txt file). This will allow front-ends using NEX/NCF to know when new data is available (in
    particular so new route information, colors, names, etc. may be refetched).
-
-
-PREVIOUS RELEASES:
 
 Version 1.3 Features and Fixes:
 -------------------------------

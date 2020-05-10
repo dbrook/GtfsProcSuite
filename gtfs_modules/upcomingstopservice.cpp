@@ -104,6 +104,13 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
     // Store dataset modification time
     resp["static_data_modif"] = _status->getStaticDatasetModifiedTime().toString("dd-MMM-yyyy hh:mm:ss t");
 
+    // If real-time data is available (regardless of if it's relevant for this request or not), store the age of the
+    // data in the active buffer used to produce real-time predictions in this transaction.
+    if (_rtData) {
+        QDateTime activeFeedTime = _realTimeProc->getFeedTime();
+        resp["realtime_age_sec"] = activeFeedTime.secsTo(getAgencyTime());
+    }
+
     // Fill stop information in response
     if (parentStationMode) {
         resp["stop_id"] = parentStation;

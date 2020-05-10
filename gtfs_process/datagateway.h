@@ -53,15 +53,10 @@ public:
     void initTrips();
     void initStopTimes();
     void initStops();
-    void initFrequencies();
 
     //
     // Data load post-processing functions - used to make data access more efficient than scanning entire DB
     //
-
-    // Create any trips based off of frequency-headway database entries
-    // NOTE: This requires that the rest of the data is already loaded but NOT post-processed yet
-    void createFrequencyTrips();
 
     // Associate all Trip Stops (StopTime) and Routes to all the StopIDs in the database
     void linkStopsTripsRoutes();
