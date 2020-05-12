@@ -78,7 +78,7 @@ void StaticStatus::fillResponseData(QJsonObject &resp)
     QString appName = QCoreApplication::applicationName();
     QString appVers = QCoreApplication::applicationVersion();
 
-    resp["application"]      = appName.remove("\"") + " version " + appVers.remove("\"");
+    resp["application"]      = appName.remove("\"") + " " + appVers.remove("\"");
     resp["records"]          = _stat->getRecordsLoaded();
     resp["appuptime_ms"]     = _stat->getServerStartTimeUTC().msecsTo(_currUTC);
     resp["dataloadtime_ms"]  = _stat->getServerStartTimeUTC().msecsTo(_stat->getLoadFinishTimeUTC());

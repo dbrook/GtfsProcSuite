@@ -9,9 +9,9 @@
 #include <QThreadPool>
 #include <QDateTime>
 
-GtfsConnection::GtfsConnection(QObject *parent) : TcpConnection(parent)
+GtfsConnection::GtfsConnection(bool logTransactionsToTerminal, QObject *parent) : TcpConnection(parent)
 {
-//    QThreadPool::globalInstance()->setMaxThreadCount(processThreads);
+    _showTransactions = logTransactionsToTerminal;
 }
 
 GtfsConnection::~GtfsConnection()
@@ -51,9 +51,12 @@ void GtfsConnection::readyRead()
     // Let's print the query sent in to the local debug
     QByteArray socketInput = m_socket->readAll();
     QString qSocketInput = socketInput;
-    qDebug().noquote().nospace()
-            << "[" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd hh:mm:ss t")
-            << "] '" << qSocketInput << "'";
+
+    if (_showTransactions) {
+        qDebug().noquote().nospace()
+                << "[" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd hh:mm:ss t")
+                << "] '" << qSocketInput << "'";
+    }
 
     this->requestApplication(qSocketInput);
 }

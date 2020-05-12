@@ -87,6 +87,7 @@ public:
                                 bool              dumpProtobuf,
                                 rtDateLevel       skipDateMatching,
                                 bool              propagateOffsetSec,
+                                bool              displayBufferInfo,
                                 QObject          *parent = nullptr);
     virtual ~RealTimeTripUpdate();
 

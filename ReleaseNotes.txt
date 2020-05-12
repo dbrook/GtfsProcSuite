@@ -1,12 +1,19 @@
-THIS RELEASE: Version 1.5 Features and Fixes:
+THIS RELEASE: Version 1.6 Features and Fixes:
 ---------------------------------------------
+ - The Agent cannot redirect output to /dev/null, if it does, then it seems we lose track of the actual
+   GtfsProc Process ID number. As a result, verbose output of transactions and trip updates is done ONLY 
+   if "-i" used, otherwise only data load progress and server readiness are displayed in the server output.
+ - Don't print the word "version" in SDS output of the "application" field.
+
+
+PREVIOUS RELEASES:
+
+Version 1.5 Features and Fixes:
+-------------------------------
  - NEX and NCF responses now share the age of the data used to generate real-time predictions, which
    allows front-ends to share how close-to-reality the predictions may be (or show a warning, etc.)
  - The RDS command renders the age of the dataset relative to the agency time (even if frozen using -f)
  - Cleaned up unused code related to never-materialized frequency-based-trip processing
-
-
-PREVIOUS RELEASES:
 
 Version 1.4 Features and Fixes:
 -------------------------------

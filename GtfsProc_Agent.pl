@@ -64,7 +64,7 @@ my $restartHour    = "03";
 ###########################################################
 
 # Build the runtime command
-$gtfsProcLine = "$gtfsProcServer -d $staticDataLoc -p $portNum $addedProcOpts 2> /dev/null";
+$gtfsProcLine = "$gtfsProcServer -d $staticDataLoc -p $portNum $addedProcOpts";
 
 # Check for new data using curl with header information
 sub UpdateAvailable
@@ -138,6 +138,7 @@ sub UpdateAvailable
 sub HourlyCheckIfRestartTime
 {
     my $serverPID = $_[0];
+    print "**** Will restart GtfsProc from PID $serverPID at $restartHour if new data is available\n";
     while (1) {
         sleep(3600);
         my $currentHour = `date +%H`;
@@ -155,6 +156,7 @@ sub HourlyCheckIfRestartTime
                 $serverPID = fork();
                 die "Unable to fork: $!" unless defined($serverPID);
                 if (!$serverPID) {
+                    print "**** Will restart GtfsProc from PID $serverPID at $restartHour if new data is available\n\n";
                     print "**** Starting with command: $gtfsProcLine\n";
                     exec($gtfsProcLine);
                     die "Unable to execute $!";
@@ -173,7 +175,7 @@ UpdateAvailable();
 my $gtfsPID = fork();
 die "Unable to fork: $!" unless defined($gtfsPID);
 if (!$gtfsPID) {
-    print "**** Starting with command: $gtfsProcLine\n";
+    print "**** Starting with command: $gtfsProcLine\n\n";
     exec($gtfsProcLine);
     die "Unable to execute $!";
     exit;

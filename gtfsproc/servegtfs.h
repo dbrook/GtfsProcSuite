@@ -59,6 +59,7 @@ public:
               bool     use12h,
               quint32  rtDateMatchLev,
               bool     propOffsetSec,
+              bool     showTraces,
               quint32  nbTripsRtNEX,
               bool     hideTermTrips,
               QObject *parent        = nullptr);
@@ -69,6 +70,8 @@ public:
 protected:
     virtual void incomingConnection(qintptr descriptor); //qint64, qHandle, qintptr, uint
 
+private:
+    bool _showTraces;
 };
 
 #endif // SERVEGTFS_H

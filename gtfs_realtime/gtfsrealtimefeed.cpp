@@ -52,8 +52,9 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath,
 
 RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
                                        bool              dumpProtobuf,
-                                       rtDateLevel skipDateMatching,
+                                       rtDateLevel       skipDateMatching,
                                        bool              propagateOffsetSec,
+                                       bool              displayBufferInfo,
                                        QObject          *parent)
     : QObject(parent), _dateEnforcement(skipDateMatching), _extrapolateOffset(propagateOffsetSec)
 {
@@ -63,8 +64,10 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
 
     _tripUpdate.ParseFromArray(gtfsRealTimeData, gtfsRealTimeData.size());
 
-    qDebug() << "  (RTTU) GTFS-Realtime : LIVE Protobuf: " << _tripUpdate.ByteSize()
-             << "bytes consisting of" << _tripUpdate.entity_size() << "real-time records.";
+    if (displayBufferInfo) {
+        qDebug() << "  (RTTU) GTFS-Realtime : LIVE Protobuf: " << _tripUpdate.ByteSize()
+                 << "bytes consisting of" << _tripUpdate.entity_size() << "real-time records.";
+    }
 
     if (dumpProtobuf) {
         showProtobufData();

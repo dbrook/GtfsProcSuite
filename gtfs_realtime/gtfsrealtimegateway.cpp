@@ -46,6 +46,7 @@ void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath,
                                           qint32         refreshIntervalSec,
                                           bool           showProtobuf,
                                           rtDateLevel    rtDateMatchLevel,
+                                          bool           showDebugTrace,
                                           bool           propagateOffsetSec)
 {
     // TODO : Make this more robust?
@@ -67,6 +68,9 @@ void RealTimeGateway::setRealTimeFeedPath(const QString &realTimeFeedPath,
     // Run-time matching and offset parameters
     _skipDateMatching = rtDateMatchLevel;
     _propOffsetSec    = propagateOffsetSec;
+
+    // Process traces
+    _trace = showDebugTrace;
 }
 
 qint64 RealTimeGateway::secondsToFetch() const
@@ -107,14 +111,18 @@ void RealTimeGateway::refetchData()
         // If no realtime requests have been sent recently (> 3 minutes), disable the realtime fetching
         // Do not bother idling when using locally-sourced data (annoying for local testing when data disappears)
         if (_dataPathLocal.isEmpty()) {
-            qDebug() << "  (RTTU) Last realtime request more than 3 minutes ago, stop fetching";
+            if (_trace) {
+                qDebug() << "  (RTTU) Last realtime request more than 3 minutes ago, stop fetching";
+            }
             _nextFetchTimeUTC = QDateTime();
             setActiveFeed(IDLED);
             return;
         }
     } else if (latestTxn.secsTo(currentUTC) <= 180 && current == IDLED) {
         // Otherwise we will have to restart the retrieval
-        qDebug() << "  (RTTU) Last realtime request less than 3 minutes ago and we were idled, start fetching again";
+        if (_trace) {
+            qDebug() << "  (RTTU) Last realtime request less than 3 minutes ago, updates idled, start refetching";
+        }
         _nextFetchTimeUTC = currentUTC;
     }
 
@@ -123,7 +131,9 @@ void RealTimeGateway::refetchData()
         return;
     }
 
-    qDebug() << "  (RTTU) Refetching realtime data at " << QDateTime::currentDateTimeUtc();
+    if (_trace) {
+        qDebug() << "  (RTTU) Refetching realtime data at " << QDateTime::currentDateTimeUtc();
+    }
 
     // We want to time how long the download
     qint64 start = QDateTime::currentMSecsSinceEpoch();
@@ -148,7 +158,9 @@ void RealTimeGateway::refetchData()
     // the processor will start populating SIDE_A per the logic below for non-empty data.
     // ... unless we have a local file, that is!
     if (GtfsRealTimePB.isEmpty() && _dataPathLocal.isEmpty()) {
-        qDebug() << "  (RTTU) ERROR : Data feed was empty, setting active feed to DISABLED";
+        if (_trace) {
+            qDebug() << "  (RTTU) ERROR : Data feed was empty, setting active feed to DISABLED";
+        }
         setActiveFeed(DISABLED);
         return;
     }
@@ -169,7 +181,11 @@ void RealTimeGateway::refetchData()
             if (!_dataPathLocal.isNull()) {
                 _sideA = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf, _skipDateMatching, _propOffsetSec);
             } else {
-                _sideA = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf, _skipDateMatching, _propOffsetSec);
+                _sideA = new RealTimeTripUpdate(GtfsRealTimePB,
+                                                _debugProtobuf,
+                                                _skipDateMatching,
+                                                _propOffsetSec,
+                                                _trace);
             }
         } else if (currentSide == SIDE_A) {
             nextSide = SIDE_B;
@@ -180,7 +196,11 @@ void RealTimeGateway::refetchData()
             if (!_dataPathLocal.isNull()) {
                 _sideB = new RealTimeTripUpdate(_dataPathLocal, _debugProtobuf, _skipDateMatching, _propOffsetSec);
             } else {
-                _sideB = new RealTimeTripUpdate(GtfsRealTimePB, _debugProtobuf, _skipDateMatching, _propOffsetSec);
+                _sideB = new RealTimeTripUpdate(GtfsRealTimePB,
+                                                _debugProtobuf,
+                                                _skipDateMatching,
+                                                _propOffsetSec,
+                                                _trace);
             }
         }
 
@@ -189,7 +209,9 @@ void RealTimeGateway::refetchData()
         bool skipBufferSwitch = false;
         if ((currentSide == SIDE_B && nextSide == SIDE_A && _sideA->getFeedTimePOSIX() == 0) ||
             (currentSide == SIDE_A && nextSide == SIDE_B && _sideB->getFeedTimePOSIX() == 0)) {
-            qDebug() << "  (RTTU) EMPTY TRIP UPDATES FILE, Skipping buffer swap";
+            if (_trace) {
+                qDebug() << "  (RTTU) EMPTY TRIP UPDATES FILE, Skipping buffer swap";
+            }
             skipBufferSwitch = true;
         }
 
@@ -205,7 +227,9 @@ void RealTimeGateway::refetchData()
         }
     } catch (...) {
         // If an exception is raised at any point, it should be considered the same as an empty dataset error
-        qDebug() << "  (RTTU) ERROR : Exception raised while ingesting realtime data, setting active feed to DISABLED";
+        if (_trace) {
+            qDebug() << "  (RTTU) Exception raised while ingesting realtime data, set active feed to DISABLED";
+        }
         setActiveFeed(DISABLED);
     }
 

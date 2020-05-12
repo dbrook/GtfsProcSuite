@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
      */
     QCoreApplication a(argc, argv);
     QCoreApplication::setApplicationName("GtfsProc");
-    QCoreApplication::setApplicationVersion("1.5");
+    QCoreApplication::setApplicationVersion("1.6");
 
     QTextStream console(stdout);
     QString appName = QCoreApplication::applicationName();
@@ -75,7 +75,9 @@ int main(int argc, char *argv[])
                     QCoreApplication::translate("main", "Real-time date matching level (read the documentation!)."),
                     QCoreApplication::translate("main", "0|1|2"));
     QCommandLineOption extrapOffsets(QStringList() << "e",
-                    QCoreApplication::translate("main", "Extend offset seconds to remaining stops of realtime trips"));
+                    QCoreApplication::translate("main", "Extend offset seconds to remaining stops of realtime trips."));
+    QCommandLineOption showFrontendRequests(QStringList() << "i",
+                    QCoreApplication::translate("main", "Show every transaction and real-time update to the screen."));
     QCommandLineOption fixedLocalTime(QStringList() << "f",
                     QCoreApplication::translate("main", "Freeze GtfsProc on this local time for all requests."),
                     QCoreApplication::translate("main", "y,m,d,h,m,s"));
@@ -92,6 +94,7 @@ int main(int argc, char *argv[])
     parser.addOption(tripsPerNEX);
     parser.addOption(noRTDateMatch);
     parser.addOption(extrapOffsets);
+    parser.addOption(showFrontendRequests);
     parser.addOption(fixedLocalTime);
     parser.addOption(dumpRTProtobuf);
     parser.process(a);
@@ -172,6 +175,11 @@ int main(int argc, char *argv[])
         hideTerminatingTripsNEXNCF = true;
     }
 
+    bool showTransactions = false;
+    if (parser.isSet(showFrontendRequests)) {
+        showTransactions = true;
+    }
+
     ServeGTFS gtfsRequestServer(databaseRootPath,
                                 realTimePath,
                                 rtDataInterval,
@@ -180,6 +188,7 @@ int main(int argc, char *argv[])
                                 use12HourTimes,
                                 realTimeDateMatchLevel,
                                 extrapolateRTOffset,
+                                showTransactions,
                                 nbTripsPerNEXRoute,
                                 hideTerminatingTripsNEXNCF);
     gtfsRequestServer.displayDebugging();

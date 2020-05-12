@@ -20,7 +20,7 @@ class GtfsConnection : public TcpConnection
 {
     Q_OBJECT
 public:
-    GtfsConnection(QObject *parent = 0);
+    GtfsConnection(bool logTransactionsToTerminal, QObject *parent = 0);
     virtual ~GtfsConnection();
 
 protected:
@@ -47,6 +47,7 @@ public slots:
 private:
     // Data stores for application?
     GTFS::Status const *Status;
+    bool                _showTransactions;
 };
 
 #endif // GTFSCONNECTION_H

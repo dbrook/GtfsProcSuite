@@ -50,6 +50,7 @@ public:
                              qint32         refreshIntervalSec,
                              bool           showProtobuf,
                              rtDateLevel    rtDateMatchLevel,
+                             bool           showDebugTrace,
                              bool           propagateOffsetSec);
 
     // How long until the next fetch?
@@ -98,6 +99,7 @@ private:
     bool                _debugProtobuf;      // true if a protobuf should be serialized each time it is received
     rtDateLevel         _skipDateMatching;   // true to skip all date matching from schedule trips and realtime feed
     bool                _propOffsetSec;      // true to propagate the last real-time offset to remaining stops in trip
+    bool                _trace;              // true if the periodic real-time trip update refresh traces should show
     RealTimeTripUpdate *_sideA;
     RealTimeTripUpdate *_sideB;
 };

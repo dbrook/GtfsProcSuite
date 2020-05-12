@@ -38,11 +38,15 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
                      bool     use12h,
                      quint32  rtDateMatchLev,
                      bool     propOffsetSec,
+                     bool     showTraces,
                      quint32  numberTripsPerRouteNEX,
                      bool     hideEndingTrips,
                      QObject *parent) :
     TcpServer(parent)
 {
+    // Transaction and update logging:
+    _showTraces = showTraces;
+
     // Setup the global data access
     GTFS::DataGateway &data = GTFS::DataGateway::inst();
     data.initDataPath(dbRootPath);
@@ -76,7 +80,7 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
     } else if (rtDateMatchLev == 2) {
         dateEnforcement = GTFS::NO_MATCHING;
     }
-    rtData.setRealTimeFeedPath(realTimePath, rtInterval, showProtobuf, dateEnforcement, propOffsetSec);
+    rtData.setRealTimeFeedPath(realTimePath, rtInterval, showProtobuf, dateEnforcement, _showTraces, propOffsetSec);
     rtData.refetchData();
 
     // The real-time processor must be able to independently download new realtime protobuf files
@@ -110,7 +114,7 @@ void ServeGTFS::incomingConnection(qintptr descriptor)
 {
 //    qDebug() << "Discovered an incoming GTFS Request: " << descriptor;
 
-    GtfsConnection *connection = new GtfsConnection();
+    GtfsConnection *connection = new GtfsConnection(_showTraces);
 
     //
     // Rate Limiting configuration inserted here if necessary
