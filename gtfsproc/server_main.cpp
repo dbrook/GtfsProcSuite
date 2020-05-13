@@ -74,8 +74,6 @@ int main(int argc, char *argv[])
     QCommandLineOption noRTDateMatch(QStringList() << "l",
                     QCoreApplication::translate("main", "Real-time date matching level (read the documentation!)."),
                     QCoreApplication::translate("main", "0|1|2"));
-    QCommandLineOption extrapOffsets(QStringList() << "e",
-                    QCoreApplication::translate("main", "Extend offset seconds to remaining stops of realtime trips."));
     QCommandLineOption showFrontendRequests(QStringList() << "i",
                     QCoreApplication::translate("main", "Show every transaction and real-time update to the screen."));
     QCommandLineOption fixedLocalTime(QStringList() << "f",
@@ -93,7 +91,6 @@ int main(int argc, char *argv[])
     parser.addOption(hideTermTrips);
     parser.addOption(tripsPerNEX);
     parser.addOption(noRTDateMatch);
-    parser.addOption(extrapOffsets);
     parser.addOption(showFrontendRequests);
     parser.addOption(fixedLocalTime);
     parser.addOption(dumpRTProtobuf);
@@ -154,11 +151,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    bool extrapolateRTOffset = false;
-    if (parser.isSet(extrapOffsets)) {
-        extrapolateRTOffset = true;
-    }
-
     int nbProcThreads = 1;
     if (parser.isSet(serverThreads)) {
         nbProcThreads = parser.value(serverThreads).toInt();
@@ -187,7 +179,6 @@ int main(int argc, char *argv[])
                                 protobufToQDebug,
                                 use12HourTimes,
                                 realTimeDateMatchLevel,
-                                extrapolateRTOffset,
                                 showTransactions,
                                 nbTripsPerNEXRoute,
                                 hideTerminatingTripsNEXNCF);

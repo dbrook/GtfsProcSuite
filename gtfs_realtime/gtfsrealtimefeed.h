@@ -83,12 +83,10 @@ public:
     explicit RealTimeTripUpdate(const QString &rtPath,
                                 bool           dumpProtobuf,
                                 rtDateLevel    skipDateMatching,
-                                bool           propagateOffsetSec,
                                 QObject       *parent = nullptr);
     explicit RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
                                 bool              dumpProtobuf,
                                 rtDateLevel       skipDateMatching,
-                                bool              propagateOffsetSec,
                                 bool              displayBufferInfo,
                                 QObject          *parent = nullptr);
     virtual ~RealTimeTripUpdate();
@@ -226,7 +224,6 @@ private:
     qint64      _integrationTimeMSec;
 
     rtDateLevel _dateEnforcement;   // Service / operating date enforcement level
-    bool        _extrapolateOffset; // Spread offset-seconds to all subsequent stops in a trip with realtime information
 };
 
 } // namespace GTFS

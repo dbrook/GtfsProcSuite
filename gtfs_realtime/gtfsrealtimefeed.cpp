@@ -32,9 +32,8 @@ namespace GTFS {
 RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath,
                                        bool           dumpProtobuf,
                                        rtDateLevel    skipDateMatching,
-                                       bool           propagateOffsetSec,
                                        QObject        *parent)
-    : QObject(parent), _dateEnforcement(skipDateMatching), _extrapolateOffset(propagateOffsetSec)
+    : QObject(parent), _dateEnforcement(skipDateMatching)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -53,10 +52,9 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath,
 RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
                                        bool              dumpProtobuf,
                                        rtDateLevel       skipDateMatching,
-                                       bool              propagateOffsetSec,
                                        bool              displayBufferInfo,
                                        QObject          *parent)
-    : QObject(parent), _dateEnforcement(skipDateMatching), _extrapolateOffset(propagateOffsetSec)
+    : QObject(parent), _dateEnforcement(skipDateMatching)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
