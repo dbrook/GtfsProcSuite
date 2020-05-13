@@ -174,7 +174,7 @@ const QString RealTimeTripUpdate::getFinalStopIdForAddedTrip(const QString &trip
     return QString::fromStdString(entity.trip_update().stop_time_update(lastStopTimeIdx).stop_id());
 }
 
-const QString RealTimeTripUpdate::getRouteID(const QString &trip_id, const QDate &serviceDay) const
+const QString RealTimeTripUpdate::getRouteID(const QString &trip_id) const
 {
     QString routeIDrt;
     qint32  tripUpdateEntity;
@@ -182,10 +182,6 @@ const QString RealTimeTripUpdate::getRouteID(const QString &trip_id, const QDate
     if (!findEntityIndex(trip_id, tripUpdateEntity, isSupplementalTrip)) {
         return routeIDrt;
     }
-
-    // TODO: THE DATE NEEDS TO BE HANDLED?
-    //       sit on this longer ... given the SEPTA and RTC Southern Nevada agencies using no start date/time in their
-    //       real time trip IDs, this is more complicated than I thought
 
     routeIDrt = QString::fromStdString(_tripUpdate.entity(tripUpdateEntity).trip_update().trip().route_id());
     return routeIDrt;
@@ -293,58 +289,36 @@ bool RealTimeTripUpdate::scheduledTripAlreadyPassed(const QString              &
     return false;
 }
 
-bool RealTimeTripUpdate::tripStopActualTime(const QString   &trip_id,
-                                            qint64           stopSeq,
-                                            const QString   &stop_id,
-                                            const QDateTime &schedArrTimeUTC,
-                                            const QDateTime &schedDepTimeUTC,
-                                            QDateTime       &realArrTimeUTC,
-                                            QDateTime       &realDepTimeUTC) const
+void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
+                                            qint64                      stopSeq,
+                                            const QString              &stop_id,
+                                            const QTimeZone            &agencyTZ,
+                                            const QVector<StopTimeRec> &tripTimes,
+                                            QDateTime                  &realArrTimeUTC,
+                                            QDateTime                  &realDepTimeUTC) const
 {
-    // Determine that the trip id and stop-sequence are valid
-    qint32 tripUpdateEntity;
-    bool   isSupplementalTrip;
-    if (!findEntityIndex(trip_id, tripUpdateEntity, isSupplementalTrip)) {
-        return false;
-    }
+    // Gather up the stop-times for the whole trip, this takes advantage of existing code from RTR, so the extrapolated
+    // times and other necessities of the real-time-trip-update work is already done, it just needs to be found + saved
+    QVector<rtStopTimeUpdate> rtStopTimes;
+    fillStopTimesForTrip(tripID, agencyTZ, tripTimes, rtStopTimes);
 
-    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
-
-    // Conventional flow (when trip update has multiple stops encoded)
-    // Either the realtime update is in POSIX-style seconds-since-UNIX-epoch UTC timestamps OR just offset-seconds
-    for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
-        const transit_realtime::TripUpdate_StopTimeUpdate &stu = tri.stop_time_update(stopTimeIdx);
-
-        /*
-         * If stop sequence is available, it MUST be followed (this handles the case where a trip ID can be visited
-         * more than once in a trip), a stop_id-only style match can only be done if no stop sequence is present
-         */
-        if ((stu.has_stop_sequence() && stu.stop_sequence() == stopSeq) ||
-            (!stu.has_stop_sequence() && stu.has_stop_id() && QString::fromStdString(stu.stop_id()) == stop_id)) {
-            fillPredictedTime(stu, schedArrTimeUTC, schedDepTimeUTC, realArrTimeUTC, realDepTimeUTC);
-            return true;
+    // Pick out the stop time relevant to the requested stop and return it
+    for (const rtStopTimeUpdate &rtst : rtStopTimes) {
+        if ((rtst.stopSequence != -1 && rtst.stopSequence == stopSeq) || rtst.stopID == stop_id) {
+            realArrTimeUTC = rtst.arrTime;
+            realDepTimeUTC = rtst.depTime;
+            break;
         }
     }
-
-    /*
-     * If no exact match for the stop id or sequence was found, the server might have been configured to extrapolate
-     * whatever the last-known offset is present into the rest of the trip ID
-     */
-    if (_extrapolateOffset) {
-        // Apply the last-known offsets to the scheduled time if possible
-        const transit_realtime::TripUpdate_StopTimeUpdate &stu = tri.stop_time_update(tri.stop_time_update_size() - 1);
-        fillPredictedTime(stu, schedArrTimeUTC, schedDepTimeUTC, realArrTimeUTC, realDepTimeUTC);
-    }
-
-    // Exhausted the dataset with no success, indicate nothing could be filled
-    return false;
 }
 
 void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_StopTimeUpdate &stu,
                                            const QDateTime                                   &schedArrTimeUTC,
                                            const QDateTime                                   &schedDepTimeUTC,
                                            QDateTime                                         &realArrTimeUTC,
-                                           QDateTime                                         &realDepTimeUTC) const
+                                           QDateTime                                         &realDepTimeUTC,
+                                           QChar                                             &realArrBased,
+                                           QChar                                             &realDepBased) const
 {
     realArrTimeUTC = QDateTime();
     realDepTimeUTC = QDateTime();
@@ -352,16 +326,20 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
     if (stu.has_arrival()) {
         if (stu.arrival().has_delay() && !schedArrTimeUTC.isNull()) {
             realArrTimeUTC = schedArrTimeUTC.addSecs(stu.arrival().delay());
+            realArrBased = 'O';
         } else if (stu.arrival().has_time()) {
             realArrTimeUTC = QDateTime::fromSecsSinceEpoch(stu.arrival().time(), QTimeZone::utc());
+            realArrBased = 'P';
         }
     }
 
     if (stu.has_departure()) {
         if (stu.departure().has_delay() && !schedDepTimeUTC.isNull()) {
             realDepTimeUTC = schedDepTimeUTC.addSecs(stu.departure().delay());
+            realDepBased = 'O';
         } else if (stu.departure().has_time()) {
             realDepTimeUTC = QDateTime::fromSecsSinceEpoch(stu.departure().time(), QTimeZone::utc());
+            realDepBased = 'P';
         }
     }
 }
@@ -390,55 +368,115 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID
     QDate preferredDate  = rtServiceDate.isValid() ? rtServiceDate : feedActualDate;
     QDateTime localNoon  = QDateTime(preferredDate, QTime(12, 0, 0), agencyTZ);
 
-    for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
-        rtStopTimeUpdate stu;
-        stu.stopID = QString::fromStdString(tri.stop_time_update(stopTimeIdx).stop_id());
+    // If this is not a supplemental trip, then we can match 1-to-1 the offsets or POSIX timestamps to the trip and
+    // render the entire thing, showing the schedule vs. prediction for each stop along the trip
+    if (!isSupplementalTrip) {
+        bool   tripUsesOffset  = false;
+        qint32 lastKnownOffset = 0;
+        for (const StopTimeRec &stopRec : tripTimes) {
+            rtStopTimeUpdate stu;
+            stu.stopSequence = -1;
 
-        /*
-         * In the event BOTH a stop sequence and stop id are present in the realtime feed, the stop sequence is
-         * preferred over a lone stop_id (because some trips could visit the same stop_id several times).
-         */
-        if (tri.stop_time_update(stopTimeIdx).has_stop_sequence()) {
-            QDateTime schArrTime;
-            QDateTime schDepTime;
-
-            if (!isSupplementalTrip) {
-                // Given a stop sequence try and find the scheduled times from the static feed (supplemental trips N/A)
-                for (const StopTimeRec &stopRec : tripTimes) {
-                    if (stopRec.stop_sequence == tri.stop_time_update(stopTimeIdx).stop_sequence()) {
-                        schArrTime = localNoon.addSecs(stopRec.arrival_time);
-                        schDepTime = localNoon.addSecs(stopRec.departure_time);
-                        break;
-                    }
-                }
-            }
-
-            stu.stopSequence = tri.stop_time_update(stopTimeIdx).stop_sequence();
-            fillPredictedTime(tri.stop_time_update(stopTimeIdx), schArrTime, schDepTime, stu.arrTime, stu.depTime);
-        } else {
-            QDateTime schArrTime;
-            QDateTime schDepTime;
-
-            if (!isSupplementalTrip) {
-                // Given a stop sequence try and find the scheduled times from the static feed (supplemental trips N/A)
-                for (const StopTimeRec &stopRec : tripTimes) {
-                    if (stopRec.stop_id == QString::fromStdString(tri.stop_time_update(stopTimeIdx).stop_id())) {
-                        schArrTime = localNoon.addSecs(stopRec.arrival_time);
-                        schDepTime = localNoon.addSecs(stopRec.departure_time);
+            // Find the first real-time trip update that pertains to the schedule
+            qint32 stUpdIdx;
+            for (stUpdIdx = 0; stUpdIdx < tri.stop_time_update_size(); ++stUpdIdx) {
+                // Stop-Sequences are preferred per the GTFS-Realtime specification, even if a stop_id is also present
+                if (tri.stop_time_update(stUpdIdx).has_stop_sequence()) {
+                    if (stopRec.stop_sequence == tri.stop_time_update(stUpdIdx).stop_sequence()) {
+                        // Only fill in the stop sequence if it was matched in the real-time field, otherwise it
+                        // should stay as -1 so the caller can determine how "fully" the sequence was matched
                         stu.stopSequence = stopRec.stop_sequence;
                         break;
                     }
+                } else {
+                    if (stopRec.stop_id == QString::fromStdString(tri.stop_time_update(stUpdIdx).stop_id())) {
+                        stu.stopID       = stopRec.stop_id;
+                        break;
+                    }
                 }
             }
 
-            fillPredictedTime(tri.stop_time_update(stopTimeIdx), schArrTime, schDepTime, stu.arrTime, stu.depTime);
+            // Fill in the stop ID
+            stu.stopID       = stopRec.stop_id;
+
+            // Retrieve scheduled time for storage
+            QDateTime schArrTime = localNoon.addSecs(stopRec.arrival_time);
+            QDateTime schDepTime = localNoon.addSecs(stopRec.departure_time);
+
+            // With the stop/sequence matched, fill in the matched time (POSIX-style or offset) directly
+            if (stUpdIdx < tri.stop_time_update_size()) {
+                // Determine if offset-in-seconds are used at all, save once it is found in case it needs extrapolation
+                // For the purposes of propagation to the remaining itinerary, the DEPARTURE should be preferred
+                if (tri.stop_time_update(stUpdIdx).has_arrival() &&
+                    tri.stop_time_update(stUpdIdx).arrival().has_delay()) {
+                    lastKnownOffset = tri.stop_time_update(stUpdIdx).arrival().delay();
+                    tripUsesOffset  = true;
+                }
+                if (tri.stop_time_update(stUpdIdx).has_departure() &&
+                    tri.stop_time_update(stUpdIdx).departure().has_delay()) {
+                    lastKnownOffset = tri.stop_time_update(stUpdIdx).departure().delay();
+                    tripUsesOffset  = true;
+                }
+
+
+                // Fill the known offsets for this matched stop
+                fillPredictedTime(tri.stop_time_update(stUpdIdx), schArrTime, schDepTime,
+                                  stu.arrTime, stu.depTime, stu.arrBased, stu.depBased);
+
+                // The stop may be skipped
+                stu.stopSkipped = tri.stop_time_update(stUpdIdx).schedule_relationship() ==
+                                  transit_realtime::TripUpdate_StopTimeUpdate_ScheduleRelationship_SKIPPED;
+            }
+
+            // But if no match was found AND offset-in-seconds is used, try and fill with what we had before
+            else {
+                if (tripUsesOffset) {
+                    // Try and fill in based on the last-known offsets
+                    stu.arrBased     = 'E';
+                    stu.depBased     = 'E';
+                    stu.arrTime      = schArrTime.addSecs(lastKnownOffset);
+                    stu.depTime      = schDepTime.addSecs(lastKnownOffset);
+                    stu.stopSkipped  = false;
+                } else {
+                    // Only POSIX-times were used, so we cannot extrapolate offsets to the rest of the trip
+                    stu.arrBased     = 'N';
+                    stu.depBased     = 'N';
+                    stu.arrTime      = QDateTime();
+                    stu.depTime      = QDateTime();
+                    stu.stopSkipped  = false;
+                }
+            }
+
+            // Save the information for this trip
+            rtStopTimes.push_back(stu);
         }
+    }
 
-        stu.stopSkipped = tri.stop_time_update(stopTimeIdx).schedule_relationship() ==
-                          transit_realtime::TripUpdate_StopTimeUpdate_ScheduleRelationship_SKIPPED;
+    // Otherwise, supplemental trips are far less "interesting" to show since they have no schedule to compare, thus
+    // it is probably wisest to simply dump the entire thing out and flag them as all POSIX-based (since they must be?)
+    else {
+        rtStopTimeUpdate stu;
+        for (qint32 stUpdIdx = 0; stUpdIdx < tri.stop_time_update_size(); ++stUpdIdx) {
+            if (tri.stop_time_update(stUpdIdx).has_stop_sequence()) {
+                stu.stopSequence = tri.stop_time_update(stUpdIdx).stop_sequence();
+            }
+            if (tri.stop_time_update(stUpdIdx).has_stop_id()) {
+                stu.stopID = QString::fromStdString(tri.stop_time_update(stUpdIdx).stop_id());
+            }
 
-        // Save the information for this trip
-        rtStopTimes.push_back(stu);
+            // Get arrival/departure times based on POSIX timestamps
+            QDateTime schArrTime, schDepTime;
+            fillPredictedTime(tri.stop_time_update(stUpdIdx),
+                              schArrTime, schDepTime,
+                              stu.arrTime, stu.depTime,
+                              stu.arrBased, stu.depBased);
+
+            stu.stopSkipped = tri.stop_time_update(stUpdIdx).schedule_relationship() ==
+                              transit_realtime::TripUpdate_StopTimeUpdate_ScheduleRelationship_SKIPPED;
+
+            // Save the information for this trip
+            rtStopTimes.push_back(stu);
+        }
     }
 }
 

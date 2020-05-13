@@ -154,7 +154,7 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
                 _realTimeProc->getFeedTime().toTimeZone(getAgencyTime().timeZone()).toString("dd-MMM-yyyy hh:mm:ss t");
         }
 
-        QString route_id = _realTimeProc->getRouteID(_tripID, _realTimeDate);
+        QString route_id = _realTimeProc->getRouteID(_tripID);
 
         // Fill in some details (route specifically ... everything else should be added if I feel like it is useful)
         resp["route_id"]         = route_id;
@@ -183,6 +183,8 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
             singleStopJSON["stop_name"] = (*_stops)[rtsu.stopID].stop_name;
             singleStopJSON["sequence"]  = rtsu.stopSequence;
             singleStopJSON["skipped"]   = rtsu.stopSkipped;
+            singleStopJSON["arr_based"] = QString(rtsu.arrBased);
+            singleStopJSON["dep_based"] = QString(rtsu.depBased);
             tripStopArray.push_back(singleStopJSON);
         }
 

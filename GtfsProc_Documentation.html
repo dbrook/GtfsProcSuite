@@ -78,7 +78,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 1.5 - Running on Process ID: 22112<br>
+GtfsProc version 1.6 - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>
@@ -980,7 +980,7 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             string
         </td>
         <td>
-            Time at which an operating trip began (this might be in a greater-than-24-hour format)
+            Time at which an operating trip began (this might be in a greater-than-24-hour format if the service date is used for start_date, in which case default GtfsProc real-time date matching can be used (starting GtfsProc with "-l 0" or just not specified)).
         </td>
     </tr>
     <tr class="abResponseField">
@@ -991,7 +991,7 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             string
         </td>
         <td>
-            Date at which an operating trip began (this should be based on the operating service day for after-midnight trips)
+            Date at which an operating trip began (if empty for trip updates, it is suggested to disable date matching (start GtfsProc with -l 2), if the date doesn't match the service date for after-midnight trips, it is suggested to soften the date matching (start GtfsProc with -l 1)).
         </td>
     </tr>
     <tr>
@@ -1025,6 +1025,17 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             Time of arrival at the stop (scheduled time in TRI, predicted time in RTR)
         </td>
     </tr>
+    <tr class="abResponseField">
+        <td class="fixed">
+            arr_based
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Indicator of how the time was derived ("N" = No prediction for this stop along a scheduled trip, "P" = Full POSIX timestamp was used, "O" = Offset-in-seconds, "E" = extrapolated from a previous offset).
+        </td>
+    </tr>
     <tr>
         <td class="fixed">
             dep_time
@@ -1034,6 +1045,17 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
         </td>
         <td>
             Time of departure from the stop (scheduled time in TRI, predicted time in RTR)
+        </td>
+    </tr>
+    <tr class="abResponseField">
+        <td class="fixed">
+            dep_based
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Indicator of how the time was derived ("N" = No prediction for this stop along a scheduled trip, "P" = Full POSIX timestamp was used, "O" = Offset-in-seconds, "E" = extrapolated from a previous offset).
         </td>
     </tr>
     <tr>

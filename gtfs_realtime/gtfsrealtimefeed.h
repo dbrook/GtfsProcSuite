@@ -40,8 +40,10 @@ namespace GTFS {
 typedef struct {
     qint64    stopSequence;
     QString   stopID;
-    QDateTime depTime;
     QDateTime arrTime;
+    QChar     arrBased;
+    QDateTime depTime;
+    QChar     depBased;
     bool      stopSkipped;
 } rtStopTimeUpdate;
 
@@ -129,7 +131,7 @@ public:
     const QString getFinalStopIdForAddedTrip(const QString &trip_id) const;
 
     // Retrieve the route ID that the trip relates to
-    const QString getRouteID(const QString &trip_id, const QDate &serviceDay) const;
+    const QString getRouteID(const QString &trip_id) const;
 
     // Is the trip (that came from the static feed) actually running?
     bool scheduledTripIsRunning(const QString &trip_id, const QDate &serviceDate, const QDate &actualDate) const;
@@ -148,22 +150,23 @@ public:
                                     const QVector<StopTimeRec> &tripTimes) const;
 
     // What is the actual time of arrival? (returns the QDateTime in UTC of the actual arrival/departure times)
-    // Returns a FALSE if the trip and stopseq combination was not found in the data
-    // Unused values will come back as 0 ... probably
-    bool tripStopActualTime(const QString   &trip_id,
-                            qint64           stopSeq,
-                            const QString   &stop_id,
-                            const QDateTime &schedArrTimeUTC,
-                            const QDateTime &schedDepTimeUTC,
-                            QDateTime       &realArrTimeUTC,
-                            QDateTime       &realDepTimeUTC) const;
+    // If no match was found, realArrTimeUTC/realDepTimeUTC will be NULL QDateTimes
+    void tripStopActualTime(const QString              &tripID,
+                            qint64                      stopSeq,
+                            const QString              &stop_id,
+                            const QTimeZone            &agencyTZ,
+                            const QVector<StopTimeRec> &tripTimes,
+                            QDateTime                  &realArrTimeUTC,
+                            QDateTime                  &realDepTimeUTC) const;
 
     // Fill in predicted times for a single stop (helper function to avoid repeated code
     void fillPredictedTime(const transit_realtime::TripUpdate_StopTimeUpdate &stu,
                            const QDateTime                                   &schedArrTimeUTC,
                            const QDateTime                                   &schedDepTimeUTC,
                            QDateTime                                         &realArrTimeUTC,
-                           QDateTime                                         &realDepTimeUTC) const;
+                           QDateTime                                         &realDepTimeUTC,
+                           QChar                                             &realArrBased,
+                           QChar                                             &realDepBased) const;
 
     // Fill an array of all the stop times for a requested real-time trip_id
     // Passes back route_id and stopTimes

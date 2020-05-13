@@ -50,6 +50,7 @@ public:
      * propOffsetSec:  set to true to propagate the last-known offset time of a real-time trip to all remaining stops
      * nbTripsRtNEX:   number of trips per route that should be serialized in NEX responses
      * hideTermTrips:  set to true if trips terminating at the requested stop should be hidden (NEX/NCF only)
+     * showTraces:     set to true if all transactions and real-time update operations should be logged to the terminal
      */
     ServeGTFS(QString  dbRootPath,
               QString  realTimePath,

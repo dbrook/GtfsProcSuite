@@ -4,6 +4,16 @@ THIS RELEASE: Version 1.6 Features and Fixes:
    GtfsProc Process ID number. As a result, verbose output of transactions and trip updates is done ONLY 
    if "-i" used, otherwise only data load progress and server readiness are displayed in the server output.
  - Don't print the word "version" in SDS output of the "application" field.
+ - RTR, when used on schedule-based trips now matches all the updated times to their schedule/sequence, so
+   when used on a scheduled trip, you will now see the entire scheduled trip + the predictions and how the
+   actual times were rendered (offset-seconds/POSIX timestamp/extrapolated (new output fields created in RTR).
+ - Fixed misunderstanding about extrapolated offset times ... this is actually IN the GTFS-Realtime
+   specification, so when offsets are available, they should be cascaded to all stops which have no
+   predictions available. As a result, the "-e" option is removed as this is now standard behavior.
+ - Code cleanup - everything about real-time predictions now goes through the RTR code to simplify maintenance
+   this does appear to have a performance penalty on agencies using offset-seconds. For POSIX-time-based
+   real-time-trip-updates, an optimization was put in place to jump right to the relevant update for the
+   stop ID / sequence requested.
 
 
 PREVIOUS RELEASES:

@@ -171,8 +171,8 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                         rActiveFeed->tripStopActualTime(tripRecord.tripID,
                                                         tripRecord.stopSequenceNum,
                                                         tripRecord.stopID,
-                                                        schedArrUTC,
-                                                        schedDepUTC,
+                                                        _agencyTime.timeZone(),
+                                                        (*sStopTimes)[tripRecord.tripID],
                                                         predictArrUTC,
                                                         predictDepUTC);
 
@@ -247,28 +247,30 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                 tripRecord.pickupType      = 0;
                 tripRecord.tripID          = tripAndIndex.first;
                 tripRecord.vehicleRealTime = rActiveFeed->getOperatingVehicle(tripRecord.tripID);
+                tripRecord.stopID          = stopID;
 
                 // Calculate wait time and actual departure/arrivals if available
                 QDateTime prArrTime, prDepTime;
-                if (rActiveFeed->tripStopActualTime(tripAndIndex.first,
-                                                    tripAndIndex.second,
-                                                    tripRecord.stopID,
-                                                    QDateTime(),
-                                                    QDateTime(),
-                                                    prArrTime,
-                                                    prDepTime)) {
 
-                    // We have to have at least one time
-                    if (!prDepTime.isNull()) {
-                        // Fill in the countdown until departure initially ...
-                        tripRecord.realTimeDeparture = prDepTime.toTimeZone(_agencyTime.timeZone());
-                        tripRecord.waitTimeSec = _agencyTime.secsTo(tripRecord.realTimeDeparture);
-                    }
-                    if (!prArrTime.isNull()) {
-                        // ... but we will always prefer the countdown time to show the time until vehicle arrival
-                        tripRecord.realTimeArrival = prArrTime.toTimeZone(_agencyTime.timeZone());
-                        tripRecord.waitTimeSec = _agencyTime.secsTo(tripRecord.realTimeArrival);
-                    }
+                // Needed to call tripStopActualTime, but unused for supplemental
+                QVector<StopTimeRec> dummySupplement;
+                rActiveFeed->tripStopActualTime(tripAndIndex.first,
+                                                tripAndIndex.second,
+                                                tripRecord.stopID,
+                                                _agencyTime.timeZone(),
+                                                dummySupplement,
+                                                prArrTime,
+                                                prDepTime);
+                // We have to have at least one time
+                if (!prDepTime.isNull()) {
+                    // Fill in the countdown until departure initially ...
+                    tripRecord.realTimeDeparture = prDepTime.toTimeZone(_agencyTime.timeZone());
+                    tripRecord.waitTimeSec = _agencyTime.secsTo(tripRecord.realTimeDeparture);
+                }
+                if (!prArrTime.isNull()) {
+                    // ... but we will always prefer the countdown time to show the time until vehicle arrival
+                    tripRecord.realTimeArrival = prArrTime.toTimeZone(_agencyTime.timeZone());
+                    tripRecord.waitTimeSec = _agencyTime.secsTo(tripRecord.realTimeArrival);
                 }
 
                 // There is not really a schedule offset (since no schedule exists for added trips)
