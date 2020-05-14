@@ -295,8 +295,53 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
                                             QDateTime                  &realArrTimeUTC,
                                             QDateTime                  &realDepTimeUTC) const
 {
-    // Gather up the stop-times for the whole trip, this takes advantage of existing code from RTR, so the extrapolated
-    // times and other necessities of the real-time-trip-update work is already done, it just needs to be found + saved
+    // If the agency has helpfully provided POSIX timestamps for this trip, then there is no need to progress through
+    // the entire trip sequence in case offsets are needed, just jump right to the relevant trip-stop stop-time update
+    // We can determine which vector to loop over to fill route_id and stopTimes
+    qint32 tripUpdateEntity;
+    bool   isSupplementalTrip;
+    if (!findEntityIndex(tripID, tripUpdateEntity, isSupplementalTrip)) {
+        return;
+    }
+
+    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
+
+    // Determine the service date of the trip based on the realtime start date information
+    // This is needed for purely-offset-based trip updates since the offset must be computed to an actual DateTime
+    // Find the stop ID or sequence and see if there is an exact POSIX time we can fill
+    qint32 rtSTUpd;
+    for (rtSTUpd = 0; rtSTUpd < tri.stop_time_update_size(); ++rtSTUpd) {
+        if (tri.stop_time_update(rtSTUpd).has_stop_sequence()) {
+            if (stopSeq == tri.stop_time_update(rtSTUpd).stop_sequence()) {
+                break;
+            }
+        } else {
+            if (stop_id == QString::fromStdString(tri.stop_time_update(rtSTUpd).stop_id())) {
+                break;
+            }
+        }
+    }
+    // Do not need scheduled times if given a direct timestamp
+    if (rtSTUpd < tri.stop_time_update_size()) {
+        if ((tri.stop_time_update(rtSTUpd).has_arrival()   && tri.stop_time_update(rtSTUpd).arrival().has_time()) ||
+            (tri.stop_time_update(rtSTUpd).has_departure() && tri.stop_time_update(rtSTUpd).departure().has_time())) {
+            QDateTime arrTimeDummy, depTimeDummy;
+            QChar     arrBaseDummy, depBaseDummy;
+            fillPredictedTime(tri.stop_time_update(rtSTUpd),
+                              arrTimeDummy,   depTimeDummy,
+                              realArrTimeUTC, realDepTimeUTC,
+                              arrBaseDummy,   depBaseDummy);
+            return;
+        }
+    }
+
+    //
+    // TODO: THIS WHOLE SECTION COULD BE BROKEN DOWN A LITTLE MORE TO MAKE IT MORE EFFICIENT?
+    //
+
+    // Gather up the stop-times for the whole trip, this takes advantage of existing code from RTR, so the
+    // extrapolated times and other necessities of the real-time-trip-update work is already done, it just
+    // needs to be found + saved
     QVector<rtStopTimeUpdate> rtStopTimes;
     fillStopTimesForTrip(tripID, agencyTZ, tripTimes, rtStopTimes);
 

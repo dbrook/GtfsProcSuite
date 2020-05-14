@@ -53,7 +53,6 @@
     <li><b class="fixed">-u {number of seconds}</b>: Specify the number of seconds between each attempt to refresh GTFS-Realtime data (defaults to 120 seconds).</li>
     <li><b class="fixed">-a</b>: Shows all times using a 12-hour format with AM/PM indicators (the default display is with 24-hour clocks).</li>
     <li><b class="fixed">-l</b>: Looseness parameter for enforcing the start date/time values provided by real-time trip updates. (0 is the default and rigorously enforces the start date/time to match the service date, 1 ensures that the start date/time matches the actual date which helps for agencies who fill the date with the actual date and not the service date, and 2 provides no matching at all for agencies which provide no start date). Loosening the date enforcement (especially option 1) may lead to bugs when a trip is started late from a scheduled time on the previous day. Option 2 makes it so multiple trips can potentially be flagged with the same time and should not be used for agencies providing POSIX-style seconds-since-epoch trip updates. Option 2 also has the side effect of marking trips that are also not really operating but merely are the same trip IDs for a subsequent service date.</li>
-    <li><b class="fixed">-e</b>: Extrapolates / copies the last arrival/departure information of a real time trip update to the rest of the stops along the trip's schedule. This should only be used with agencies that provide offset_seconds and not an actual arrival / departure time in POSIX-seconds-since-epoch format.</li>
     <li><b class="fixed">-i</b>: Displays a record of all transactions and data refetches to standard error.</li>
     <li><b class="fixed">-s</b>: Limit of the number of trips that will appear in output per route of NEX module responses.</li>
     <li><b class="fixed">-m</b>: Do not show terminating trips in NEX and NCF module responses (this is basically what Google Maps does).</li>
@@ -123,7 +122,7 @@ SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS<br>
     <li>Run your query or queries, to see that the issue persists in the cached file</li>
     <li>Try using DRT from a client to decode the protocol buffer file into a human readable form</li>
     <li>Try using RTR for the trip ID in question to see what is available to GtfsProc from this trip.</li>
-    <li>Rerun GtfsProc with the same command, but with any overrides/parameters (usually the issues encountered are about date enforcement (use -l 1 or -l 2) or very small trip updates (use -e).)</li>
+    <li>Rerun GtfsProc with the same command, but with any overrides/parameters (usually the issues encountered are about date enforcement (use -l 1 or -l 2))</li>
     <li>If you are really stumped, send me a mail with:</li>
     <ul>
         <li>the agency static zip file (or a link to it if it's big),</li>
