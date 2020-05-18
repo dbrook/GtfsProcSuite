@@ -108,7 +108,11 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
     // data in the active buffer used to produce real-time predictions in this transaction.
     if (_rtData) {
         QDateTime activeFeedTime = _realTimeProc->getFeedTime();
-        resp["realtime_age_sec"] = activeFeedTime.secsTo(getAgencyTime());
+        if (activeFeedTime.isNull()) {
+            resp["realtime_age_sec"] = "-";
+        } else {
+            resp["realtime_age_sec"] = activeFeedTime.secsTo(getAgencyTime());
+        }
     }
 
     // Fill stop information in response

@@ -35,6 +35,9 @@
 // For feeds which do not use UNIX timestamps but instead just offsets, the static feed must be compared
 #include "gtfsstoptimes.h"
 
+// For real-time updates which do not include route information, provide the trips database which gives route ID
+#include "gtfstrip.h"
+
 namespace GTFS {
 
 typedef struct {
@@ -80,15 +83,19 @@ class RealTimeTripUpdate : public QObject
 {
     Q_OBJECT
 public:
-    explicit RealTimeTripUpdate(const QString &rtPath,
-                                bool           dumpProtobuf,
-                                rtDateLevel    skipDateMatching,
-                                QObject       *parent = nullptr);
-    explicit RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
-                                bool              dumpProtobuf,
-                                rtDateLevel       skipDateMatching,
-                                bool              displayBufferInfo,
-                                QObject          *parent = nullptr);
+    explicit RealTimeTripUpdate(const QString      &rtPath,
+                                bool                dumpProtobuf,
+                                rtDateLevel         skipDateMatching,
+                                const TripData     *tripsDB,
+                                const StopTimeData *stopTimeDB,
+                                QObject            *parent = nullptr);
+    explicit RealTimeTripUpdate(const QByteArray   &gtfsRealTimeData,
+                                bool                dumpProtobuf,
+                                rtDateLevel         skipDateMatching,
+                                bool                displayBufferInfo,
+                                const TripData     *tripsDB,
+                                const StopTimeData *stopTimeDB,
+                                QObject            *parent = nullptr);
     virtual ~RealTimeTripUpdate();
 
     /*
@@ -183,7 +190,10 @@ public:
     // Get a hash of routes with lists of trips with prediction information
     void getAllTripsWithPredictions(QHash<QString, QVector<QString>> &addedRouteTrips,
                                     QHash<QString, QVector<QString>> &activeRouteTrips,
-                                    QHash<QString, QVector<QString>> &cancelledRouteTrips) const;
+                                    QHash<QString, QVector<QString>> &cancelledRouteTrips,
+                                    QHash<QString, QVector<QString>> &mismatchRTTrips,
+                                    QHash<QString, QHash<QString, QVector<qint32>>> &duplicateRTTrips,
+                                    QVector<QString> &tripsWithoutRoutes) const;
 
     // Dump a string-representation of the protobuf trip updates
     void serializeTripUpdates(QString &output) const;
@@ -211,6 +221,9 @@ private:
     /*
      * Data Members
      */
+    const TripData                 *_tripDB;         // Trips Database for feeds which do not provide Route ID w/ Trips
+    const StopTimeData             *_stopTimeDB;     // Stop-Times Database for sanity-checking real-time trip updates
+
     transit_realtime::FeedMessage   _tripUpdate;     // Hold the raw protobuf here, but it is not optimized for reading
 
     QHash<QString, qint32>          _cancelledTrips; // Track cancelled trips with associated entity idx
@@ -219,6 +232,27 @@ private:
 
     // Stop-IDs which have been skipped by any number of trips
     QHash<QString, QVector<QPair<QString, quint32>>> _skippedStops;
+
+    /*
+     * The early design decision to use route ID indexes means that anytime we have a duplicate trip ID (this could
+     * theoretically be possible with a trip operating on contiguous days and there is real-time information for both)
+     * ... it is unlikely, but with the creation of the RPS transaction, this condition is now easily monitor-able.
+     */
+    QHash<QString, QVector<qint32>> _duplicateTrips;
+
+    /*
+     * Trips may not have any route associated with them (also rare)
+     * When processing real-time trip updates, a best effort is made to align the trip ID with a route (hence why the
+     * trips database must be known to this class) in case the real-time trip updates do not contain the related route.
+     */
+    QVector<QString> _noRouteTrips;
+
+    /*
+     * Trips that are from the scheduled dataset might have additional stops encoded in the real-time feed. These stops
+     * along these trips will NOT be considered by GtfsProc, so with the advent of the RPS transaction, this condition
+     * may be monitored.
+     */
+    QHash<QString, QVector<QString>> _stopsMismatchTrips;
 
     qint64      _downloadTimeMSec;
     qint64      _integrationTimeMSec;

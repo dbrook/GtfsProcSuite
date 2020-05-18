@@ -146,12 +146,15 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         resp["real_time"] = true;
 
         // Data information
-        if (getStatus()->format12h()) {
+        QDateTime activeFeedTime = _realTimeProc->getFeedTime();
+        if (activeFeedTime.isNull()) {
+            resp["real_time_data_time"] = "-";
+        } else if (getStatus()->format12h()) {
             resp["real_time_data_time"] =
-                _realTimeProc->getFeedTime().toTimeZone(getAgencyTime().timeZone()).toString("dd-MMM-yyyy h:mm:ss a t");
+                              activeFeedTime.toTimeZone(getAgencyTime().timeZone()).toString("dd-MMM-yyyy h:mm:ss a t");
         } else {
             resp["real_time_data_time"] =
-                _realTimeProc->getFeedTime().toTimeZone(getAgencyTime().timeZone()).toString("dd-MMM-yyyy hh:mm:ss t");
+                              activeFeedTime.toTimeZone(getAgencyTime().timeZone()).toString("dd-MMM-yyyy hh:mm:ss t");
         }
 
         QString route_id = _realTimeProc->getRouteID(_tripID);

@@ -32,6 +32,7 @@
 #include "stopswithouttrips.h"
 #include "realtimetripinformation.h"
 #include "realtimestatus.h"
+#include "realtimeproductstatus.h"
 #include "upcomingstopservice.h"
 #include "servicebetweenstops.h"
 
@@ -155,6 +156,9 @@ void GtfsRequestProcessor::run()
         } else if (! userApp.compare("DRT", Qt::CaseInsensitive)) {
             GTFS::RealtimeTripInformation DRT;
             DRT.dumpRealTime(SystemResponse);
+        } else if (! userApp.compare("RPS", Qt::CaseInsensitive)) {
+            GTFS::RealtimeProductStatus RPS;
+            RPS.fillResponseData(respJson);
         } else {
             // Return ERROR 1: Unknown request (userApp)
             respJson["error"] = 1;

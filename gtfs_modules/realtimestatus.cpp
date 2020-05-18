@@ -58,14 +58,20 @@ void RealtimeStatus::fillResponseData(QJsonObject &resp)
         QDateTime activeFeedTime      = rTrips->getFeedTime();
         resp["active_rt_version"]     = rTrips->getFeedGTFSVersion();
         resp["active_side"]           = activeSideStr;
-        resp["active_age_sec"]        = activeFeedTime.secsTo(getAgencyTime());
         resp["active_download_ms"]    = rTrips->getDownloadTimeMSec();
         resp["active_integration_ms"] = rTrips->getIntegrationTimeMSec();
 
-        if (getStatus()->format12h()) {
-            resp["active_feed_time"] = activeFeedTime.toString("dd-MMM-yyyy h:mm:ss a t");
+        if (activeFeedTime.isNull()) {
+            resp["active_feed_time"] = "-";
+            resp["active_age_sec"]   = "-";
+        } else if (getStatus()->format12h()) {
+            resp["active_feed_time"] = activeFeedTime.toTimeZone(getAgencyTime().timeZone())
+                                                     .toString("dd-MMM-yyyy h:mm:ss a t");
+            resp["active_age_sec"]   = activeFeedTime.secsTo(getAgencyTime());
         } else {
-            resp["active_feed_time"] = activeFeedTime.toString("dd-MMM-yyyy hh:mm:ss t");
+            resp["active_feed_time"] = activeFeedTime.toTimeZone(getAgencyTime().timeZone())
+                                                     .toString("dd-MMM-yyyy hh:mm:ss t");
+            resp["active_age_sec"]   = activeFeedTime.secsTo(getAgencyTime());
         }
     }
 

@@ -21,6 +21,7 @@
 #include "gtfsrealtimefeed.h"
 
 #include <QTimeZone>
+#include <QSet>
 #include <QDebug>
 #include <fstream>
 
@@ -29,11 +30,13 @@
 
 namespace GTFS {
 
-RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath,
-                                       bool           dumpProtobuf,
-                                       rtDateLevel    skipDateMatching,
-                                       QObject        *parent)
-    : QObject(parent), _dateEnforcement(skipDateMatching)
+RealTimeTripUpdate::RealTimeTripUpdate(const QString      &rtPath,
+                                       bool                dumpProtobuf,
+                                       rtDateLevel         skipDateMatching,
+                                       const TripData     *tripsDB,
+                                       const StopTimeData *stopTimeDB,
+                                       QObject            *parent)
+    : QObject(parent), _tripDB(tripsDB), _stopTimeDB(stopTimeDB), _dateEnforcement(skipDateMatching)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -49,12 +52,14 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString &rtPath,
     processUpdateDetails(startUTC);
 }
 
-RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray &gtfsRealTimeData,
-                                       bool              dumpProtobuf,
-                                       rtDateLevel       skipDateMatching,
-                                       bool              displayBufferInfo,
-                                       QObject          *parent)
-    : QObject(parent), _dateEnforcement(skipDateMatching)
+RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray   &gtfsRealTimeData,
+                                       bool                dumpProtobuf,
+                                       rtDateLevel         skipDateMatching,
+                                       bool                displayBufferInfo,
+                                       const TripData     *tripsDB,
+                                       const StopTimeData *stopTimeDB,
+                                       QObject            *parent)
+    : QObject(parent), _tripDB(tripsDB), _stopTimeDB(stopTimeDB), _dateEnforcement(skipDateMatching)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -82,7 +87,13 @@ RealTimeTripUpdate::~RealTimeTripUpdate()
 QDateTime RealTimeTripUpdate::getFeedTime() const
 {
     // ISSUE: Qt Framework expects an int64 but GTFS-Realtime Protobuf returns a uint64 for the timestamp
-    return QDateTime::fromSecsSinceEpoch(_tripUpdate.header().timestamp());
+    // Another problem, an empty buffer will have been initialized with 0 seconds-since-epoch ... we should really
+    // be NULL in that case and not 1970-01-01 00:00:00 UTC
+    if (_tripUpdate.header().timestamp() == 0) {
+        return QDateTime();
+    } else {
+        return QDateTime::fromSecsSinceEpoch(_tripUpdate.header().timestamp());
+    }
 }
 
 quint64 RealTimeTripUpdate::getFeedTimePOSIX() const
@@ -559,27 +570,62 @@ const QString RealTimeTripUpdate::getTripStartDate(const QString &tripID) const
     return QString::fromStdString(tri.trip().start_date());
 }
 
-void RealTimeTripUpdate::getAllTripsWithPredictions(QHash<QString, QVector<QString> > &addedRouteTrips,
-                                                    QHash<QString, QVector<QString> > &activeRouteTrips,
-                                                    QHash<QString, QVector<QString> > &cancelledRouteTrips) const
+void RealTimeTripUpdate::getAllTripsWithPredictions(QHash<QString, QVector<QString>> &addedRouteTrips,
+                                                    QHash<QString, QVector<QString>> &activeRouteTrips,
+                                                    QHash<QString, QVector<QString>> &cancelledRouteTrips,
+                                                    QHash<QString, QVector<QString>> &mismatchRTTrips,
+                                                    QHash<QString, QHash<QString, QVector<qint32>>> &duplicateRTTrips,
+                                                    QVector<QString> &tripsWithoutRoutes) const
 {
     for (const QString &tripID : _addedTrips.keys()) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_addedTrips[tripID]);
-        QString qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        QString qRouteId;
+        if (entity.trip_update().trip().has_route_id()) {
+            qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        } else if (_tripDB->contains(tripID)) {
+            qRouteId = (*_tripDB)[tripID].route_id;
+        }
         addedRouteTrips[qRouteId].push_back(tripID);
     }
 
     for (const QString &tripID : _activeTrips.keys()) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_activeTrips[tripID]);
-        QString qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        QString qRouteId;
+        if (entity.trip_update().trip().has_route_id()) {
+            qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        } else if (_tripDB->contains(tripID)) {
+            qRouteId = (*_tripDB)[tripID].route_id;
+        }
         activeRouteTrips[qRouteId].push_back(tripID);
     }
 
     for (const QString &tripID : _cancelledTrips.keys()) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_cancelledTrips[tripID]);
-        QString qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        QString qRouteId;
+        if (entity.trip_update().trip().has_route_id()) {
+            qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        } else if (_tripDB->contains(tripID)) {
+            qRouteId = (*_tripDB)[tripID].route_id;
+        }
         cancelledRouteTrips[qRouteId].push_back(tripID);
     }
+
+    for (const QString &tripID : _duplicateTrips.keys()) {
+        for (qint32 rttuIdx : _duplicateTrips[tripID]) {
+            const transit_realtime::FeedEntity &entity = _tripUpdate.entity(rttuIdx);
+            QString qRouteId = "";
+            if (entity.trip_update().trip().has_route_id()) {
+                qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+            } else if (_tripDB->contains(tripID)) {
+                qRouteId = (*_tripDB)[tripID].route_id;
+            }
+            duplicateRTTrips[qRouteId][tripID].push_back(rttuIdx);
+        }
+    }
+
+    mismatchRTTrips    = _stopsMismatchTrips;
+
+    tripsWithoutRoutes = _noRouteTrips;
 }
 
 void RealTimeTripUpdate::serializeTripUpdates(QString &output) const
@@ -593,9 +639,22 @@ void RealTimeTripUpdate::serializeTripUpdates(QString &output) const
 
 void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
 {
+    // Process every trip update entity
     for (qint32 recIdx = 0; recIdx < _tripUpdate.entity_size(); ++recIdx) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(recIdx);
 
+        // Each time a trip is attempted to be added, see if it was already added and save it's trip ID + route ID
+        QString tripID = QString::fromStdString(entity.trip_update().trip().trip_id());
+        if (_addedTrips.contains(tripID) || _cancelledTrips.contains(tripID) || _activeTrips.contains(tripID)) {
+            _duplicateTrips[tripID].push_back(recIdx);
+        }
+
+        // Store a trip which does not contain the route information
+        if (!entity.trip_update().trip().has_route_id() && !_tripDB->contains(tripID)) {
+            _noRouteTrips.push_back(tripID);
+        }
+
+        // Put the trip update into its relevant category
         if (entity.trip_update().trip().schedule_relationship() ==
             transit_realtime::TripDescriptor_ScheduleRelationship_ADDED) {
             QString tripAdded = QString::fromStdString(entity.trip_update().trip().trip_id());
@@ -619,6 +678,49 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
                     QPair<QString, quint32> qTripId(QString::fromStdString(entity.id()), stopTime.stop_sequence());
 
                     _skippedStops[qStopId].push_back(qTripId);
+                }
+            }
+        }
+    }
+
+    // Post-Process the activeTrips and determine if unexpected stop_sequence or stop_ids are present
+    for (const QString &tripID : _activeTrips.keys()) {
+        // Make a set of all stop_sequences and stop_ids for the trip from the static feed
+        QSet<qint64>  staticSequnces;
+        QSet<QString> staticStopIDs;
+        if (_stopTimeDB->contains(tripID)) {
+            for (const StopTimeRec &stopTimeItem : (*_stopTimeDB)[tripID]) {
+                staticSequnces.insert(stopTimeItem.stop_sequence);
+                staticStopIDs.insert(stopTimeItem.stop_id);
+            }
+        }
+
+        // The RPS transaction will do a further breakdown per route, so let's to the breakdown here
+        // upon reading and not at every request.
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_activeTrips[tripID]);
+        QString routeID;
+        if (!entity.trip_update().trip().has_route_id() && !_tripDB->contains(tripID)) {
+            _noRouteTrips.push_back(tripID);
+        } else if (entity.trip_update().trip().has_route_id()) {
+            routeID = QString::fromStdString(entity.trip_update().trip().route_id());
+        } else {
+            routeID = (*_tripDB)[tripID].route_id;
+        }
+
+        // If any sequences or stops in the real-time buffer are not in the static, flag this trip as mismatching
+        const transit_realtime::TripUpdate &tri = entity.trip_update();
+        for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
+            if (tri.stop_time_update(stopTimeIdx).has_stop_sequence()) {
+                if (!staticSequnces.contains(tri.stop_time_update(stopTimeIdx).stop_sequence())) {
+                    // Save the real-time trip-update's index, then move to the next
+                    _stopsMismatchTrips[routeID].push_back(tripID);
+                    break;
+                }
+            } else if (tri.stop_time_update(stopTimeIdx).has_stop_id()) {
+                if (!staticStopIDs.contains(QString::fromStdString(tri.stop_time_update(stopTimeIdx).stop_id()))) {
+                    // Save the real-time trip-update's index, then move to the next
+                    _stopsMismatchTrips[routeID].push_back(tripID);
+                    break;
                 }
             }
         }

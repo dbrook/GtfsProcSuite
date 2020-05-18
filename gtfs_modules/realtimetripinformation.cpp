@@ -38,9 +38,15 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
         return;
     }
 
-    QHash<QString, QVector<QString> > addedRouteTrips, activeRouteTrips, cancelledRouteTrips;
-
-    _rTrips->getAllTripsWithPredictions(addedRouteTrips, activeRouteTrips, cancelledRouteTrips);
+    QHash<QString, QVector<QString>> addedRouteTrips, activeRouteTrips, cancelledRouteTrips, mismatchTripIdx;
+    QHash<QString, QHash<QString, QVector<qint32>>> duplicateTripIdx;
+    QVector<QString> tripsWithoutRoute;
+    _rTrips->getAllTripsWithPredictions(addedRouteTrips,
+                                        activeRouteTrips,
+                                        cancelledRouteTrips,
+                                        mismatchTripIdx,
+                                        duplicateTripIdx,
+                                        tripsWithoutRoute);
 
     // Canceled Trips
     QJsonObject canceledCollection;
@@ -74,6 +80,39 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
         activeCollection[routeID] = activeRoute;
     }
     resp["active_trips"] = activeCollection;
+
+    // Routes without Trips / "Orphaned Trips"
+    QJsonArray orphanedAll;
+    for (const QString &tripID : tripsWithoutRoute) {
+        orphanedAll.push_back(tripID);
+    }
+    resp["orphaned_trips"] = orphanedAll;
+
+    // Trips with Mismatching Stop Data vs. Schedule from the Static Feed
+    QJsonObject mismatchCollection;
+    for (const QString &routeID : mismatchTripIdx.keys()) {
+        QJsonArray mismatchRoute;
+        for (const QString &tripID : mismatchTripIdx[routeID]) {
+            mismatchRoute.push_back(tripID);
+        }
+        mismatchCollection[routeID] = mismatchRoute;
+    }
+    resp["mismatch_trips"] = mismatchCollection;
+
+    // Real-Time Trip Update indexes per route/trip that are duplicates
+    QJsonObject duplicateCollection;
+    for (const QString &routeID : duplicateTripIdx.keys()) {
+        QJsonObject duplicateRoutes;
+        for (const QString &tripID : duplicateTripIdx[routeID].keys()) {
+            QJsonArray duplicateTripsRoute;
+            for (qint32 rttuEntityIdx: duplicateTripIdx[routeID][tripID]) {
+                duplicateTripsRoute.push_back(rttuEntityIdx);
+            }
+            duplicateRoutes[tripID] = duplicateTripsRoute;
+        }
+        duplicateCollection[routeID] = duplicateRoutes;
+    }
+    resp["duplicate_trips"] = duplicateCollection;
 
     // Successful completion
     fillProtocolFields("RTI", 0, resp);

@@ -46,11 +46,13 @@ public:
     static RealTimeGateway &inst();
 
     // Store the path from which to grab new protobuf data
-    void setRealTimeFeedPath(const QString &realTimeFeedPath,
-                             qint32         refreshIntervalSec,
-                             bool           showProtobuf,
-                             rtDateLevel    rtDateMatchLevel,
-                             bool           showDebugTrace);
+    void setRealTimeFeedPath(const QString      &realTimeFeedPath,
+                             qint32              refreshIntervalSec,
+                             bool                showProtobuf,
+                             rtDateLevel         rtDateMatchLevel,
+                             bool                showDebugTrace,
+                             const TripData     *tripsDB,
+                             const StopTimeData *stopTimeDB);
 
     // How long until the next fetch?
     qint64 secondsToFetch() const;
@@ -100,6 +102,9 @@ private:
     bool                _trace;              // true if the periodic real-time trip update refresh traces should show
     RealTimeTripUpdate *_sideA;
     RealTimeTripUpdate *_sideB;
+
+    const TripData     *_staticFeedTripDB;   // Pointer to the static trip database (for route ID matching)
+    const StopTimeData *_staticStopTimeDB;   // Pointer to the static stop time database (for trip sanity-checks)
 };
 
 } // Namespace GTFS
