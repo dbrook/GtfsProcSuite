@@ -133,7 +133,8 @@ void RealTimeGateway::refetchData()
     }
 
     // Make sure enough time has passed since the last refresh, otherwise just idle the thread again
-    if (_nextFetchTimeUTC.isNull() || _nextFetchTimeUTC > currentUTC) {
+    // Due to OS thread scheduling, be a little permissive with the time (+/- 2 seconds) and not a STRICT compare
+    if (_nextFetchTimeUTC.isNull() || currentUTC.msecsTo(_nextFetchTimeUTC) > 2000) {
         return;
     }
 
