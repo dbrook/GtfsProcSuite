@@ -303,6 +303,7 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
                                             const QString              &stop_id,
                                             const QTimeZone            &agencyTZ,
                                             const QVector<StopTimeRec> &tripTimes,
+                                            const QDate                &serviceDate,
                                             QDateTime                  &realArrTimeUTC,
                                             QDateTime                  &realDepTimeUTC) const
 {
@@ -354,7 +355,7 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
     // extrapolated times and other necessities of the real-time-trip-update work is already done, it just
     // needs to be found + saved
     QVector<rtStopTimeUpdate> rtStopTimes;
-    fillStopTimesForTrip(tripID, agencyTZ, tripTimes, rtStopTimes);
+    fillStopTimesForTrip(tripID, agencyTZ, serviceDate, tripTimes, rtStopTimes);
 
     // Pick out the stop time relevant to the requested stop and return it
     for (const rtStopTimeUpdate &rtst : rtStopTimes) {
@@ -400,6 +401,7 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
 
 void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID,
                                               const QTimeZone            &agencyTZ,
+                                              const QDate                &serviceDate,
                                               const QVector<StopTimeRec> &tripTimes,
                                               QVector<rtStopTimeUpdate>  &rtStopTimes) const
 {
@@ -418,8 +420,10 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID
     QDate rtServiceDate(decodedSvcDate.mid(0, 4).toInt(),
                         decodedSvcDate.mid(4, 2).toInt(),
                         decodedSvcDate.mid(6, 2).toInt());
-    QDate feedActualDate = QDateTime::fromSecsSinceEpoch(_tripUpdate.header().timestamp()).toUTC().date();
-    QDate preferredDate  = rtServiceDate.isValid() ? rtServiceDate : feedActualDate;
+
+    // The date from the real-time trip-update is generally preferred, but the service date has been passed in from
+    // the backend in order to supplement it in case it is not available.
+    QDate preferredDate  = rtServiceDate.isValid() ? rtServiceDate : serviceDate;
     QDateTime localNoon  = QDateTime(preferredDate, QTime(12, 0, 0), agencyTZ);
 
     // If this is not a supplemental trip, then we can match 1-to-1 the offsets or POSIX timestamps to the trip and

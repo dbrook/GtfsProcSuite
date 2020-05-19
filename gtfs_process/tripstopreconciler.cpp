@@ -173,6 +173,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                                                         tripRecord.stopID,
                                                         _agencyTime.timeZone(),
                                                         (*sStopTimes)[tripRecord.tripID],
+                                                        tripRecord.tripServiceDate,
                                                         predictArrUTC,
                                                         predictDepUTC);
 
@@ -253,12 +254,15 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                 QDateTime prArrTime, prDepTime;
 
                 // Needed to call tripStopActualTime, but unused for supplemental
+                // Supplemental trips should hopefully have absolute POSIX time stamps, so sending a null QDate
+                // for the service date should be ok for these renderings.
                 QVector<StopTimeRec> dummySupplement;
                 rActiveFeed->tripStopActualTime(tripAndIndex.first,
                                                 tripAndIndex.second,
                                                 tripRecord.stopID,
                                                 _agencyTime.timeZone(),
                                                 dummySupplement,
+                                                QDate(),
                                                 prArrTime,
                                                 prDepTime);
                 // We have to have at least one time

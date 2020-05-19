@@ -139,9 +139,14 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         }
 
         // We will populate directly from the real-time feed so it will have somewhat fewer details than the static one
+        // Send in the system date so that trips that are not encoded with a start date have something to go off of
         QJsonArray                      tripStopArray;
         QVector<GTFS::rtStopTimeUpdate> stopTimes;
-        _realTimeProc->fillStopTimesForTrip(_tripID, getAgencyTime().timeZone(), (*_stopTimes)[_tripID], stopTimes);
+        _realTimeProc->fillStopTimesForTrip(_tripID,
+                                            getAgencyTime().timeZone(),
+                                            getAgencyTime().date(),
+                                            (*_stopTimes)[_tripID],
+                                            stopTimes);
 
         resp["real_time"] = true;
 

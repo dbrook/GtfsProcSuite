@@ -155,12 +155,14 @@ public:
                                     const QVector<StopTimeRec> &tripTimes) const;
 
     // What is the actual time of arrival? (returns the QDateTime in UTC of the actual arrival/departure times)
+    // The service date (of an operating trip)
     // If no match was found, realArrTimeUTC/realDepTimeUTC will be NULL QDateTimes
     void tripStopActualTime(const QString              &tripID,
                             qint64                      stopSeq,
                             const QString              &stop_id,
                             const QTimeZone            &agencyTZ,
                             const QVector<StopTimeRec> &tripTimes,
+                            const QDate                &serviceDate,
                             QDateTime                  &realArrTimeUTC,
                             QDateTime                  &realDepTimeUTC) const;
 
@@ -174,9 +176,11 @@ public:
                            QChar                                             &realDepBased) const;
 
     // Fill an array of all the stop times for a requested real-time trip_id
-    // Passes back route_id and stopTimes
+    // The serviceDate is sent in to stand-in for time calculations in the event a date from the real-time trip update
+    // is not available.
     void fillStopTimesForTrip(const QString              &tripID,
                               const QTimeZone            &agencyTZ,
+                              const QDate                &serviceDate,
                               const QVector<StopTimeRec> &tripTimes,
                               QVector<rtStopTimeUpdate>  &rtStopTimes) const;
 
