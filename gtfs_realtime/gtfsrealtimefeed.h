@@ -56,6 +56,12 @@ typedef enum {
     NO_MATCHING  = 2
 } rtDateLevel;
 
+typedef enum {
+    TRIPID_RECONCILE  = 0,
+    TRIPID_FEED_ONLY  = 1,
+    RTTUIDX_FEED_ONLY = 2
+} rtUpdateMatch;
+
 /*
  * RealTimeTripUpdate is the main interface to the GTFS Realtime feed information. This class Qt-ifies the ProtoBuf
  * data so that it is quicker to search and provide useful real-time trip data to which the static feeds can be
@@ -176,9 +182,18 @@ public:
                            QChar                                             &realDepBased) const;
 
     // Fill an array of all the stop times for a requested real-time trip_id
+    // realTimeMatch values:
+    //    RTTUIDX_FEED_ONLY - provide the rttuIdx (real-time trip update index) this is the direct index from the real
+    //                        time feed, not a trip ID (this is helpful for examining duplicate buffers)
+    //    TRIPID_FEED_ONLY  - pull the trip updates directly from the real-time buffer, but do not reconcile it with
+    //                        schedule data from which it is based. (rttuIdx is ignored)
+    //    TRIPID_RECONCILE  - only render real-time updates for the relevant schedule times and ignore any others. This
+    //                        is the mode to use for NEX and NCF as well. (rttuIdx is ignored)
     // The serviceDate is sent in to stand-in for time calculations in the event a date from the real-time trip update
     // is not available.
-    void fillStopTimesForTrip(const QString              &tripID,
+    void fillStopTimesForTrip(rtUpdateMatch               realTimeMatch,
+                              quint64                     rttuIdx,
+                              const QString              &tripID,
                               const QTimeZone            &agencyTZ,
                               const QDate                &serviceDate,
                               const QVector<StopTimeRec> &tripTimes,
@@ -201,6 +216,12 @@ public:
 
     // Dump a string-representation of the protobuf trip updates
     void serializeTripUpdates(QString &output) const;
+
+    // Get number of entities (for sanity checking direct feed access)
+    quint64 getNbEntities() const;
+
+    // Get trip ID from a direct real-time trip update index
+    QString getTripIdFromEntity(quint64 realtimeTripUpdateEntity) const;
 
 signals:
 

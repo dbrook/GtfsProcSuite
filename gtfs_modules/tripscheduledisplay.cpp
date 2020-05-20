@@ -27,7 +27,10 @@
 
 namespace GTFS {
 
-TripScheduleDisplay::TripScheduleDisplay(const QString &tripID, bool useRealTimeData, const QDate &realTimeDate)
+TripScheduleDisplay::TripScheduleDisplay(const QString &tripID,
+                                         bool           useRealTimeData,
+                                         const QDate   &realTimeDate,
+                                         rtUpdateMatch  realTimeTripStyle)
     : StaticStatus(), _tripID(tripID), _realTimeDataRequested(useRealTimeData), _realTimeDataAvailable(false)
 {
     _tripDB    = GTFS::DataGateway::inst().getTripsDB();
@@ -43,6 +46,10 @@ TripScheduleDisplay::TripScheduleDisplay(const QString &tripID, bool useRealTime
         if (_realTimeProc != nullptr) {
             _realTimeDataAvailable = true;
             _realTimeDate          = realTimeDate;
+            _realTimeTripStyle     = realTimeTripStyle;
+            if (realTimeTripStyle == GTFS::RTTUIDX_FEED_ONLY) {
+                _rttuIdx           = tripID.toUInt();
+            }
         }
     }
 }
@@ -124,7 +131,7 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         resp["stops"] = tripStopArray;
     }
 
-    /*********************************** Request for real-time trip ID predictions *************************************/
+    /********************************** Request for real-time trip ID predictions *************************************/
     else {
         // Real-time predictions were requested but the data is not available -- ERROR CODE 103
         if (!_realTimeDataAvailable) {
@@ -133,16 +140,28 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         }
 
         // There is no real-time update for the trip ID requested -- ERROR CODE 102
-        if (!_realTimeProc->tripExists(_tripID)) {
+        if ((_realTimeTripStyle == TRIPID_RECONCILE || _realTimeTripStyle == TRIPID_FEED_ONLY) &&
+            !_realTimeProc->tripExists(_tripID)) {
             fillProtocolFields("TRI", 102, resp);
             return;
+        }
+
+        // TODO: Reject if trip update index is out of bound? NEW ERROR CODE TO CODE AGAINST....
+        if (_realTimeTripStyle == RTTUIDX_FEED_ONLY) {
+            if (_rttuIdx >= _realTimeProc->getNbEntities()) {
+                fillProtocolFields("TRI", 104, resp);
+                return;
+            }
+            _tripID = _realTimeProc->getTripIdFromEntity(_rttuIdx);
         }
 
         // We will populate directly from the real-time feed so it will have somewhat fewer details than the static one
         // Send in the system date so that trips that are not encoded with a start date have something to go off of
         QJsonArray                      tripStopArray;
         QVector<GTFS::rtStopTimeUpdate> stopTimes;
-        _realTimeProc->fillStopTimesForTrip(_tripID,
+        _realTimeProc->fillStopTimesForTrip(_realTimeTripStyle,
+                                            _rttuIdx,
+                                            _tripID,
                                             getAgencyTime().timeZone(),
                                             getAgencyTime().date(),
                                             (*_stopTimes)[_tripID],

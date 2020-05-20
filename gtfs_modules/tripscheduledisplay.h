@@ -54,7 +54,10 @@ class TripScheduleDisplay : public StaticStatus
 {
 public:
     /* Connects to a GTFS::DataGateway, Trips, Stops to prepare rendering of a specific Trip ID */
-    explicit TripScheduleDisplay(const QString &tripID, bool useRealTimeData, const QDate &realTimeDate);
+    explicit TripScheduleDisplay(const QString &tripID,
+                                 bool           useRealTimeData,
+                                 const QDate   &realTimeDate,
+                                 rtUpdateMatch  realTimeTripStyle);
 
     /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
@@ -65,6 +68,10 @@ private:
     bool    _realTimeDataRequested;
     bool    _realTimeDataAvailable;
     QDate   _realTimeDate;
+
+    // Query Mode
+    rtUpdateMatch _realTimeTripStyle;
+    quint64       _rttuIdx;
 
     // Datasets
     const GTFS::TripData           *_tripDB;

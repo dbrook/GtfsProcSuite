@@ -75,7 +75,8 @@ void GtfsRequestProcessor::run()
             GTFS::AvailableRoutes RTE;
             RTE.fillResponseData(respJson);
         } else if (! userApp.compare("TRI", Qt::CaseInsensitive)) {
-            GTFS::TripScheduleDisplay TRI(userReq, false, QDate());
+            // RECONCILE flag is ignored for regular trip schedule display
+            GTFS::TripScheduleDisplay TRI(userReq, false, QDate(), GTFS::TRIPID_RECONCILE);
             TRI.fillResponseData(respJson);
         } else if (! userApp.compare("TSR", Qt::CaseInsensitive)) {
             QDate noDate;
@@ -128,8 +129,14 @@ void GtfsRequestProcessor::run()
         } else if (! userApp.compare("SNT", Qt::CaseInsensitive)) {
             GTFS::StopsWithoutTrips SNT;
             SNT.fillResponseData(respJson);
-        } else if (! userApp.compare("RTR", Qt::CaseInsensitive)) {
-            GTFS::TripScheduleDisplay TRI(userReq, true, QDate());
+        } else if (! userApp.compare("RTS", Qt::CaseInsensitive)) {
+            GTFS::TripScheduleDisplay TRI(userReq, true, QDate(), GTFS::TRIPID_RECONCILE);
+            TRI.fillResponseData(respJson);
+        } else if (! userApp.compare("RTF", Qt::CaseInsensitive)) {
+            GTFS::TripScheduleDisplay TRI(userReq, true, QDate(), GTFS::TRIPID_FEED_ONLY);
+            TRI.fillResponseData(respJson);
+        } else if (! userApp.compare("RTT", Qt::CaseInsensitive)) {
+            GTFS::TripScheduleDisplay TRI(userReq, true, QDate(), GTFS::RTTUIDX_FEED_ONLY);
             TRI.fillResponseData(respJson);
         } else if (! userApp.compare("RDS", Qt::CaseInsensitive)) {
             GTFS::RealtimeStatus RDS;

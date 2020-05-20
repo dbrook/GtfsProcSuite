@@ -355,7 +355,7 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
     // extrapolated times and other necessities of the real-time-trip-update work is already done, it just
     // needs to be found + saved
     QVector<rtStopTimeUpdate> rtStopTimes;
-    fillStopTimesForTrip(tripID, agencyTZ, serviceDate, tripTimes, rtStopTimes);
+    fillStopTimesForTrip(TRIPID_RECONCILE, -1, tripID, agencyTZ, serviceDate, tripTimes, rtStopTimes);
 
     // Pick out the stop time relevant to the requested stop and return it
     for (const rtStopTimeUpdate &rtst : rtStopTimes) {
@@ -399,7 +399,9 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
     }
 }
 
-void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID,
+void RealTimeTripUpdate::fillStopTimesForTrip(rtUpdateMatch               realTimeMatch,
+                                              quint64                     rttuIdx,
+                                              const QString              &tripID,
                                               const QTimeZone            &agencyTZ,
                                               const QDate                &serviceDate,
                                               const QVector<StopTimeRec> &tripTimes,
@@ -407,8 +409,21 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID
 {
     // We can determine which vector to loop over to fill route_id and stopTimes
     qint32 tripUpdateEntity;
-    bool   isSupplementalTrip;
-    if (!findEntityIndex(tripID, tripUpdateEntity, isSupplementalTrip)) {
+    bool   supplementalStyle;
+    if (realTimeMatch == TRIPID_RECONCILE || realTimeMatch == TRIPID_FEED_ONLY) {
+        if (!findEntityIndex(tripID, tripUpdateEntity, supplementalStyle)) {
+            return;
+        }
+        if (realTimeMatch == TRIPID_FEED_ONLY) {
+            supplementalStyle = true;
+        }
+    } else {
+        tripUpdateEntity  = rttuIdx;
+        supplementalStyle = true;
+    }
+
+    // Ensure we are in the bound limits of the trip updates
+    if (tripUpdateEntity >= _tripUpdate.entity_size()) {
         return;
     }
 
@@ -428,7 +443,7 @@ void RealTimeTripUpdate::fillStopTimesForTrip(const QString              &tripID
 
     // If this is not a supplemental trip, then we can match 1-to-1 the offsets or POSIX timestamps to the trip and
     // render the entire thing, showing the schedule vs. prediction for each stop along the trip
-    if (!isSupplementalTrip) {
+    if (!supplementalStyle) {
         bool   tripUsesOffset  = false;
         qint32 lastKnownOffset = 0;
         for (const StopTimeRec &stopRec : tripTimes) {
@@ -639,6 +654,19 @@ void RealTimeTripUpdate::serializeTripUpdates(QString &output) const
     google::protobuf::util::MessageToJsonString(_tripUpdate, &data);
 
     output = QString::fromStdString(data);
+}
+
+quint64 RealTimeTripUpdate::getNbEntities() const
+{
+    return _tripUpdate.entity_size();
+}
+
+QString RealTimeTripUpdate::getTripIdFromEntity(quint64 realtimeTripUpdateEntity) const
+{
+    if (realtimeTripUpdateEntity >= this->getNbEntities()) {
+        return "";
+    }
+    return QString::fromStdString(_tripUpdate.entity(realtimeTripUpdateEntity).trip_update().trip().trip_id());
 }
 
 void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
