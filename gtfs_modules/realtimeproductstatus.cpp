@@ -115,7 +115,8 @@ void RealtimeProductStatus::fillResponseData(QJsonObject &resp)
         qint32 duplicateTripCount = 0;
         for (const QString &routeID : duplicateTripIdx.keys()) {
             for (const QString &tripID : duplicateTripIdx[routeID].keys()) {
-                duplicateTripCount += duplicateTripIdx[routeID][tripID].size();
+                duplicateTripCount += (duplicateTripIdx[routeID][tripID].size() > 0)
+                                       ? duplicateTripIdx[routeID][tripID].size() - 1 : 0;
             }
         }
         resp["dup"] = duplicateTripCount;
@@ -142,7 +143,8 @@ void RealtimeProductStatus::fillResponseData(QJsonObject &resp)
         for (const QString &routeID : duplicateTripIdx.keys()) {
             routesRealTime[routeID].duplicated = 0;
             for (const QString &tripID : duplicateTripIdx[routeID].keys()) {
-                routesRealTime[routeID].duplicated += duplicateTripIdx[routeID][tripID].size();
+                routesRealTime[routeID].duplicated += (duplicateTripIdx[routeID][tripID].size() > 0)
+                                                       ? duplicateTripIdx[routeID][tripID].size() - 1 : 0;
             }
         }
         for (const QString &routeID : mismatchedTrips.keys()) {
