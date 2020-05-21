@@ -198,8 +198,11 @@ const QString RealTimeTripUpdate::getRouteID(const QString &trip_id) const
 
 bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id,
                                                 const QDate   &serviceDate,
-                                                const QDate   &actualDate) const
+                                                const QDate   &actualDate,
+                                                QDate         &rtDateUsed) const
 {
+    bool tripIsRunning = false;
+
     if (_activeTrips.contains(trip_id)) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_activeTrips[trip_id]);
 
@@ -216,13 +219,19 @@ bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id,
          * Strictest date matching (the default) means the real-time start date is that of the service date (which,
          * for after-midnight trips (times >= 24:00:00) is technically the day before)
          */
-        if ((_dateEnforcement == NO_MATCHING) ||
-            (_dateEnforcement == SERVICE_DATE && rtStartDateStr == serviceDateStr) ||
-            (_dateEnforcement == ACTUAL_DATE  && rtStartDateStr == actualDateStr)) {
-            return true;
+        if (_dateEnforcement == NO_MATCHING) {
+            rtDateUsed    = serviceDate;         // The closest source of truth will be the service date
+            tripIsRunning = true;
+        } else if (_dateEnforcement == SERVICE_DATE && rtStartDateStr == serviceDateStr) {
+            rtDateUsed    = serviceDate;
+            tripIsRunning = true;
+        } else if (_dateEnforcement == ACTUAL_DATE  && rtStartDateStr == actualDateStr) {
+            rtDateUsed    = actualDate;
+            tripIsRunning = true;
         }
     }
-    return false;
+
+    return tripIsRunning;
 }
 
 bool RealTimeTripUpdate::tripSkipsStop(const QString &stop_id,

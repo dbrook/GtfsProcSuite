@@ -140,9 +140,11 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
         // Inject realtime information in scheduled trips (realTimeActual, realTimeOffsetSec, waitTimeSec, tripStatus)
         for (const QString &routeID : fullTrips.keys()) {
             for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
+                QDate dateUsedByRT;
                 if (rActiveFeed->scheduledTripIsRunning(tripRecord.tripID,
                                                         tripRecord.tripServiceDate,
-                                                        tripRecord.tripFirstDeparture.date())) {
+                                                        tripRecord.tripFirstDeparture.date(),
+                                                        dateUsedByRT)) {
                     // Scheduled trip arrival/departure converted to UTC for offset calculation standardization
                     // TODO: this might be unnecessary, but for the sake of all the subsequent time maths, it makes
                     //       more sense to leave the real-time library as "UTC-only" (for now at least)
@@ -173,7 +175,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                                                         tripRecord.stopID,
                                                         _agencyTime.timeZone(),
                                                         (*sStopTimes)[tripRecord.tripID],
-                                                        tripRecord.tripServiceDate,
+                                                        dateUsedByRT,
                                                         predictArrUTC,
                                                         predictDepUTC);
 

@@ -145,7 +145,12 @@ public:
     const QString getRouteID(const QString &trip_id) const;
 
     // Is the trip (that came from the static feed) actually running?
-    bool scheduledTripIsRunning(const QString &trip_id, const QDate &serviceDate, const QDate &actualDate) const;
+    // Returns a QDate indicating the date used by the real-time feed so offsets can be correctly calculated when
+    // calling the tripStopActualTime later
+    bool scheduledTripIsRunning(const QString &trip_id,
+                                const QDate   &serviceDate,
+                                const QDate   &actualDate,
+                                QDate         &rtDateUsed) const;
 
     // Was the trip-update to specifically skip the stop?
     bool tripSkipsStop(const QString &stop_id,
