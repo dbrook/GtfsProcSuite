@@ -677,7 +677,27 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
 
         // Each time a trip is attempted to be added, see if it was already added and save it's trip ID + route ID
         QString tripID = QString::fromStdString(entity.trip_update().trip().trip_id());
-        if (_addedTrips.contains(tripID) || _cancelledTrips.contains(tripID) || _activeTrips.contains(tripID)) {
+        if (_addedTrips.contains(tripID)) {
+            if (_duplicateTrips[tripID].empty()) {
+                // First discovery of a duplicate ... so add the original index comprising the duplicate
+                _duplicateTrips[tripID].push_back(_addedTrips[tripID]);
+            }
+            _duplicateTrips[tripID].push_back(recIdx);
+        }
+
+        if (_cancelledTrips.contains(tripID)) {
+            if (_duplicateTrips[tripID].empty()) {
+                // First discovery of a duplicate ... so add the original index comprising the duplicate
+                _duplicateTrips[tripID].push_back(_cancelledTrips[tripID]);
+            }
+            _duplicateTrips[tripID].push_back(recIdx);
+        }
+
+        if (_activeTrips.contains(tripID)) {
+            if (_duplicateTrips[tripID].empty()) {
+                // First discovery of a duplicate ... so add the original index comprising the duplicate
+                _duplicateTrips[tripID].push_back(_activeTrips[tripID]);
+            }
             _duplicateTrips[tripID].push_back(recIdx);
         }
 
