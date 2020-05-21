@@ -154,11 +154,11 @@ void RealtimeProductStatus::fillResponseData(QJsonObject &resp)
         QJsonObject realTimeRouteJson;
         for (const QString &routeID : routesRealTime.keys()) {
             QJsonObject realTimeSpecific;
-            realTimeSpecific["add"] = routesRealTime[routeID].added;
-            realTimeSpecific["sch"] = routesRealTime[routeID].scheduled;
-            realTimeSpecific["can"] = routesRealTime[routeID].canceled;
-            realTimeSpecific["dup"] = routesRealTime[routeID].duplicated;
-            realTimeSpecific["mis"] = routesRealTime[routeID].mismatched;
+            realTimeSpecific["a"] = routesRealTime[routeID].added;
+            realTimeSpecific["s"] = routesRealTime[routeID].scheduled;
+            realTimeSpecific["c"] = routesRealTime[routeID].canceled;
+            realTimeSpecific["d"] = routesRealTime[routeID].duplicated;
+            realTimeSpecific["m"] = routesRealTime[routeID].mismatched;
             realTimeRouteJson[routeID] = realTimeSpecific;
         }
         resp["routes"] = realTimeRouteJson;
@@ -167,7 +167,5 @@ void RealtimeProductStatus::fillResponseData(QJsonObject &resp)
     // fill standard protocol information
     fillProtocolFields("RPS", 0, resp);
 }
-
-
 
 } // Namespace GTFS
