@@ -84,7 +84,7 @@ void Display::displayWelcome()
            << "TSR: List of trips serving a route_id" << endl
            << "TSS: List of trips serving a stop_id" << endl
            << "TRI: List all the stops served by a trip_id" << endl
-           << "RTR: List the real-time data of an active trip_id" << endl
+           << "RTS/RTF/RTT: List the real-time data of an active trip_id or update" << endl
            << endl
            << "[ Data Lookup for Specific Date ]" << endl
            << "TRD: List of trips serving a route_id on a date" << endl
