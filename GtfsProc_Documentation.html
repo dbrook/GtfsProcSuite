@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 1.6)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 1.7)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2020, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 1.6 (12-May-2020)</b>
+    This is the documentation for <b>GtfsProc Version 1.7 (21-May-2020)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -77,7 +77,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 1.6 - Running on Process ID: 22112<br>
+GtfsProc version 1.7 - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>
@@ -121,7 +121,7 @@ SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS<br>
         <b class="fixed">gtfsproc -d /opt/gtfsproc/RIPTA -r ripta_tripupdates.pb -f 2020,5,5,0,35,9</b></li>
     <li>Run your query or queries, to see that the issue persists in the cached file</li>
     <li>Try using DRT from a client to decode the protocol buffer file into a human readable form</li>
-    <li>Try using RTR for the trip ID in question to see what is available to GtfsProc from this trip.</li>
+    <li>Try using RTF or RTS for the trip ID in question to see what is available to GtfsProc from this trip.</li>
     <li>Rerun GtfsProc with the same command, but with any overrides/parameters (usually the issues encountered are about date enforcement (use -l 1 or -l 2))</li>
     <li>If you are really stumped, send me a mail with:</li>
     <ul>
@@ -161,7 +161,7 @@ STA: Stop information lookup by stop_id <br>
 TSR: List of trips serving a route_id <br>
 TSS: List of trips serving a stop_id <br>
 TRI: List all the stops served by a trip_id <br>
-RTR: List the real-time data of an active trip_id <br>
+RTS/RTF/RTT: List the real-time data of an active trip_id or update<br>
 <br>
 [ Data Lookup for Specific Date ] <br>
 TRD: List of trips serving a route_id on a date <br>
@@ -638,10 +638,45 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
             List of all routes with at least one added / supplemental trip.
         </td>
     </tr>
+    <tr>
+        <td class="fixed">
+            <b>orphaned_trips</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            List of all trip IDs which could not be associated with a route. For example: "orphaned_trips":["2135845","2135849"]
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>mismatch_trips</b>
+        </td>
+        <td class="fixed">
+            object
+        </td>
+        <td>
+            List of all routes with at least one real-time trip that matches a scheduled trip but contains unexpected sequences or stop ids.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>duplicate_trips</b>
+        </td>
+        <td class="fixed">
+            object
+        </td>
+        <td>
+            List of trip IDs organized by route which are represented more than once in the real time feed, and within each list, the list of real-time trip update indexes (which can be directly queried with the RTT module).
+        </td>
+    </tr>
 </table>
 <p>
-    The “active_trips”, “cancelled_trips”, and “added_trips” contain named objects (one for each route ID) with an array of Trip IDs, for example:<br>
-    {"active_trips":{"Green-C":["43832582","43832587"]}}
+    The “active_trips”, “cancelled_trips”, “added_trips”, and "mismatch_trips" contain named objects (one for each route ID) with an array of Trip IDs, for example:<br>
+    {"active_trips":{"Green-C":["43832582","43832587"]}}<br><br>
+    The "duplicate_trips" set contains route IDs with an inner group of trip IDs with ye another inner group of real-time trip update indexes which are duplicates (of the same trip ID), for example:<br>
+    "duplicate_trips":{"4150":{"357786731":[20,29]}}
 </p>
 
 <h2>Dump a JSON-Rendered Real-Time Feed (DRT)</h2>
@@ -652,6 +687,283 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
 <p>DRT</p>
 <h4>Response Format</h4>
 <p>This is purely for debugging / saving information for bug-reporting purposes and not for general consumption, so the response details will not be enumerated here. See the GTFS-Realtime specification for details about the feed format.</p>
+
+<h2>Realtime Product Status (RPS)</h2>
+<p>
+    This modules renders the status of GtfsProc's main backend (number of transactions, system time, uptime) as well as a full statistics diagnostic of the realtime data including statistics (download time, integration time, version) plus, for each route (and overall) the number of duplicate trips, mismatched trips, scheduled-and-running trips, added trips, and canceled trips. At a global level, any orphaned trips are enumerated. The idea for this is that it allows for a quick view of the status of all the trip updates acquired and any problematic conditions therein.
+</p>
+<h4>Request Format</h4>
+<p>RPS</p>
+<h4>Response Format</h4>
+<p>The "error" field will always be 0 for this transaction. The "message_type" is RPS. The full contents are detailed in the table below:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            uptm_ms
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            The number of seconds the backend has been running (clients should render this a little nicer in days/hours/minutes/etc.)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            statdat
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Modification time of the static dataset. If running a client long term, it's suggested to cache this parameter and check messages against it. New datasets could contain new route information which should be re-fetched.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            nb_reqs
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of transactions the backend has handled since it was started.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            ltst_rt
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            The most recent real-time-requiring transaction (like RTI, NEX, NCF, RTT/RTF/RTS)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            rt_buff
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            "A" or "B" for an active buffer, "IDLE" if the backend had no real-time transactions within the last 3 minutes so it stopped fetching, "N/A" if data retrieval failed or the backend was not started with real-time data requested.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            datagen
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Data generation time taken directly from the agency's real-time trip update buffer. Will be "-" if unabailable.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            age_sec
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Time elapsed since the real-time trip updates file was generated by the agency (calculated against the trip update's asserted creation time). Will be "-" if unabailable.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            gtfsrtv
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            The version string from the real-time trip update buffer.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            dwnldms
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Download / acquisition time of the real-time trip updates buffer from the data provider in milliseconds.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            integms
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Total time in milliseconds that it took to process the real-time trip updates buffer.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            sch
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Total number of real-time trip updates (essentially, "active trips") which match the static schedule trips
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            add
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Total number of trip updates which are added / supplemental and do not appear in the static schedule.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            can
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Total number of canceled trips.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            dup
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Total number of real time trip updates that are duplicates.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            mis
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Total number of real-time trip updates that have at least one stop ID / stop sequence that does not match their static-schedule-based value. A non-zero value here indicates some predictions may be unavailable or rendered incorrectly in NEX/NCF.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            nrt
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of trips that do not have a route associated (also called orphaned trips).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>routes</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            Number of trips that do not have a route associated (also called orphaned trips).
+        </td>
+    </tr>
+</table>
+<p>Each element within a "routes" array entry contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route ID to which the associated items in this entry refer.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            a
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of added trips for this route.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            s
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of trips with real-time data that directly relate to a trip id from the static dataset.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            c
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of canceled trips as noted in the real-time trip updates for this route ID.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            d
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of duplicate trip updates for this route ID.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            m
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Number of real-time trip updates in this route which have mismatching stop id/sequence versus the static feed.
+        </td>
+    </tr>
+</table>
 
 <h2>List of Route IDs (RTE)</h2>
 <p>
@@ -779,26 +1091,29 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
     </tr>
 </table>
 
-<h2>Trip Schedules / Real-Time Predictions (TRI and RTR)</h2>
+<h2>Trip Schedules / Real-Time Predictions (TRI and RTS/RTF/RTT)</h2>
 <p>
-    This module will display trip schedules (TRI) or real-time predictions (RTR) for a requested trip ID.
+    This module will display trip schedules (TRI) or real-time predictions (RTS = for a trip ID, reconcile the real-time trip update with the schedule if available; RTF = render the prediction information directly from the feed (supplemental trips will always use this regardless of the RTS request); RTT = just like RTF, but for a real-time trip update entity (as it came from the provider) for a requested trip ID.
 </p>
 <h4>Request Format</h4>
 <p>
     TRI {tripID}<br>
-    RTR {tripID}
+    RTS {tripID}<br>
+    RTF {tripID}<br>
+    RTT {entityIdx}
 </p>
 <h4>Response Format</h4>
 <p>
-    The ‘message_type’ is always “TRI”, even if you request RTR, but different fields will be filled depending on the request.<br>
+    The ‘message_type’ is always “TRI”, even if you request RTS/RTF/RTT, but different fields will be filled depending on the request.<br>
     Several error conditions are possible:
     <ul>
         <li>0: Success</li>
         <li>101: The requested trip ID does not exist in the static data set</li>
         <li>102: Real-time predictions were requested for a trip ID not in the real-time data set</li>
         <li>103: Real-time predictions were requested but no real-time data was in the back end</li>
+        <li>104: The requested real-time trip update entity index was out of bounds</li>
     </ul>
-Fields in gray shadow are only available in TRI requests, fields in orange shadow are only available in RTR requests.
+Fields in gray shadow are only available in TRI requests, fields in orange shadow are only available in RTS/RTF/RTT requests.
 </p>
 <table class="fieldDocumentation">
     <tr>
@@ -1021,7 +1336,7 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             string
         </td>
         <td>
-            Time of arrival at the stop (scheduled time in TRI, predicted time in RTR)
+            Time of arrival at the stop (scheduled time in TRI, predicted time in RTS/RTF/RTT)
         </td>
     </tr>
     <tr class="abResponseField">
@@ -1043,7 +1358,7 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             string
         </td>
         <td>
-            Time of departure from the stop (scheduled time in TRI, predicted time in RTR)
+            Time of departure from the stop (scheduled time in TRI, predicted time in RTF/RTS/RTT)
         </td>
     </tr>
     <tr class="abResponseField">
@@ -2688,7 +3003,7 @@ NEX {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
             Four-character code indicating the presence of real-time vs. scheduled data:
             <ul>
                 <li><b class="fixed">FULL</b>: The wait_time_sec and offset_seconds are filled based on scheduled and real-time information for the stop ID.</li>
-                <li><b class="fixed">SCHD</b>: Real-time data is available for the trip at large, but not for this particular stop (usually the current time is too far in the future  and the whole trip is not populated with predictions yet (use RTR {trip ID} to see). The wait_time_sec field is therefore based off the scheduled time available and offset_seconds should be ignored.</li>
+                <li><b class="fixed">SCHD</b>: Real-time data is available for the trip at large, but not for this particular stop (usually the current time is too far in the future  and the whole trip is not populated with predictions yet (use RTS {trip ID} or RTF {trip ID} to see). The wait_time_sec field is therefore based off the scheduled time available and offset_seconds should be ignored.</li>
                 <li><b class="fixed">PRED</b>: The wait_time_sec field has been filled based off of prediction data, but there was no scheduled time from which to base offset_seconds (which should be ignored).</li>
                 <li><b class="fixed">SPLM</b>: The trip is supplemental (from the added_trips set) and therefore will no have schedule times from which to compute offset_seconds (which should be ignored).</li>
             </ul>
