@@ -41,7 +41,7 @@ public:
 
     // Prompts for user input one (also therefore will take injection) for scripting / front-end interaction.
     // Forwards the server the user query and returns the response in JSON to STDOUT
-    void once();
+    void once(bool prettyPrint);
 
     // Awaits user input and sends each query to the server - interactive mode for playing browsing in command line
     void repl();

@@ -49,7 +49,7 @@ bool ClientGtfs::startConnection(QString hostname, quint16 port, int userTimeout
     return true;
 }
 
-void ClientGtfs::once()
+void ClientGtfs::once(bool prettyPrint)
 {
     QTextStream screen(stdout);
     QTextStream stdinquery(stdin);
@@ -79,7 +79,13 @@ void ClientGtfs::once()
     }
 
     // Dump the JSON response to standard output
-    screen << response;
+    if (prettyPrint) {
+        QJsonDocument respDoc = QJsonDocument::fromJson(response.toUtf8());
+        QString formattedDoc  = respDoc.toJson(QJsonDocument::Indented);
+        screen << formattedDoc;
+    } else {
+        screen << response;
+    }
 }
 
 void ClientGtfs::repl()

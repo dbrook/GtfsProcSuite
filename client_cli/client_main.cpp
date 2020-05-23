@@ -58,9 +58,14 @@ int main(int argc, char *argv[])
     if (args.size() == 2) {
         // Begin processing user commands if interactive mode specified
         client.repl();
-    } else {
-        // Or the user specified an application and is expecting an instant response (no REPL desired)
-        client.once();
+    } else if (args.size() == 3) {
+        // One-off transaction (not interactive), use for regression testing and whatever else doesn't require a REPL
+        QString printMode = args.at(2);
+        bool prettyPrint = false;
+        if (printMode == "P") {
+            prettyPrint = true;
+        }
+        client.once(prettyPrint);
     }
 
     //
