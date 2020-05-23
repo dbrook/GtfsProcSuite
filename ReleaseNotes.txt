@@ -1,5 +1,34 @@
-THIS RELEASE: Version 1.6 Features and Fixes:
+THIS RELEASE: Version 1.7 Features and Fixes:
 ---------------------------------------------
+This is a major bugfix/feature release specifically focused at GTFS-Realtime processing
+ - New RPS module - allows for monitoring of the status of integrated real-time trip updates from a
+   transit agency, including such parameters as:
+    + Mismatching trips (where sequences or stop IDs are found that were not in the schedule)
+    + Duplicate trips in the feed and their indexes
+    + Orphaned trips that have no route associated
+    + Buffer status / integration / download times
+    + Number of scheduled vs. added/supplemental vs. canceled trips
+ - If real-time data was empty, don't return a QDateTime of 0, it should be NULL ("-" in output)
+ - RDS was not using the agency timezone, this has been fixed
+ - Real-time trip update acqusition has a looser (+1 second) enforcement of the check to account for
+   operating system thread scheduling decisions (this ensures the updates are not delayed by an additional
+   10 seconds anymore)
+ - RTI now returns the details of duplicate trip updates, mismatching trip updates, and orphaned trips
+ - RTR has been replaced with:
+    + RTS - show real-time trip predictions, reconciled with the actual trip schedule
+    + RTF - show the real-time trip predictions how they exist in the feed (added trips will always use this)
+    + RTT - show the real-time predictions at the entity index from the feed (useful for duplicates from RTI)
+ - Ensure that when a real-time trip update is matched to a running scheduled trip that the offsets will be
+   based on the service date from the scheduled trip and not the actual date (fixes the problems found with
+   trips-after-midnight depending on the GtfsProc -l 0/1/2 option chosen.)
+    + Using the client_cli program with the pretty-print option will help build a set of regression tests
+      against known data/transactions to avoid breaking it in the future!
+
+
+PREVIOUS RELEASES:
+
+Version 1.6 Features and Fixes:
+-------------------------------
  - The Agent cannot redirect output to /dev/null, if it does, then it seems we lose track of the actual
    GtfsProc Process ID number. As a result, verbose output of transactions and trip updates is done ONLY 
    if "-i" used, otherwise only data load progress and server readiness are displayed in the server output.
@@ -14,9 +43,6 @@ THIS RELEASE: Version 1.6 Features and Fixes:
    this does appear to have a performance penalty on agencies using offset-seconds. For POSIX-time-based
    real-time-trip-updates, an optimization was put in place to jump right to the relevant update for the
    stop ID / sequence requested.
-
-
-PREVIOUS RELEASES:
 
 Version 1.5 Features and Fixes:
 -------------------------------
