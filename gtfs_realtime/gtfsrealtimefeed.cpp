@@ -219,14 +219,10 @@ bool RealTimeTripUpdate::scheduledTripIsRunning(const QString &trip_id,
          * Strictest date matching (the default) means the real-time start date is that of the service date (which,
          * for after-midnight trips (times >= 24:00:00) is technically the day before)
          */
-        if (_dateEnforcement == NO_MATCHING) {
-            rtDateUsed    = serviceDate;         // The closest source of truth will be the service date
-            tripIsRunning = true;
-        } else if (_dateEnforcement == SERVICE_DATE && rtStartDateStr == serviceDateStr) {
+        if ((_dateEnforcement == NO_MATCHING) ||
+            (_dateEnforcement == SERVICE_DATE && rtStartDateStr == serviceDateStr) ||
+            (_dateEnforcement == ACTUAL_DATE  && rtStartDateStr == actualDateStr)) {
             rtDateUsed    = serviceDate;
-            tripIsRunning = true;
-        } else if (_dateEnforcement == ACTUAL_DATE  && rtStartDateStr == actualDateStr) {
-            rtDateUsed    = actualDate;
             tripIsRunning = true;
         }
     }
@@ -438,17 +434,7 @@ void RealTimeTripUpdate::fillStopTimesForTrip(rtUpdateMatch               realTi
 
     const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
 
-    // Determine the service date of the trip based on the realtime start date information
-    // This is needed for purely-offset-based trip updates since the offset must be computed to an actual DateTime
-    QString decodedSvcDate = QString::fromStdString(tri.trip().start_date());
-    QDate rtServiceDate(decodedSvcDate.mid(0, 4).toInt(),
-                        decodedSvcDate.mid(4, 2).toInt(),
-                        decodedSvcDate.mid(6, 2).toInt());
-
-    // The date from the real-time trip-update is generally preferred, but the service date has been passed in from
-    // the backend in order to supplement it in case it is not available.
-    QDate preferredDate  = rtServiceDate.isValid() ? rtServiceDate : serviceDate;
-    QDateTime localNoon  = QDateTime(preferredDate, QTime(12, 0, 0), agencyTZ);
+    QDateTime localNoon = QDateTime(serviceDate, QTime(12, 0, 0), agencyTZ);
 
     // If this is not a supplemental trip, then we can match 1-to-1 the offsets or POSIX timestamps to the trip and
     // render the entire thing, showing the schedule vs. prediction for each stop along the trip
