@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
      */
     QCoreApplication a(argc, argv);
     QCoreApplication::setApplicationName("GtfsProc");
-    QCoreApplication::setApplicationVersion("1.7");
+    QCoreApplication::setApplicationVersion("1.7a");
 
     QTextStream console(stdout);
     QString appName = QCoreApplication::applicationName();
@@ -74,6 +74,8 @@ int main(int argc, char *argv[])
     QCommandLineOption noRTDateMatch(QStringList() << "l",
                     QCoreApplication::translate("main", "Real-time date matching level (read the documentation!)."),
                     QCoreApplication::translate("main", "0|1|2"));
+    QCommandLineOption noRTStopSeqEnf(QStringList() << "q",
+                    QCoreApplication::translate("main", "Do not check stop sequences in real-time feed to static."));
     QCommandLineOption showFrontendRequests(QStringList() << "i",
                     QCoreApplication::translate("main", "Show every transaction and real-time update to the screen."));
     QCommandLineOption fixedLocalTime(QStringList() << "f",
@@ -91,6 +93,7 @@ int main(int argc, char *argv[])
     parser.addOption(hideTermTrips);
     parser.addOption(tripsPerNEX);
     parser.addOption(noRTDateMatch);
+    parser.addOption(noRTStopSeqEnf);
     parser.addOption(showFrontendRequests);
     parser.addOption(fixedLocalTime);
     parser.addOption(dumpRTProtobuf);
@@ -172,6 +175,11 @@ int main(int argc, char *argv[])
         showTransactions = true;
     }
 
+    bool loosenRTStopSeqStopIDEnforce = false;
+    if (parser.isSet(noRTStopSeqEnf)) {
+        loosenRTStopSeqStopIDEnforce = true;
+    }
+
     ServeGTFS gtfsRequestServer(databaseRootPath,
                                 realTimePath,
                                 rtDataInterval,
@@ -181,7 +189,8 @@ int main(int argc, char *argv[])
                                 realTimeDateMatchLevel,
                                 showTransactions,
                                 nbTripsPerNEXRoute,
-                                hideTerminatingTripsNEXNCF);
+                                hideTerminatingTripsNEXNCF,
+                                loosenRTStopSeqStopIDEnforce);
     gtfsRequestServer.displayDebugging();
 
     /*

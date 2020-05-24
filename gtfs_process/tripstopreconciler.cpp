@@ -158,12 +158,11 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                         // At this point, consider a trip as RUNNING (the status will be broken down further here
                         tripRecord.tripStatus = RUNNING;
 
-                        if (rActiveFeed->scheduledTripAlreadyPassed(tripRecord.tripID,
-                                                                    tripRecord.stopSequenceNum,
-                                                                    (*sStopTimes)[tripRecord.tripID])) {
+                        if (rActiveFeed->scheduledTripAlreadyPassed(tripRecord.tripID, tripRecord.stopSequenceNum)) {
                             // A scheduled trip with realtime data might have left the stop in question early so we
                             // need to account for that and expunge the trip from displaying. This is not needed for
-                            // addred trips (as there is nothing to compare them to).
+                            // added trips (as there is nothing to compare them to). This will only be the case if
+                            // strict stop sequence matching is applied!
                             tripRecord.tripStatus = IRRELEVANT;
                             continue;
                         }

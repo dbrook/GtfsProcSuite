@@ -46,10 +46,12 @@ public:
      * frozenTime:     yyyy,mm,dd,hh,mm,ss to force the transactions to always process as if it is the date specified
      *                     NOTE: this is in the timezone of the GTFS agency.txt file time
      * showProtobuf:   set to true to print realtime updates to a string on QDebug each time an update is received
+     * use12h:         all date-times should render with AM/PM indicator using a 12-hour clock instead of default 24-h
      * rtDateMatchLev: real-time trip update date matching enforcement level
+     * showTraces:     set to true if all transactions and real-time update operations should be logged to the terminal
      * nbTripsRtNEX:   number of trips per route that should be serialized in NEX responses
      * hideTermTrips:  set to true if trips terminating at the requested stop should be hidden (NEX/NCF only)
-     * showTraces:     set to true if all transactions and real-time update operations should be logged to the terminal
+     * looseRTStopSeq: do not enforce strict stop sequence / stop id checks when sequences are avail. in realtime feed
      */
     ServeGTFS(QString  dbRootPath,
               QString  realTimePath,
@@ -61,6 +63,7 @@ public:
               bool     showTraces,
               quint32  nbTripsRtNEX,
               bool     hideTermTrips,
+              bool     looseRTStopSeq,
               QObject *parent        = nullptr);
     virtual ~ServeGTFS();
 

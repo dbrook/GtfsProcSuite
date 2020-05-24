@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 1.7)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 1.7a)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2020, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 1.7 (21-May-2020)</b>
+    This is the documentation for <b>GtfsProc Version 1.7a (24-May-2020)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -53,6 +53,7 @@
     <li><b class="fixed">-u {number of seconds}</b>: Specify the number of seconds between each attempt to refresh GTFS-Realtime data (defaults to 120 seconds).</li>
     <li><b class="fixed">-a</b>: Shows all times using a 12-hour format with AM/PM indicators (the default display is with 24-hour clocks).</li>
     <li><b class="fixed">-l</b>: Looseness parameter for enforcing the start date/time values provided by real-time trip updates. (0 is the default and rigorously enforces the start date/time to match the service date, 1 ensures that the start date/time matches the actual date which helps for agencies who fill the date with the actual date and not the service date, and 2 provides no matching at all for agencies which provide no start date). Loosening the date enforcement (especially option 1) may lead to bugs when a trip is started late from a scheduled time on the previous day. Option 2 makes it so multiple trips can potentially be flagged with the same time and should not be used for agencies providing POSIX-style seconds-since-epoch trip updates. Option 2 also has the side effect of marking trips that are also not really operating but merely are the same trip IDs for a subsequent service date.</li>
+    <li><b class="fixed">-q</b>: Disables strict stop ID and stop sequence checking of real-time updates. This is useful for agencies which add extra stops in real-time trip updates that do not line up with the static schedule. Even with this option, these trips are still counted as mismatching for the sake of RTI and RPS transactions (for statistical awareness of the data condition).</li>
     <li><b class="fixed">-i</b>: Displays a record of all transactions and data refetches to standard error.</li>
     <li><b class="fixed">-s</b>: Limit of the number of trips that will appear in output per route of NEX module responses.</li>
     <li><b class="fixed">-m</b>: Do not show terminating trips in NEX and NCF module responses (this is basically what Google Maps does).</li>
@@ -77,7 +78,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 1.7 - Running on Process ID: 22112<br>
+GtfsProc version 1.7a - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>

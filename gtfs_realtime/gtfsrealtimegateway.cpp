@@ -46,6 +46,7 @@ void RealTimeGateway::setRealTimeFeedPath(const QString      &realTimeFeedPath,
                                           qint32              refreshIntervalSec,
                                           bool                showProtobuf,
                                           rtDateLevel         rtDateMatchLevel,
+                                          bool                loosenStopSeqEnf,
                                           bool                showDebugTrace,
                                           const TripData     *tripsDB,
                                           const StopTimeData *stopTimeDB)
@@ -77,6 +78,9 @@ void RealTimeGateway::setRealTimeFeedPath(const QString      &realTimeFeedPath,
 
     // Stop Times Database
     _staticStopTimeDB = stopTimeDB;
+
+    // Skip strict stop sequence and stop id matching when reconciling realtime and static feeds
+    _loosenStopSeqEnf = loosenStopSeqEnf;
 }
 
 qint64 RealTimeGateway::secondsToFetch() const
@@ -189,12 +193,14 @@ void RealTimeGateway::refetchData()
                 _sideA = new RealTimeTripUpdate(_dataPathLocal,
                                                 _debugProtobuf,
                                                 _skipDateMatching,
+                                                _loosenStopSeqEnf,
                                                 _staticFeedTripDB,
                                                 _staticStopTimeDB);
             } else {
                 _sideA = new RealTimeTripUpdate(GtfsRealTimePB,
                                                 _debugProtobuf,
                                                 _skipDateMatching,
+                                                _loosenStopSeqEnf,
                                                 _trace,
                                                 _staticFeedTripDB,
                                                 _staticStopTimeDB);
@@ -209,12 +215,14 @@ void RealTimeGateway::refetchData()
                 _sideB = new RealTimeTripUpdate(_dataPathLocal,
                                                 _debugProtobuf,
                                                 _skipDateMatching,
+                                                _loosenStopSeqEnf,
                                                 _staticFeedTripDB,
                                                 _staticStopTimeDB);
             } else {
                 _sideB = new RealTimeTripUpdate(GtfsRealTimePB,
                                                 _debugProtobuf,
                                                 _skipDateMatching,
+                                                _loosenStopSeqEnf,
                                                 _trace,
                                                 _staticFeedTripDB,
                                                 _staticStopTimeDB);

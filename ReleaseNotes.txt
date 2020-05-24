@@ -23,6 +23,10 @@ This is a major bugfix/feature release specifically focused at GTFS-Realtime pro
    trips-after-midnight depending on the GtfsProc -l 0/1/2 option chosen.)
     + Using the client_cli program with the pretty-print option will help build a set of regression tests
       against known data/transactions to avoid breaking it in the future!
+ - New option: -q --> skips strict checking of stop-id and stop-sequence that rendered CTTransit predictions.
+   Previously, checks of the Stop Sequence were done without verifying the Stop ID matched the real-time
+   trip updates and static schedule, so trips showed with all sorts of crazy predictions. By using -q, we
+   perform matching of real-time trip updates ONLY by Stop ID, even though a Stop Sequence is present.
 
 
 PREVIOUS RELEASES:

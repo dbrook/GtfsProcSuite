@@ -92,12 +92,14 @@ public:
     explicit RealTimeTripUpdate(const QString      &rtPath,
                                 bool                dumpProtobuf,
                                 rtDateLevel         skipDateMatching,
+                                bool                loosenStopSeqEnf,
                                 const TripData     *tripsDB,
                                 const StopTimeData *stopTimeDB,
                                 QObject            *parent = nullptr);
     explicit RealTimeTripUpdate(const QByteArray   &gtfsRealTimeData,
                                 bool                dumpProtobuf,
                                 rtDateLevel         skipDateMatching,
+                                bool                loosenStopSeqEnf,
                                 bool                displayBufferInfo,
                                 const TripData     *tripsDB,
                                 const StopTimeData *stopTimeDB,
@@ -160,10 +162,10 @@ public:
                        const QDate   &actualDate) const;
 
     // Has the trip already passed the stop? This is useful for indicating that a trip went by early (i.e. don't care
-    // about showing things which have already departed the stop)
-    bool scheduledTripAlreadyPassed(const QString              &trip_id,
-                                    qint64                      stopSeq,
-                                    const QVector<StopTimeRec> &tripTimes) const;
+    // about showing things which have already departed the stop), but it only works on trips that use strict stop-seq
+    // matching. It will return false if the loosener is activated or the trip does not use sequences. As a result, the
+    // full trip will need to be enumerated against the current system time using tripStopActualTime anyway.
+    bool scheduledTripAlreadyPassed(const QString &trip_id, qint64 stopSeq) const;
 
     // What is the actual time of arrival? (returns the QDateTime in UTC of the actual arrival/departure times)
     // The service date (of an operating trip)
@@ -288,6 +290,7 @@ private:
     qint64      _integrationTimeMSec;
 
     rtDateLevel _dateEnforcement;   // Service / operating date enforcement level
+    bool        _loosenStopSeqEnf;  // Match stop_id from static and realtime feeds regardless of stop seq (if provided)
 };
 
 } // namespace GTFS
