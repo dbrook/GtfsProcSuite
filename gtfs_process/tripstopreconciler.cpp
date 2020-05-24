@@ -218,8 +218,16 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                         if (predictArrUTC.isNull() && predictDepUTC.isNull()) {
                             if (!tripRecord.schDepTime.isNull() && _agencyTime > tripRecord.schDepTime) {
                                 tripRecord.tripStatus = IRRELEVANT;
+                            } else if (tripRecord.schDepTime.isNull() && tripRecord.waitTimeSec < 0) {
+                                // Interpolated trip-stops should not be allowed to go negative (this can happen when
+                                // a trip has passed the stop and stop-sequence based matching is not done)
+                                tripRecord.tripStatus = IRRELEVANT;
                             }
                             if (!tripRecord.schArrTime.isNull() && _agencyTime > tripRecord.schArrTime) {
+                                tripRecord.tripStatus = IRRELEVANT;
+                            } else if (tripRecord.schArrTime.isNull() && tripRecord.waitTimeSec < 0) {
+                                // Interpolated trip-stops should not be allowed to go negative (this can happen when
+                                // a trip has passed the stop and stop-sequence based matching is not done)
                                 tripRecord.tripStatus = IRRELEVANT;
                             }
                         }
