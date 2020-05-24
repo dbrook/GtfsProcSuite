@@ -173,6 +173,9 @@ void RealTimeGateway::refetchData()
             qDebug() << "  (RTTU) ERROR : Data feed was empty, setting active feed to DISABLED";
         }
         setActiveFeed(DISABLED);
+
+        // Try again at the standard refresh interval!
+        _nextFetchTimeUTC = QDateTime::currentDateTimeUtc().addMSecs(_refreshIntervalSec * 1000);
         return;
     }
 
