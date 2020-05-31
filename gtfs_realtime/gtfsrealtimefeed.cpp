@@ -705,9 +705,15 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
             _duplicateTrips[tripID].push_back(recIdx);
         }
 
-        // Store a trip which does not contain the route information
+        // Store a trip which does not contain the route information, or has a bad route ID
         if (!entity.trip_update().trip().has_route_id() && !_tripDB->contains(tripID)) {
             _noRouteTrips.push_back(tripID);
+        } else if (entity.trip_update().trip().has_route_id() && _tripDB->contains(tripID)) {
+            const QString routeFromTrip   = QString::fromStdString(entity.trip_update().trip().route_id());
+            const QString routeFromUpdate = (*_tripDB)[tripID].route_id;
+            if (!routeFromUpdate.isEmpty() && routeFromTrip != routeFromUpdate) {
+                _noRouteTrips.push_back(tripID);
+            }
         }
 
         // Put the trip update into its relevant category
@@ -754,14 +760,7 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
         // The RPS transaction will do a further breakdown per route, so let's to the breakdown here
         // upon reading and not at every request.
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_activeTrips[tripID]);
-        QString routeID;
-        if (!entity.trip_update().trip().has_route_id() && !_tripDB->contains(tripID)) {
-            _noRouteTrips.push_back(tripID);
-        } else if (entity.trip_update().trip().has_route_id()) {
-            routeID = QString::fromStdString(entity.trip_update().trip().route_id());
-        } else {
-            routeID = (*_tripDB)[tripID].route_id;
-        }
+        QString routeID = (*_tripDB)[tripID].route_id;
 
         // If any sequences or stops in the real-time buffer are not in the static, flag this trip as mismatching
         const transit_realtime::TripUpdate &tri = entity.trip_update();
