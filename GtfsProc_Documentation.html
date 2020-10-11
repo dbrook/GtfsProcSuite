@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 1.7d)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 1.8)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2020, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 1.7d (31-May-2020)</b>
+    This is the documentation for <b>GtfsProc Version 1.8 (18-Oct-2020)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -48,7 +48,7 @@
     <li><b class="fixed">-h, --help</b>: Displays all command line options.</li>
     <li><b class="fixed">-d {path to feed}</b>: File system location of the static feed (where stoptimes.txt, routes.txt, etc. are found).</li>
     <li><b class="fixed">-p {port number}</b>: TCP port to open for client connections (defaults to 5000 if not specified).</li>
-    <li><b class="fixed">-t {number of threads}</b>: Specify the number of threads to dedicate to GTFSProc (this will equal the number of simultaneously-processed transactions, defaults to 1).</li>
+    <li><b class="fixed">-t {number of threads}</b>: Specify the number of threads to dedicate to GtfsProc (this will equal the number of simultaneously-processed transactions, defaults to 1).</li>
     <li><b class="fixed">-r {URL or file path}</b>: URL or local file path of the protocol buffer GTFS-Realtime file (optional).</li>
     <li><b class="fixed">-u {number of seconds}</b>: Specify the number of seconds between each attempt to refresh GTFS-Realtime data (defaults to 120 seconds).</li>
     <li><b class="fixed">-a</b>: Shows all times using a 12-hour format with AM/PM indicators (the default display is with 24-hour clocks).</li>
@@ -179,7 +179,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
 
 <h1>Modules</h1>
 <p>
-    There are 18 modules available for integrating schedule/stop information and retrieving them over a TCP socket. All responses from GTFSProc are encoded in JSON (JavaScript Object Notation) an terminated with a newline ‘\n’ character.
+    There are 18 modules available for integrating schedule/stop information and retrieving them over a TCP socket. All responses from GtfsProc are encoded in JSON (JavaScript Object Notation) an terminated with a newline ‘\n’ character.
 </p>
 
 <h2>Standard Response Parameters</h2>
@@ -196,7 +196,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
     These above two conditions should be checked against. Successful responses will always have an error code of 0 along with the 3-letter code of the module you requested. All other error codes are module-specific.
 </p>
 <p>
-    All GTFSProc modules have the following parameters in addition to the module-specific responses:
+    All GtfsProc modules have the following parameters in addition to the module-specific responses:
 </p>
 <table class="fieldDocumentation">
     <tr>
@@ -277,13 +277,13 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
     </tr>
     <tr>
         <td class="fixed">
-            appuptime_ms
+            appuptime_sec
         </td>
         <td class="fixed">
             integer
         </td>
         <td>
-            Number of milliseconds the processor has been running.
+            Number of seconds the processor has been running.
         </td>
     </tr>
     <tr>
@@ -485,7 +485,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
 
 <h2>Real-Time Data Buffer Status (RDS)</h2>
 <p>
-    This module provides information about the real-time prediction data used for producing the wait times of GTFSProc.
+    This module provides information about the real-time prediction data used for producing the wait times of GtfsProc.
 </p>
 <h4>Request Format</h4>
 <p>RDS</p>
@@ -598,7 +598,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
 <p>RTI</p>
 <h4>Response Format</h4>
 <p>
-    This is purely for debugging / saving information for bug-reporting purposes and not for general consumption, so the response details will not be enumerated here. See the GTFS-Realtime specification for details about the feed format. This is the only GTFSProc module which does not obey the standard response fields.
+    This is purely for debugging / saving information for bug-reporting purposes and not for general consumption, so the response details will not be enumerated here. See the GTFS-Realtime specification for details about the feed format. This is the only GtfsProc module which does not obey the standard response fields.
 </p>
 <table class="fieldDocumentation">
     <tr>
@@ -996,7 +996,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
             agency_id
         </td>
         <td class="fixed">
-            integer
+            string
         </td>
         <td>
             Agency to which a Route ID belongs
@@ -2669,7 +2669,7 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
 
 <h2>Upcoming / Next Service for Stop ID(s)</h2>
 <p>
-    The primary purpose of GTFSProc was envisioned for this purpose: displaying the wait time for upcoming service at a particular stop, list of stops, or parent station. The NEX/NCF modules accomplish this by loading all relevant trips* for the number of future minutes requested. If real-time data is relevant on the server, then the scheduled trips operating, added service, and canceled trip IDs are all merged and then for all trips who have no departed a stop or have not yet arrived will be sorted by the wait time to get to the station (if no arrival time is available, we look at the departure time for the countdown).
+    The primary purpose of GtfsProc was envisioned for this purpose: displaying the wait time for upcoming service at a particular stop, list of stops, or parent station. The NEX/NCF modules accomplish this by loading all relevant trips* for the number of future minutes requested. If real-time data is relevant on the server, then the scheduled trips operating, added service, and canceled trip IDs are all merged and then for all trips who have no departed a stop or have not yet arrived will be sorted by the wait time to get to the station (if no arrival time is available, we look at the departure time for the countdown).
 </p>
 <p>
     * a “relevant” trip could come from a previous service day (when trips operate: a) after midnight on a previous service date render on the current date, b) the current date (naturally), and c) the next date (since the look-ahead time might have to pull trips from tomorrow’s service date).

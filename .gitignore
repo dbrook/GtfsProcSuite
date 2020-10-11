@@ -1,8 +1,13 @@
 # Do not control any user-level IDE configuration files
-GtfsServer.pro.user
+GtfsProcSuite.pro.user
 
 # Do not control any QMake local configs
 .qmake.stash
 
 # Temporary editor files
 *~
+
+# GTFS Real-Time Protoc'd Files
+gtfs_realtime/gtfs-realtime.pb.cc
+gtfs_realtime/gtfs-realtime.pb.h
+

@@ -80,7 +80,7 @@ void StaticStatus::fillResponseData(QJsonObject &resp)
 
     resp["application"]      = appName.remove("\"") + " " + appVers.remove("\"");
     resp["records"]          = _stat->getRecordsLoaded();
-    resp["appuptime_ms"]     = _stat->getServerStartTimeUTC().msecsTo(_currUTC);
+    resp["appuptime_sec"]    = _stat->getServerStartTimeUTC().secsTo(_currUTC);
     resp["dataloadtime_ms"]  = _stat->getServerStartTimeUTC().msecsTo(_stat->getLoadFinishTimeUTC());
     resp["threadpool_count"] = QThreadPool::globalInstance()->maxThreadCount();
     resp["processed_reqs"]   = GTFS::DataGateway::inst().getHandledRequests();

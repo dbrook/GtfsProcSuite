@@ -1,5 +1,11 @@
-THIS RELEASE: Version 1.7 Features and Fixes:
+THIS RELEASE: Version 1.8 Features and Fixes:
 ---------------------------------------------
+- Use seconds instead of milliseconds for uptime display in SDS
+- Fix agency_id to be a string in the RTE response (was previously a int by mistake)
+
+PREVIOUS RELEASES:
+Version 1.7 Features/Fixes
+--------------------------
 This is a major bugfix/feature release specifically focused at GTFS-Realtime processing
  - New RPS module - allows for monitoring of the status of integrated real-time trip updates from a
    transit agency, including such parameters as:
@@ -27,9 +33,6 @@ This is a major bugfix/feature release specifically focused at GTFS-Realtime pro
    Previously, checks of the Stop Sequence were done without verifying the Stop ID matched the real-time
    trip updates and static schedule, so trips showed with all sorts of crazy predictions. By using -q, we
    perform matching of real-time trip updates ONLY by Stop ID, even though a Stop Sequence is present.
-
-
-PREVIOUS RELEASES:
 
 Version 1.6 Features and Fixes:
 -------------------------------

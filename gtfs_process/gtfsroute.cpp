@@ -43,7 +43,7 @@ Routes::Routes(const QString dataRootPath, QObject *parent) : QObject(parent)
     // to be safe we just check them all against the default/not-found value of -1
     for (int l = 1; l < dataStore.size(); ++l) {
         RouteRec route;
-        route.agency_id        = (agencyIdPos  != -1) ? dataStore.at(l).at(agencyIdPos).toInt() : 0;  // 0-by-default?
+        route.agency_id        = (agencyIdPos  != -1) ? dataStore.at(l).at(agencyIdPos) : "";
         route.route_short_name = (shortNamePos != -1) ? dataStore.at(l).at(shortNamePos) : "";
         route.route_long_name  = (longNamePos  != -1) ? dataStore.at(l).at(longNamePos) : "";
         route.route_desc       = (descPos      != -1) ? dataStore.at(l).at(descPos) : "";
