@@ -39,7 +39,7 @@ RealtimeProductStatus::RealtimeProductStatus() : StaticStatus(), _rg(GTFS::RealT
 
 void RealtimeProductStatus::fillResponseData(QJsonObject &resp)
 {
-    resp["uptm_ms"] = _stat->getServerStartTimeUTC().msecsTo(QDateTime::currentDateTimeUtc());
+    resp["uptm_s"]  = _stat->getServerStartTimeUTC().secsTo(QDateTime::currentDateTimeUtc());
     resp["statdat"] = _stat->getStaticDatasetModifiedTime().toString("dd-MMM-yyyy hh:mm:ss t");
     resp["nb_reqs"] = GTFS::DataGateway::inst().getHandledRequests();
 

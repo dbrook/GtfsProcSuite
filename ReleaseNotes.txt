@@ -1,6 +1,6 @@
 THIS RELEASE: Version 1.8 Features and Fixes:
 ---------------------------------------------
-- Use seconds instead of milliseconds for uptime display in SDS
+- Use seconds instead of milliseconds for uptime display in SDS and RPS
 - Fix agency_id to be a string in the RTE response (was previously a int by mistake)
 
 PREVIOUS RELEASES:
