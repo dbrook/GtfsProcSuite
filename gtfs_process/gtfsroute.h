@@ -32,7 +32,7 @@ namespace GTFS {
 // To save space we only use the required subset of route records
 typedef struct {
 //  QString  route_id;          // Primary Key, we don't need to define this here
-    qint32   agency_id;
+    QString  agency_id;
     QString  route_short_name;
     QString  route_long_name;
     QString  route_desc;
