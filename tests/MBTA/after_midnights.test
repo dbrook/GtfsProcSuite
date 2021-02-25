@@ -1,0 +1,275 @@
+@Description
+This is a collection of real-time trip updates for trips that are part of a service day
+but are operating "after midnight" to prove that with harsh date checking (-l 0) we are
+enforcing the service date of the real-time trip update against that of the static data.
+There are expected problems in the data with the first case (the MBTA update included
+a prediction for a trip for the next service date, so it looks like it's coming 86093 s
+(~1 day) early. Other cases demonstrate a trip update fully after midnight (supplemental
+and canceled).
+@End
+
+@StartParams
+-dstatic
+-u600
+-l0
+-rmbta_tripUpdates.pb
+-f2020,5,22,0,7,30
+@End
+
+@Case:Assert Running and Expected Records Loaded
+@Query:SDS
+@Expected
+{
+    "agencies": [
+        {
+            "id": "1",
+            "lang": "EN",
+            "name": "MBTA",
+            "phone": "617-222-3200",
+            "tz": "America/New_York",
+            "url": "http://www.mbta.com"
+        }
+    ],
+    "application": "GtfsProc 1.8",
+*   "appuptime_sec": 15,
+*   "dataloadtime_ms": 8034,
+    "error": 0,
+    "feed_lang": "EN",
+    "feed_publisher": "MBTA",
+    "feed_url": "http://www.mbta.com",
+    "feed_valid_end": "20-Jun-2020",
+    "feed_valid_start": "14-May-2020",
+    "feed_version": "Spring 2020, 2020-05-21T20:06:36+00:00, version D",
+    "message_time": "22-May-2020 00:07:30 EDT",
+    "message_type": "SDS",
+*   "proc_time_ms": 0,
+*   "processed_reqs": 1,
+    "records": 2040956,
+    "threadpool_count": 1
+}
+@End
+
+@Case:Realtime Data Integrated and Active
+@Query:RDS
+@Expected
+{
+*   "active_age_sec": 20,
+*   "active_download_ms": 63,
+    "active_feed_time": "22-May-2020 00:07:10 EDT",
+*   "active_integration_ms": 16,
+    "active_rt_version": "2.0",
+    "active_side": "A",
+    "error": 0,
+*   "last_realtime_query": "24-Feb-2021 17:39:40 EST",
+    "message_time": "22-May-2020 00:07:30 EDT",
+    "message_type": "RDS",
+*   "proc_time_ms": 1,
+*   "seconds_to_next_fetch": 591
+}
+@End
+
+@Case:Correct trips 44608463, 44608472. Trip 44608466 showing up a day early due to bad provider start date.
+@Query:NCF 120 2037
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:07:30 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": *****,
+    "realtime_age_sec": 20,
+    "static_data_modif": "22-May-2020 22:33:47 EDT",
+    "stop_desc": "",
+    "stop_id": "2037",
+    "stop_name": "Mt Auburn St @ Winsor Ave",
+    "trips": [
+        {
+            "arr_time": "Fri 00:07",
+            "dep_time": "Fri 00:07",
+            "drop_off_type": 0,
+            "headsign": "Watertown Square",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:08",
+                "actual_departure": "Fri 00:08",
+                "offset_seconds": 69,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "1987"
+            },
+            "route_id": "71",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "44608463",
+            "trip_terminates": false,
+            "wait_time_sec": 39
+        },
+        {
+            "arr_time": "Fri 00:27",
+            "dep_time": "Fri 00:27",
+            "drop_off_type": 0,
+            "headsign": "Watertown Square",
+            "pickup_type": 0,
+            "route_id": "71",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "44608466",
+            "trip_terminates": false,
+            "wait_time_sec": 1170
+        },
+        {
+            "arr_time": "Sat 00:27",
+            "dep_time": "Sat 00:27",
+            "drop_off_type": 0,
+            "headsign": "Watertown Square",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:32",
+                "actual_departure": "Fri 00:32",
+                "offset_seconds": -86093,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "2036"
+            },
+            "route_id": "71",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "44608466",
+            "trip_terminates": false,
+            "wait_time_sec": 1477
+        },
+        {
+            "arr_time": "Fri 00:52",
+            "dep_time": "Fri 00:52",
+            "drop_off_type": 0,
+            "headsign": "Watertown Square",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:50",
+                "actual_departure": "Fri 00:50",
+                "offset_seconds": -79,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": ""
+            },
+            "route_id": "71",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "44608472",
+            "trip_terminates": false,
+            "wait_time_sec": 2591
+        },
+        {
+            "arr_time": "Fri 01:17",
+            "dep_time": "Fri 01:17",
+            "drop_off_type": 0,
+            "headsign": "Watertown Square",
+            "pickup_type": 0,
+            "route_id": "71",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "44608476",
+            "trip_terminates": false,
+            "wait_time_sec": 4170
+        }
+    ]
+}
+@End
+
+@Case:Display cancelled trip 43868348C0-AirportBowdoin22 and supplemental trip ADDED-1580408792.
+@Query:NCF 10 70054
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:07:30 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": *****,
+    "realtime_age_sec": 20,
+    "static_data_modif": "22-May-2020 22:33:47 EDT",
+    "stop_desc": "Suffolk Downs - Blue Line - Wonderland",
+    "stop_id": "70054",
+    "stop_name": "Suffolk Downs",
+    "trips": [
+        {
+            "arr_time": "Fri 00:07",
+            "dep_time": "Fri 00:07",
+            "drop_off_type": 0,
+            "headsign": "Wonderland",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+*               "offset_seconds": 94133527606816,
+                "status": "CNCL",
+                "stop_status": "",
+                "vehicle": ""
+            },
+            "route_id": "Blue",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "43868348C0-AirportBowdoin22",
+            "trip_terminates": false,
+            "wait_time_sec": -30
+        },
+        {
+            "arr_time": "-",
+            "dep_time": "-",
+            "drop_off_type": 0,
+            "headsign": "Wonderland",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:09",
+                "actual_departure": "Fri 00:09",
+                "offset_seconds": 0,
+                "status": "RNNG",
+                "stop_status": "SPLM",
+                "vehicle": "0791"
+            },
+            "route_id": "Blue",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "ADDED-1580408792",
+            "trip_terminates": false,
+            "wait_time_sec": 96
+        }
+    ]
+}
+@End
+
+@Case:Supplemental trip starting after midnight with yesterday (correctly) as service date.
+@Query:NCF 3 70047
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:07:30 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": *****,
+    "realtime_age_sec": 20,
+    "static_data_modif": "22-May-2020 22:33:47 EDT",
+    "stop_desc": "Airport - Blue Line - Bowdoin",
+    "stop_id": "70047",
+    "stop_name": "Airport",
+    "trips": [
+        {
+            "arr_time": "-",
+            "dep_time": "-",
+            "drop_off_type": 0,
+            "headsign": "Airport",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:09",
+                "actual_departure": "",
+                "offset_seconds": 0,
+                "status": "RNNG",
+                "stop_status": "SPLM",
+                "vehicle": "0716"
+            },
+            "route_id": "Blue",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "ADDED-1580408774",
+            "trip_terminates": false,
+            "wait_time_sec": 109
+        }
+    ]
+}
+@End

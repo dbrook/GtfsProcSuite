@@ -1,0 +1,130 @@
+service_id,service_description,service_schedule_name,service_schedule_type,service_schedule_typicality,rating_start_date,rating_end_date,rating_description
+BUS220-10-Su-02,Sunday schedule,Sunday,Sunday,1,20200315,20200620,Spring
+BUS220-12-Sa-02,Weekday schedule,Weekday,Weekday,1,20200315,20200620,Spring
+BUS220-14-Sa-02,Saturday schedule,Saturday,Saturday,1,20200315,20200620,Spring
+BUS220-15-Su-02,Sunday schedule,Sunday,Sunday,1,20200315,20200620,Spring
+BUS220-17-Sa-02,Saturday schedule,Saturday,Saturday,1,20200315,20200620,Spring
+BUS220-6-Sa-02,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200315,20200620,Spring
+BUS220-B-Sa-02,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200315,20200620,Spring
+BUS220-D-Sa-02,Saturday schedule,Saturday,Saturday,1,20200315,20200620,Spring
+BUS220-E-Su-02,Sunday schedule,Sunday,Sunday,1,20200315,20200620,Spring
+BUS220-G-Sa-02,Weekday schedule,Weekday,Weekday,1,20200315,20200620,Spring
+BUS220-I-Sa-02,Saturday schedule,Saturday,Saturday,1,20200315,20200620,Spring
+BUS220-J-Su-02,Sunday schedule,Sunday,Sunday,1,20200315,20200620,Spring
+BUS220-O-Sa-02,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200315,20200620,Spring
+BUS220-T-Sa-02,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200315,20200620,Spring
+BUS220-Y-Sa-02,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200315,20200620,Spring
+BUS220-Z-Sa-02,Saturday schedule,Saturday,Saturday,1,20200315,20200620,Spring
+Boat-F1-FrdSmr,Friday schedule (summer),Friday,Weekday,1,20190701,,
+Boat-F1-Snd,Sunday schedule,Sunday,Sunday,1,20190701,,
+Boat-F1-Std,Saturday schedule,Saturday,Saturday,1,20190701,,
+Boat-F1-WkdSmr,Weekday schedule (summer),Weekday,Weekday,1,20190701,,
+Boat-F4-Snd,Sunday schedule,Sunday,Sunday,1,20190701,,
+Boat-F4-Std,Saturday schedule,Saturday,Saturday,1,20190701,,
+Boat-F4-Wkd,Weekday schedule,Weekday,Weekday,1,20190701,,
+CR-Sa-Fairmount-Fll-19,Saturday schedule,Saturday,Saturday,1,20191021,,Fall
+CR-Sa-Fitchburg-Fll-19,Saturday schedule,Saturday,Saturday,1,20191021,,Fall
+CR-Sa-Fitchburg-Fll-19-FtgGLX,Saturday schedule,Saturday,Saturday,4,20191021,,Fall
+CR-Sa-Franklin-Fll-19,Saturday schedule,Saturday,Saturday,1,20191021,,Fall
+CR-Sa-Greenbush-Fll-19,Saturday schedule,Saturday,Saturday,1,20191021,,Fall
+CR-Sa-Greenbush-Fll-19-GrhSthStn,Saturday schedule (construction),Saturday (construction),Saturday,4,20191021,,Fall
+CR-Sa-Haverhill-Fll-19,Saturday schedule,Saturday,Saturday,1,20191021,,Fall
+CR-Sa-Kingston-Fll-19,Saturday schedule,Saturday,Saturday,1,20191021,,Fall
+CR-Sa-Kingston-Fll-19-KnnStpAtBrr,Saturday schedule,Saturday,Saturday,4,20191021,,Fall
+CR-Sa-Lowell-Fll-19,Saturday schedule,Saturday,Saturday,1,20191021,,Fall
+CR-Sa-Middleborough-Fll-19,Saturday schedule,Saturday,Saturday,1,20191021,,Fall
+CR-Sa-Middleborough-Fll-19-MdhStpAtBrr,Saturday schedule,Saturday,Saturday,4,20191021,,Fall
+CR-Sa-Needham-Fll-19,Saturday schedule,Saturday,Saturday,1,20191021,,Fall
+CR-Sa-Newburyport-Fll-19,Saturday schedule,Saturday,Saturday,1,20191021,,Fall
+CR-Sa-Providence-FllProvB-19,Saturday schedule,Saturday,Saturday,1,20191216,,Fall
+CR-Sa-Worcester-DivWorcesterPTC-20,Saturday schedule,Saturday,Saturday,4,20190215,,Fall
+CR-Su-Fairmount-Fll-19,Sunday schedule,Sunday,Sunday,1,20191021,,Fall
+CR-Su-Fairmount-Fll-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191021,,Fall
+CR-Su-Fitchburg-Fll-19,Sunday schedule,Sunday,Sunday,1,20191021,,Fall
+CR-Su-Fitchburg-Fll-19-FtgGLX,Sunday schedule,Sunday,Sunday,4,20191021,,Fall
+CR-Su-Fitchburg-Fll-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191021,,Fall
+CR-Su-Franklin-Fll-19,Sunday schedule,Sunday,Sunday,1,20191021,,Fall
+CR-Su-Franklin-Fll-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191021,,Fall
+CR-Su-Greenbush-Fll-19,Sunday schedule,Sunday,Sunday,1,20191021,,Fall
+CR-Su-Greenbush-Fll-19-GrhSthStn,Sunday schedule (construction),Sunday (construction),Sunday,4,20191021,,Fall
+CR-Su-Greenbush-Fll-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191021,,Fall
+CR-Su-Haverhill-Fll-19,Sunday schedule,Sunday,Sunday,1,20191021,,Fall
+CR-Su-Haverhill-Fll-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191021,,Fall
+CR-Su-Kingston-Fll-19,Sunday schedule,Sunday,Sunday,1,20191021,,Fall
+CR-Su-Kingston-Fll-19-KnnStpAtBrr,Sunday schedule,Sunday,Sunday,4,20191021,,Fall
+CR-Su-Kingston-Fll-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191021,,Fall
+CR-Su-Lowell-Fll-19,Sunday schedule,Sunday,Sunday,1,20191021,,Fall
+CR-Su-Lowell-Fll-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191021,,Fall
+CR-Su-Middleborough-Fll-19,Sunday schedule,Sunday,Sunday,1,20191021,,Fall
+CR-Su-Middleborough-Fll-19-MdhStpAtBrr,Sunday schedule,Sunday,Sunday,4,20191021,,Fall
+CR-Su-Middleborough-Fll-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191021,,Fall
+CR-Su-Newburyport-Fll-19,Sunday schedule,Sunday,Sunday,1,20191021,,Fall
+CR-Su-Newburyport-Fll-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191021,,Fall
+CR-Su-Providence-FllProvB-19,Sunday schedule,Sunday,Sunday,1,20191216,,Fall
+CR-Su-Providence-FllProvB-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191216,,Fall
+CR-Su-Worcester-DivWorcesterPTC-20,Sunday schedule,Sunday,Sunday,4,20190215,,Fall
+CR-Su-Worcester-Fll-19C0,Holiday (Sunday schedule),Holiday,Sunday,3,20191021,,Fall
+CR-Wdy-Fairmount-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Fairmount-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Fitchburg-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Fitchburg-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Franklin-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Franklin-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Greenbush-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Greenbush-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Greenbush-StormB-19C0-GrhSthStn,Weekday schedule (reduced service/construction),Weekday (reduced service/construction),Weekday,4,20200325,,Fall (Reduced)
+CR-Wdy-Haverhill-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Haverhill-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Kingston-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Kingston-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Lowell-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Lowell-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Middleborough-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Middleborough-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Needham-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Needham-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Newburyport-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Newburyport-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Providence-FllProvB-19,Weekday schedule,Weekday,Weekday,1,20191216,,Fall
+CR-Wdy-Providence-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+CR-Wdy-Worcester-Fll-19,Weekday schedule,Weekday,Weekday,1,20191021,,Fall
+CR-Wdy-Worcester-StormB-19C0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200325,,Fall (Reduced)
+LRV120-1-Wdy-01,Weekday schedule,Weekday,Weekday,4,20191222,20200314,Winter
+LRV220-1-Wdy-01S0,Weekday schedule,Weekday,Weekday,1,20200315,20200620,Spring
+LRV220-2-Sa-01,Saturday schedule,Saturday,Saturday,1,20200315,20200620,Spring
+LRV220-2-Sa-01-BbkBCFnwNwnHgsLcrNrhStn,Saturday schedule,Saturday,Saturday,4,20200315,20200620,Spring
+LRV220-2-Sa-01-BbkBCLcrNrhStnRsrRvd,Saturday schedule,Saturday,Saturday,4,20200315,20200620,Spring
+LRV220-2-Sa-01-LcrNrhStn,Saturday schedule,Saturday,Saturday,4,20200315,20200620,Spring
+LRV220-2-Sa-01-LcrNrhStnRsrRvd,Saturday schedule,Saturday,Saturday,4,20200315,20200620,Spring
+LRV220-2-Sa-01C0,Weekday schedule (reduced service),Weekday (reduced service),Saturday,5,20200315,20200620,Spring
+LRV220-2-Sa-01C0-BbkBCLcrNrhStnRsrRvd,Weekday schedule (reduced service),Weekday (reduced service),Saturday,4,20200315,20200620,Spring
+LRV220-2-Sa-01C0-LcrNrhStn,Weekday schedule (reduced service),Weekday (reduced service),Saturday,4,20200315,20200620,Spring
+LRV220-2-Sa-01C0-LcrNrhStnNwnHgsKnrW,Weekday schedule (reduced service),Weekday (reduced service),Saturday,4,20200315,20200620,Spring
+LRV220-3-Su-01,Sunday schedule,Sunday,Sunday,1,20200315,20200620,Spring
+LRV220-3-Su-01-BbkBCFnwNwnHgsLcrNrhStn,Sunday schedule,Sunday,Sunday,4,20200315,20200620,Spring
+LRV220-3-Su-01-BbkBCLcrNrhStnRsrRvd,Sunday schedule,Sunday,Sunday,4,20200315,20200620,Spring
+LRV220-3-Su-01-LcrNrhStn,Sunday schedule,Sunday,Sunday,4,20200315,20200620,Spring
+LRV220-6-Sa-01C0,Weekday schedule (reduced service),Weekday (reduced service),Saturday,5,20200315,20200620,Spring
+LRV2202Sa01C0BbkBCFnwNwnHgsLcrNrhStn,Weekday schedule (reduced service),Weekday (reduced service),Saturday,4,20200315,20200620,Spring
+MemorialDay,Holiday (Sunday schedule),Holiday,Sunday,3,20200315,20200620,Spring
+PRIV220-2-Sa-01,Saturday schedule,Saturday,Saturday,1,20200315,20200620,Spring
+PRIV220-5-Su-01,Sunday schedule,Sunday,Sunday,1,20200315,20200620,Spring
+PRIV220-6-Wdy-01,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200315,20200620,Spring
+PRIV220-6-Wdy-01S0,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200315,20200620,Spring
+PRIV220-B-Sa-01,Weekday schedule (reduced service),Weekday (reduced service),Weekday,5,20200315,20200620,Spring
+RTL120-1-Su-01,Sunday schedule,Sunday,Sunday,1,20191222,20200314,Winter
+RTL220-2-Sa-01,Saturday schedule,Saturday,Saturday,1,20200315,20200620,Spring
+RTL220-2-Sa-01-ArtBwn,Saturday schedule,Saturday,Saturday,4,20200315,20200620,Spring
+RTL220-2-Sa-01C0,Weekday schedule (reduced service),Weekday (reduced service),Saturday,5,20200315,20200620,Spring
+RTL220-2-Sa-01C0-ArtBwn,Weekday schedule (reduced service),Weekday (reduced service),Saturday,4,20200315,20200620,Spring
+RTL220-3-Su-01,Sunday schedule,Sunday,Sunday,1,20200315,20200620,Spring
+RTL220-3-Su-01-ArtBwn,Sunday schedule,Sunday,Sunday,4,20200315,20200620,Spring
+RTL220-6-Sa-01C0,Weekday schedule (reduced service),Weekday (reduced service),Saturday,5,20200315,20200620,Spring
+RTL220-9-Sa-01C0,Weekday schedule (reduced service),Weekday (reduced service),Saturday,5,20200315,20200620,Spring
+RTL220-9-Sa-01C0-BrrQncCnr,Weekday schedule (reduced service),Weekday (reduced service),Saturday,4,20200315,20200620,Spring
+RTL220-A-Su-01,Sunday schedule,Sunday,Sunday,4,20200315,20200620,Spring
+RTL220-B-Wdy-01,Weekday schedule,Weekday,Weekday,1,20200315,20200620,Spring
+RTL220-B-Wdy-01-BrrQncCnr,Weekday schedule,Weekday,Weekday,4,20200315,20200620,Spring
+SpringSaturday,Saturday schedule,Saturday,Saturday,1,20200315,20200620,Spring
+SpringSunday,Sunday schedule,Sunday,Sunday,1,20200315,20200620,Spring
+SpringWeekday,Weekday schedule,Weekday,Weekday,1,20200315,20200620,Spring

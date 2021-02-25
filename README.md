@@ -41,3 +41,10 @@ agencies with realtime data revealed the following overrides were necessary to c
 - CT Transit: use '-r 90 -l 1 -q' (refresh at 90 seconds, disable stop sequence matching)
 - SEPTA: use '-l 2' (no date enforcement)
 - RTC Southern Nevada: use '-l 2'
+
+Before finalizing any changes, be sure to run the non-regression tests under tests/*. You need Python (3) installed and
+simply need to:
+- Compile the gtfsproc and client_cli targets
+- Run: ./tests/nonregression_run.py /path/to/gtfsproc /path/to/client_cli
+- Examine the results, hopefully you get "TESTS ALL PASSED", if not, be sure to investigate the cause of any differences.
+- Any changes made are a good candidate for adding new test cases.

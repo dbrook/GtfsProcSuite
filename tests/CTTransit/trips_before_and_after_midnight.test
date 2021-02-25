@@ -1,0 +1,158 @@
+@Description
+This is a display of 2 trips (one starting its journey before and other other after midnight).
+CTTransit uses the Level-1 date matching algorithm (-l 1) for real time trip updates, so this
+case proves that both types of trips are visible to a single stop that is served by both.
+@End
+
+@StartParams
+-dstatic
+-u600
+-l1
+-q
+-rcttransit_tripUpdates.pb
+-f2020,5,22,0,17,30
+@End
+
+@Case:Assert Running and Expected Records Loaded
+@Query:SDS
+@Expected
+{
+    "agencies": [
+        {
+            "id": "google-wa-me_transit",
+            "lang": "en",
+            "name": "CTTransit - Waterbury-Meriden",
+            "phone": "203-753-2538",
+            "tz": "America/New_York",
+            "url": "http://www.cttransit.com"
+        },
+        {
+            "id": "googleha_transit",
+            "lang": "en",
+            "name": "CTTransit- Hartford",
+            "phone": "860-525-9181",
+            "tz": "America/New_York",
+            "url": "http://www.cttransit.com"
+        },
+        {
+            "id": "googlenb_transit",
+            "lang": "en",
+            "name": "CTTransit - New Britain",
+            "phone": "860-828-0512",
+            "tz": "America/New_York",
+            "url": "http://www.cttransit.com"
+        },
+        {
+            "id": "googlenh_transit",
+            "lang": "en",
+            "name": "CTTransit- New Haven",
+            "phone": "203-624-0151",
+            "tz": "America/New_York",
+            "url": "http://www.cttransit.com"
+        },
+        {
+            "id": "googlestam_transit",
+            "lang": "en",
+            "name": "CTTransit- Stamford",
+            "phone": "203-327-7433",
+            "tz": "America/New_York",
+            "url": "http://www.cttransit.com"
+        }
+    ],
+    "application": "GtfsProc 1.8",
+*   "appuptime_sec": 16,
+*   "dataloadtime_ms": 2736,
+    "error": 0,
+    "feed_lang": "Not Provided",
+    "feed_publisher": "Not Provided",
+    "feed_url": "Not Provided",
+    "feed_valid_end": "__-___-____",
+    "feed_valid_start": "__-___-____",
+    "feed_version": "Not Provided",
+    "message_time": "22-May-2020 00:17:30 EDT",
+    "message_type": "SDS",
+*   "proc_time_ms": 0,
+*   "processed_reqs": 1,
+    "records": 653925,
+    "threadpool_count": 1
+}
+@End
+
+@Case:Realtime Data Integrated and Active
+@Query:RDS
+@Expected
+{
+*   "active_age_sec": 26,
+*   "active_download_ms": 44,
+    "active_feed_time": "22-May-2020 00:17:04 EDT",
+*   "active_integration_ms": 3,
+    "active_rt_version": "1.0",
+    "active_side": "A",
+    "error": 0,
+*   "last_realtime_query": "24-Feb-2021 17:43:47 EST",
+    "message_time": "22-May-2020 00:17:30 EDT",
+    "message_type": "RDS",
+*   "proc_time_ms": 0,
+*   "seconds_to_next_fetch": 584
+}
+@End
+
+@Case:Trip 1275181 starts before midnight, Trip 1275930 starts after midnight with actual date match.
+@Query:NCF 60 6671
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:17:30 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": *****,
+    "realtime_age_sec": 26,
+    "static_data_modif": "22-May-2020 22:33:47 EDT",
+    "stop_desc": "6671",
+    "stop_id": "6671",
+    "stop_name": "Atlantic St and N State St",
+    "trips": [
+        {
+            "arr_time": "-",
+            "dep_time": "-",
+            "drop_off_type": 0,
+            "headsign": "328 - COVE RD-Cove Island Park",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:32",
+                "actual_departure": "Fri 00:32",
+                "offset_seconds": 0,
+                "status": "RNNG",
+                "stop_status": "PRED",
+                "vehicle": "1481"
+            },
+            "route_id": "11395",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "1275930",
+            "trip_terminates": false,
+            "wait_time_sec": 925
+        },
+        {
+            "arr_time": "-",
+            "dep_time": "-",
+            "drop_off_type": 0,
+            "headsign": "311B - STAMFORD via Hamilton Ave",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:33",
+                "actual_departure": "Fri 00:33",
+                "offset_seconds": 0,
+                "status": "RNNG",
+                "stop_status": "PRED",
+                "vehicle": "1064"
+            },
+            "route_id": "11388",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "1275181",
+            "trip_terminates": false,
+            "wait_time_sec": 948
+        }
+    ]
+}
+@End

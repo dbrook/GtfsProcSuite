@@ -1,0 +1,168 @@
+@Description
+RIPTA uss Level-1 date matching (-l 1) for matching the actual date of the trip start, not
+that of the service date. This case asserts the correct matching of trip IDs serving the
+stop in question. RIPTA also uses offsets in their realtime data, so stops after the last
+offset prediction in a trip can be extrapolated from the last known offset.
+@End
+
+@StartParams
+-dstatic
+-u600
+-l1
+-rripta_tripUpdates.pb
+-f2020,5,22,0,11,30
+@End
+
+@Case:Assert Running and Expected Records Loaded
+@Query:SDS
+@Expected
+{
+    "agencies": [
+        {
+            "id": "RIPTA",
+            "lang": "en",
+            "name": "Rhode Island Public Transit Authority",
+            "phone": "401-781-9400",
+            "tz": "America/New_York",
+            "url": "http://www.ripta.com/"
+        }
+    ],
+    "application": "GtfsProc 1.8",
+*   "appuptime_sec": 57,
+*   "dataloadtime_ms": 807,
+    "error": 0,
+    "feed_lang": "Not Provided",
+    "feed_publisher": "Not Provided",
+    "feed_url": "Not Provided",
+    "feed_valid_end": "__-___-____",
+    "feed_valid_start": "__-___-____",
+    "feed_version": "Not Provided",
+    "message_time": "22-May-2020 00:11:30 EDT",
+    "message_type": "SDS",
+*   "proc_time_ms": 1,
+*   "processed_reqs": 1,
+    "records": 250125,
+    "threadpool_count": 1
+}
+@End
+
+@Case:Realtime Data Integrated and Active
+@Query:RDS
+@Expected
+{
+*   "active_age_sec": 15,
+*   "active_download_ms": 34,
+    "active_feed_time": "22-May-2020 00:11:15 EDT",
+*   "active_integration_ms": 1,
+    "active_rt_version": "2.0",
+    "active_side": "A",
+    "error": 0,
+*   "last_realtime_query": "24-Feb-2021 16:49:45 EST",
+    "message_time": "22-May-2020 00:11:30 EDT",
+    "message_type": "RDS",
+*   "proc_time_ms": 0,
+*   "seconds_to_next_fetch": 425
+}
+@End
+
+@Case:Trip 2947738 before midnight, Trip 2949896 after midnight, Trip 2948526 with extrapolated offset.
+@Query:NCF 60 72010
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:11:30 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": *****,
+    "realtime_age_sec": 15,
+    "static_data_modif": "22-May-2020 22:33:48 EDT",
+    "stop_desc": "",
+    "stop_id": "72010",
+    "stop_name": "PROVIDENCE STATION",
+    "trips": [
+        {
+            "arr_time": "Fri 00:10",
+            "dep_time": "Fri 00:10",
+            "drop_off_type": 0,
+            "headsign": "PAWTUCKET via NORTH MAIN",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:12",
+                "actual_departure": "Fri 00:12",
+                "offset_seconds": 120,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "1307"
+            },
+            "route_id": "11",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "2947738",
+            "trip_terminates": false,
+            "wait_time_sec": 30
+        },
+        {
+            "arr_time": "Fri 00:22",
+            "dep_time": "Fri 00:22",
+            "drop_off_type": 0,
+            "headsign": "WOONSOCKET",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:18",
+                "actual_departure": "Fri 00:18",
+                "offset_seconds": -240,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "1042"
+            },
+            "route_id": "54",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "2949896",
+            "trip_terminates": false,
+            "wait_time_sec": 390
+        },
+        {
+            "arr_time": "Fri 00:30",
+            "dep_time": "Fri 00:30",
+            "drop_off_type": 0,
+            "headsign": "PAWTUCKET via NORTH MAIN",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:30",
+                "actual_departure": "Fri 00:30",
+                "offset_seconds": 0,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "1301"
+            },
+            "route_id": "11",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "2947282",
+            "trip_terminates": false,
+            "wait_time_sec": 1110
+        },
+        {
+            "arr_time": "Fri 00:50",
+            "dep_time": "Fri 00:50",
+            "drop_off_type": 0,
+            "headsign": "PAWTUCKET via NORTH MAIN",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 00:50",
+                "actual_departure": "Fri 00:50",
+                "offset_seconds": 0,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "1302"
+            },
+            "route_id": "11",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "2948526",
+            "trip_terminates": false,
+            "wait_time_sec": 2310
+        }
+    ]
+}
+@End
