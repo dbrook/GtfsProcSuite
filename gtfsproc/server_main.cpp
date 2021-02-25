@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2020, Daniel Brook
+ * Copyright (C) 2018-2021, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -33,14 +33,14 @@ int main(int argc, char *argv[])
      */
     QCoreApplication a(argc, argv);
     QCoreApplication::setApplicationName("GtfsProc");
-    QCoreApplication::setApplicationVersion("1.8");
+    QCoreApplication::setApplicationVersion("1.8b");
 
     QTextStream console(stdout);
     QString appName = QCoreApplication::applicationName();
     QString appVers = QCoreApplication::applicationVersion();
 
     console << appName.remove("\"") << " version " << appVers.remove("\"")
-            << " - Running on Process ID: " << QCoreApplication::applicationPid() << endl << endl;
+            << " - Running on Process ID: " << QCoreApplication::applicationPid() << Qt::endl << Qt::endl;
 
     /*
      * Command Line Parsing
@@ -197,10 +197,10 @@ int main(int argc, char *argv[])
      * BEGIN LISTENING FOR CONNECTIONS
      */
     if (gtfsRequestServer.listen(QHostAddress::Any, portNum)) {
-        console << "SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS" << endl << endl;
+        console << "SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS" << Qt::endl << Qt::endl;
     } else {
         console << gtfsRequestServer.errorString();
-        console << endl << "(!) COULD NOT START SERVER - SEE ERROR STRING ABOVE" << endl;
+        console << Qt::endl << "(!) COULD NOT START SERVER - SEE ERROR STRING ABOVE" << Qt::endl;
         return 1;
     }
 
