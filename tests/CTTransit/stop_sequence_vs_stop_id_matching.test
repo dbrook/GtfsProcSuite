@@ -1,0 +1,221 @@
+@Description
+Strict stop ID vs. stop sequence number matching in CTTransit causes trips that have extra stops
+in their real-time feeds lose the ability to render predicted arrival times after these extra
+additional stops. The -q option enforces ONLY the stop ID as the criteria for rendering a trip
+to a stop in NEX/NCF.
+@End
+
+@StartParams
+-dstatic
+-p5000
+-i
+-t1
+-q
+-u5000
+-rcttransit_route83bug_2020-05-24-8-20-00.pb
+-f2020,5,24,8,21,45
+@End
+
+@Case:Assert Running and Expected Records Loaded
+@Query:SDS
+@Expected
+{
+    "agencies": [
+        {
+            "id": "google-wa-me_transit",
+            "lang": "en",
+            "name": "CTTransit - Waterbury-Meriden",
+            "phone": "203-753-2538",
+            "tz": "America/New_York",
+            "url": "http://www.cttransit.com"
+        },
+        {
+            "id": "googleha_transit",
+            "lang": "en",
+            "name": "CTTransit- Hartford",
+            "phone": "860-525-9181",
+            "tz": "America/New_York",
+            "url": "http://www.cttransit.com"
+        },
+        {
+            "id": "googlenb_transit",
+            "lang": "en",
+            "name": "CTTransit - New Britain",
+            "phone": "860-828-0512",
+            "tz": "America/New_York",
+            "url": "http://www.cttransit.com"
+        },
+        {
+            "id": "googlenh_transit",
+            "lang": "en",
+            "name": "CTTransit- New Haven",
+            "phone": "203-624-0151",
+            "tz": "America/New_York",
+            "url": "http://www.cttransit.com"
+        },
+        {
+            "id": "googlestam_transit",
+            "lang": "en",
+            "name": "CTTransit- Stamford",
+            "phone": "203-327-7433",
+            "tz": "America/New_York",
+            "url": "http://www.cttransit.com"
+        }
+    ],
+    "application": "GtfsProc 1.8",
+*   "appuptime_sec": 6,
+*   "dataloadtime_ms": 2830,
+    "error": 0,
+    "feed_lang": "Not Provided",
+    "feed_publisher": "Not Provided",
+    "feed_url": "Not Provided",
+    "feed_valid_end": "__-___-____",
+    "feed_valid_start": "__-___-____",
+    "feed_version": "Not Provided",
+    "message_time": "24-May-2020 08:21:45 EDT",
+    "message_type": "SDS",
+*   "proc_time_ms": 1,
+*   "processed_reqs": 1,
+    "records": 653925,
+    "threadpool_count": 1
+}
+@End
+
+@Case:Realtime Data Integrated and Active
+@Query:RDS
+@Expected
+{
+*   "active_age_sec": 10,
+*   "active_download_ms": 50,
+    "active_feed_time": "24-May-2020 08:21:35 EDT",
+*   "active_integration_ms": 8,
+    "active_rt_version": "1.0",
+    "active_side": "A",
+    "error": 0,
+*   "last_realtime_query": "24-Feb-2021 17:42:00 EST",
+    "message_time": "24-May-2020 08:21:45 EDT",
+    "message_type": "RDS",
+*   "proc_time_ms": 0,
+*   "seconds_to_next_fetch": 4993
+}
+@End
+
+@Case:Trip ID 1283587 will be marked as being offset 15 seconds (arr. @ Sun 08:47) using -q or trip disappears.
+@Query:NCF 30 58
+@Expected
+{
+    "error": 0,
+    "message_time": "24-May-2020 08:21:45 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": 10,
+    "realtime_age_sec": 10,
+    "static_data_modif": "22-May-2020 22:33:47 EDT",
+    "stop_desc": "58",
+    "stop_id": "58",
+    "stop_name": "Central Row and O S H",
+    "trips": [
+        {
+            "arr_time": "Sun 08:40",
+            "dep_time": "Sun 08:40",
+            "drop_off_type": 0,
+            "headsign": "82/84 - TOLLAND ST-Downtown Hartford",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Sun 08:42",
+                "actual_departure": "Sun 08:42",
+                "offset_seconds": 165,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "1102"
+            },
+            "route_id": "11448",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "1283484",
+            "trip_terminates": false,
+            "wait_time_sec": 1260
+        },
+        {
+            "arr_time": "Sun 08:40",
+            "dep_time": "Sun 08:40",
+            "drop_off_type": 0,
+            "headsign": "913 - HARTFORD EXPRESS",
+            "pickup_type": 1,
+            "realtime_data": {
+                "actual_arrival": "Sun 08:44",
+                "actual_departure": "Sun 08:44",
+                "offset_seconds": 255,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "1688"
+            },
+            "route_id": "11466",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "1284369",
+            "trip_terminates": false,
+            "wait_time_sec": 1350
+        },
+        {
+            "arr_time": "Sun 08:47",
+            "dep_time": "Sun 08:47",
+            "drop_off_type": 0,
+            "headsign": "83 - SILVER LA-Downtown Hartford",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Sun 08:47",
+                "actual_departure": "Sun 08:47",
+                "offset_seconds": 15,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "1712"
+            },
+            "route_id": "11449",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "1283587",
+            "trip_terminates": false,
+            "wait_time_sec": 1530
+        }
+    ]
+}
+@End
+
+@Case:Trip ID 1283582 will show as skipping the stop using -q. Without -q, it renders without a prediction.
+@Query:NCF 90 88
+@Expected
+{
+    "error": 0,
+    "message_time": "24-May-2020 08:21:45 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": 2,
+    "realtime_age_sec": 10,
+    "static_data_modif": "22-May-2020 22:33:47 EDT",
+    "stop_desc": "88",
+    "stop_id": "88",
+    "stop_name": "W Center St and McKee St",
+    "trips": [
+        {
+            "arr_time": "Sun 09:30",
+            "dep_time": "Sun 09:30",
+            "drop_off_type": 0,
+            "headsign": "83 - SILVER LA-Downtown Hartford via McKee St",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+*               "offset_seconds": 94622715952752,
+                "status": "SKIP",
+                "stop_status": "",
+                "vehicle": ""
+            },
+            "route_id": "11449",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "1283582",
+            "trip_terminates": false,
+            "wait_time_sec": 4095
+        }
+    ]
+}
+@End
