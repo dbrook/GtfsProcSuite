@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2020, Daniel Brook
+ * Copyright (C) 2018-2021, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -141,6 +141,10 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
         for (const QString &routeID : fullTrips.keys()) {
             for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
                 QDate dateUsedByRT;
+
+                // Do not return undefined values for offset for canceled / skipping-stop trips
+                tripRecord.realTimeOffsetSec = 0;
+
                 if (rActiveFeed->scheduledTripIsRunning(tripRecord.tripID,
                                                         tripRecord.tripServiceDate,
                                                         tripRecord.tripFirstDeparture.date(),
@@ -489,14 +493,14 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
 }
 
 void TripStopReconciler::fillStopStatWaitTimeOffset(const QDateTime &schArrUTC,
-                                                       const QDateTime &schDepUTC,
-                                                       const QDateTime &preArrUTC,
-                                                       const QDateTime &preDepUTC,
-                                                       QString         &tripStopStatus,
-                                                       qint64          &waitTimeSeconds,
-                                                       qint64          &realTimeOffsetSec,
-                                                       QDateTime       &realTimeArrLT,
-                                                       QDateTime       &realTimeDepLT) const
+                                                    const QDateTime &schDepUTC,
+                                                    const QDateTime &preArrUTC,
+                                                    const QDateTime &preDepUTC,
+                                                    QString         &tripStopStatus,
+                                                    qint64          &waitTimeSeconds,
+                                                    qint64          &realTimeOffsetSec,
+                                                    QDateTime       &realTimeArrLT,
+                                                    QDateTime       &realTimeDepLT) const
 {
     /*
      * There are 3 different flags an operating trip may have based on the presence of both the

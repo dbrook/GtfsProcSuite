@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2020, Daniel Brook
+ * Copyright (C) 2018-2021, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -788,9 +788,9 @@ void RealTimeTripUpdate::showProtobufData() const
     google::protobuf::TextFormat::PrintToString(_tripUpdate, &data);
     qDebug() << "GTFS-Realtime : LOCAL DEBUGGING MODE";
     qDebug() << "-----[ CONTENTS ]------------------------------------------------------------------------------------";
-    qDebug() << data.c_str() << endl
+    qDebug() << data.c_str() << Qt::endl
              << "-----------------------------------------------------------------------[ END PROTOBUF CONTENTS ]-----";
-    qDebug() << "Protobuf: " << _tripUpdate.ByteSize() << " bytes" << endl;
+    qDebug() << "Protobuf: " << _tripUpdate.ByteSize() << " bytes" << Qt::endl;
     qDebug() << "Processing _tripUpdate.entity_size() = " << _tripUpdate.entity_size() << "real-time records.";
 }
 

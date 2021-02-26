@@ -27,7 +27,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "url": "http://www.ripta.com/"
         }
     ],
-    "application": "GtfsProc 1.8",
+    "application": "GtfsProc 1.8b",
 *   "appuptime_sec": 57,
 *   "dataloadtime_ms": 807,
     "error": 0,
@@ -74,7 +74,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
     "message_type": "NCF",
 *   "proc_time_ms": *****,
     "realtime_age_sec": 15,
-    "static_data_modif": "22-May-2020 22:33:48 EDT",
+*   "static_data_modif": "22-May-2020 22:33:48 EDT",
     "stop_desc": "",
     "stop_id": "72010",
     "stop_name": "PROVIDENCE STATION",

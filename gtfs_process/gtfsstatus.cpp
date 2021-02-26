@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2020, Daniel Brook
+ * Copyright (C) 2018-2021, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -131,8 +131,8 @@ Status::Status(const QString dataRootPath,
                          brokenDateParams.at(4).toInt(),
                          brokenDateParams.at(5).toInt());
         frozenAgencyTime = QDateTime(frozenDate, frozenTime, this->serverFeedTZ);
-        qDebug() << endl << "TESTING/DEBUGGING/ANALYSIS MODE: All transaction will be processed as if it is "
-                 << frozenAgencyTime << endl;
+        qDebug() << Qt::endl << "TESTING/DEBUGGING/ANALYSIS MODE: All transaction will be processed as if it is "
+                 << frozenAgencyTime << Qt::endl;
     }
 
     // Show all times with AM/PM indicator instead of standard 24-hour clock

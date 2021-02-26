@@ -1,11 +1,20 @@
-THIS RELEASE: Version 1.8a Features and Fixes:
+THIS RELEASE: Version 1.8b Features and Fixes:
 ----------------------------------------------
+- Update copyright dates
+- Added non-regression test suite
+- Canceled trips should not return garbage numbers for schedule offset
+- Fixed deprecated feature use (as asserted by Qt 5.15)
+- Cleanup some dead code
+- Actually increment version number this time
+
+
+PREVIOUS RELEASES:
+Version 1.8a Features and Fixes
+-------------------------------
 - Do not force check of stop ID for real-time integration if the -q option is not used, the sequence match
   is sufficient per the specification (ex: Trip departing South Station (MBTA) gets a sub-station 'track'
   assigned: 'South-Station-02' instead of 'South Station' but it retains stop sequence 1).
 
-
-PREVIOUS RELEASES:
 Version 1.8 Features/Fixes
 --------------------------
 - Use seconds instead of milliseconds for uptime display in SDS and RPS

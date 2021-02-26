@@ -59,7 +59,7 @@ case proves that both types of trips are visible to a single stop that is served
             "url": "http://www.cttransit.com"
         }
     ],
-    "application": "GtfsProc 1.8",
+    "application": "GtfsProc 1.8b",
 *   "appuptime_sec": 16,
 *   "dataloadtime_ms": 2736,
     "error": 0,
@@ -106,7 +106,7 @@ case proves that both types of trips are visible to a single stop that is served
     "message_type": "NCF",
 *   "proc_time_ms": *****,
     "realtime_age_sec": 26,
-    "static_data_modif": "22-May-2020 22:33:47 EDT",
+*   "static_data_modif": "22-May-2020 22:33:47 EDT",
     "stop_desc": "6671",
     "stop_id": "6671",
     "stop_name": "Atlantic St and N State St",

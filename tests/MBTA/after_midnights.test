@@ -30,7 +30,7 @@ and canceled).
             "url": "http://www.mbta.com"
         }
     ],
-    "application": "GtfsProc 1.8",
+    "application": "GtfsProc 1.8b",
 *   "appuptime_sec": 15,
 *   "dataloadtime_ms": 8034,
     "error": 0,
@@ -77,7 +77,7 @@ and canceled).
     "message_type": "NCF",
 *   "proc_time_ms": *****,
     "realtime_age_sec": 20,
-    "static_data_modif": "22-May-2020 22:33:47 EDT",
+*   "static_data_modif": "22-May-2020 22:33:47 EDT",
     "stop_desc": "",
     "stop_id": "2037",
     "stop_name": "Mt Auburn St @ Winsor Ave",
@@ -184,7 +184,7 @@ and canceled).
     "message_type": "NCF",
 *   "proc_time_ms": *****,
     "realtime_age_sec": 20,
-    "static_data_modif": "22-May-2020 22:33:47 EDT",
+*   "static_data_modif": "22-May-2020 22:33:47 EDT",
     "stop_desc": "Suffolk Downs - Blue Line - Wonderland",
     "stop_id": "70054",
     "stop_name": "Suffolk Downs",
@@ -198,7 +198,7 @@ and canceled).
             "realtime_data": {
                 "actual_arrival": "",
                 "actual_departure": "",
-*               "offset_seconds": 94133527606816,
+                "offset_seconds": 0,
                 "status": "CNCL",
                 "stop_status": "",
                 "vehicle": ""
@@ -244,7 +244,7 @@ and canceled).
     "message_type": "NCF",
 *   "proc_time_ms": *****,
     "realtime_age_sec": 20,
-    "static_data_modif": "22-May-2020 22:33:47 EDT",
+*   "static_data_modif": "22-May-2020 22:33:47 EDT",
     "stop_desc": "Airport - Blue Line - Bowdoin",
     "stop_id": "70047",
     "stop_name": "Airport",
