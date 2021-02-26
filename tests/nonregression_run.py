@@ -143,6 +143,9 @@ def loadGtfsProcAndRunCases(regression_file):
     passed_cases = 0
     total_cases = 0
 
+    # Switch to the file's working directory so GtfsProc can be started relative to it
+    os.chdir(os.path.dirname(regression_file))
+
     regression_set = openRegressionFile(regression_file)
     gtfs_start_ops = [gtfsproc_path, *regression_set.startup]
     gtfs_process = subprocess.Popen(gtfs_start_ops,
@@ -232,7 +235,6 @@ def findAllAgencyDirectories(this_dir):
         for agency_entry in it:
             if agency_entry.is_dir():
                 print(f"\n{agency_entry.name}/")
-                os.chdir(agency_entry.path)
                 dir_passed, dir_ran = runAgencyDirectoryTests(agency_entry.path)
                 passed_cases += dir_passed
                 total_cases += dir_ran
@@ -243,21 +245,27 @@ def findAllAgencyDirectories(this_dir):
 print("\nWelcome to the GtfsProc Non-Regression Test Environment!")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) not in [3, 4]:
         print("You must provide the path to the gtfsproc server and client_cli binaries,")
         print(f"like so:  $ {sys.argv[0]} /path/to/gtfsproc /path/to/client_cli\n")
+        print("You can also choose to process a single test file,")
+        print(f"like so:  $ {sys.argv[0]} /path/to/gtfsproc /path/to/client_cli tests/Agency/my_suite.test\n")
         exit()
     current_wrkdir = os.getcwd()
     gtfsproc_path = f"{current_wrkdir}/{sys.argv[1]}"
     gtfsclnt_path = f"{current_wrkdir}/{sys.argv[2]}"
     
-os.chdir(this_dir)
-print(f"Starting from working dir: {os.getcwd()}")
+    os.chdir(this_dir)
+    print(f"Starting from working dir: {os.getcwd()}")
 
-total_passed, total_ran = findAllAgencyDirectories(this_dir)
+    if len(sys.argv) == 4:
+        print(f"Executing a single file: {current_wrkdir}/{sys.argv[3]}")
+        total_passed, total_ran = loadGtfsProcAndRunCases(f"{current_wrkdir}/{sys.argv[3]}")
+    else:
+        total_passed, total_ran = findAllAgencyDirectories(this_dir)
 
-if total_passed is not total_ran:
-    failed_cases = total_ran - total_passed
-    print(f"\n\033[91mTEST ERROR:\033[00m {failed_cases} out of {total_ran} test cases failed!\n")
-else:
-    print(f"\n\033[92mTESTS ALL PASSED:\033[00m {total_ran} cases checked.\n")
+    if total_passed is not total_ran:
+        failed_cases = total_ran - total_passed
+        print(f"\n\033[91mTEST ERROR:\033[00m {failed_cases} out of {total_ran} test cases failed!\n")
+    else:
+        print(f"\n\033[92mTESTS ALL PASSED:\033[00m {total_ran} cases checked.\n")
