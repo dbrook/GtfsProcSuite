@@ -27,7 +27,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "url": "http://www.ripta.com/"
         }
     ],
-    "application": "GtfsProc 1.8b",
+    "application": "GtfsProc 1.8c",
 *   "appuptime_sec": 57,
 *   "dataloadtime_ms": 807,
     "error": 0,
