@@ -131,8 +131,8 @@ Status::Status(const QString dataRootPath,
                          brokenDateParams.at(4).toInt(),
                          brokenDateParams.at(5).toInt());
         frozenAgencyTime = QDateTime(frozenDate, frozenTime, this->serverFeedTZ);
-        qDebug() << Qt::endl << "TESTING/DEBUGGING/ANALYSIS MODE: All transaction will be processed as if it is "
-                 << frozenAgencyTime << Qt::endl;
+        qDebug() << endl << "TESTING/DEBUGGING/ANALYSIS MODE: All transaction will be processed as if it is "
+                 << frozenAgencyTime << endl;
     }
 
     // Show all times with AM/PM indicator instead of standard 24-hour clock

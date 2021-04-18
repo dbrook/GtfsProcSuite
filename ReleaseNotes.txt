@@ -1,5 +1,11 @@
-THIS RELEASE: Version 1.8b Features and Fixes:
-----------------------------------------------
+THIS RELEASE: Version 1.8c Fixes
+--------------------------------
+- Revert the endl/Qt::endl/noforcesign change for Qt 5.15, it is incompatible with Qt 5.12 which
+  Debian stable uses
+
+PREVIOUS RELEASES:
+Version 1.8b Features and Fixes
+-------------------------------
 - Update copyright dates
 - Added non-regression test suite
 - Canceled trips should not return garbage numbers for schedule offset
@@ -7,8 +13,6 @@ THIS RELEASE: Version 1.8b Features and Fixes:
 - Cleanup some dead code
 - Actually increment version number this time
 
-
-PREVIOUS RELEASES:
 Version 1.8a Features and Fixes
 -------------------------------
 - Do not force check of stop ID for real-time integration if the -q option is not used, the sequence match

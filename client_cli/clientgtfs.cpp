@@ -178,7 +178,7 @@ void ClientGtfs::repl()
             screen << "GTFS Server Status"
                    << qSetFieldWidth(this->disp.getCols() - 18)      // 18 == "GTFS Server Status".length()
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             // Easier to understand uptime
             qint64 uptimeMs = respObj["appuptime_ms"].toInt();
@@ -187,33 +187,33 @@ void ClientGtfs::repl()
             qint8  mins     = (uptimeMs - days * 86400000 - hours * 3600000) / 60000;
             qint8  secs     = (uptimeMs - days * 86400000 - hours * 3600000 - mins * 60000) / 1000;
 
-            screen << "[ Backend ]" << Qt::endl;
-            screen << "Processed Reqs . . " << respObj["processed_reqs"].toInt() << Qt::endl;
+            screen << "[ Backend ]" << endl;
+            screen << "Processed Reqs . . " << respObj["processed_reqs"].toInt() << endl;
             screen << "Uptime . . . . . . " << days  << "d " << qSetFieldWidth(2)
                                             << hours << "h "
                                             << mins  << "m "
-                                            << secs  << "s " << qSetFieldWidth(0) << Qt::endl;
-            screen << "Data Load Time . . " << respObj["dataloadtime_ms"].toInt() << "ms" << Qt::endl;
-            screen << "Thread Pool  . . . " << respObj["threadpool_count"].toInt() << Qt::endl;
-            screen << "System Version . . " << respObj["application"].toString() << Qt::endl << Qt::endl;
+                                            << secs  << "s " << qSetFieldWidth(0) << endl;
+            screen << "Data Load Time . . " << respObj["dataloadtime_ms"].toInt() << "ms" << endl;
+            screen << "Thread Pool  . . . " << respObj["threadpool_count"].toInt() << endl;
+            screen << "System Version . . " << respObj["application"].toString() << endl << endl;
 
-            screen << "[ Static Feed Information ]" << Qt::endl;
-            screen << "Publisher  . . . . " << respObj["feed_publisher"].toString() << Qt::endl;
-            screen << "URL  . . . . . . . " << respObj["feed_url"].toString() << Qt::endl;
-            screen << "Language . . . . . " << respObj["feed_lang"].toString() << Qt::endl;
+            screen << "[ Static Feed Information ]" << endl;
+            screen << "Publisher  . . . . " << respObj["feed_publisher"].toString() << endl;
+            screen << "URL  . . . . . . . " << respObj["feed_url"].toString() << endl;
+            screen << "Language . . . . . " << respObj["feed_lang"].toString() << endl;
             screen << "Valid Time . . . . " << "Start: " << respObj["feed_valid_start"].toString() << ", End: "
-                                            << respObj["feed_valid_end"].toString() << Qt::endl;
-            screen << "Version Text . . . " << respObj["feed_version"].toString() << Qt::endl;
-            screen << "Recs Loaded  . . . " << respObj["records"].toInt() << Qt::endl;
-            screen << Qt::endl;
+                                            << respObj["feed_valid_end"].toString() << endl;
+            screen << "Version Text . . . " << respObj["feed_version"].toString() << endl;
+            screen << "Recs Loaded  . . . " << respObj["records"].toInt() << endl;
+            screen << endl;
 
-            screen << "[ Agency Load ]" << Qt::endl;
+            screen << "[ Agency Load ]" << endl;
 
             screen.setFieldAlignment(QTextStream::AlignLeft);
             screen << qSetFieldWidth(c1) << "ID"        << qSetFieldWidth(1) << " "
                    << qSetFieldWidth(c2) << "NAME"      << qSetFieldWidth(1) << " "
                    << qSetFieldWidth(c3) << "TIMEZONE"  << qSetFieldWidth(1) << " "
-                   << qSetFieldWidth(c4) << "PHONE"     << qSetFieldWidth(0) << Qt::endl;
+                   << qSetFieldWidth(c4) << "PHONE"     << qSetFieldWidth(0) << endl;
 
             QJsonArray agencies = respObj["agencies"].toArray();
             for (const QJsonValue ag : agencies) {
@@ -221,10 +221,10 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c2) << ag["name"].toString().left(c2) << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c3) << ag["tz"].toString().left(c3)   << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c4) << ag["phone"].toString().left(c4)
-                       << qSetFieldWidth( 0) << Qt::endl;
+                       << qSetFieldWidth( 0) << endl;
             }
             screen.setFieldAlignment(QTextStream::AlignRight);
-            screen << Qt::endl;
+            screen << endl;
         }
 
         /*
@@ -245,17 +245,17 @@ void ClientGtfs::repl()
             screen << "Route List"
                    << qSetFieldWidth(this->disp.getCols() - 10)      // 10 == "Route List".length()
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             // Useful data?
-            screen << "Query took " << respObj["proc_time_ms"].toInt() << " ms" << Qt::endl << Qt::endl;
+            screen << "Query took " << respObj["proc_time_ms"].toInt() << " ms" << endl << endl;
 
             // Start spitting out the routes
             screen.setFieldAlignment(QTextStream::AlignLeft);
             screen << qSetFieldWidth(c1) << "ID"         << qSetFieldWidth(1) << " "
                    << qSetFieldWidth(c2) << "SHORT NAME" << qSetFieldWidth(1) << " "
                    << qSetFieldWidth(c3) << "LONG NAME"  << qSetFieldWidth(1) << " "
-                   << qSetFieldWidth(c4) << "TRIPS"      << qSetFieldWidth(0) << Qt::endl;
+                   << qSetFieldWidth(c4) << "TRIPS"      << qSetFieldWidth(0) << endl;
 
             QJsonArray routes = respObj["routes"].toArray();
             for (const QJsonValue ro : routes) {
@@ -263,11 +263,11 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c2) << ro["short_name"].toString().left(c2) << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c3) << ro["long_name"].toString().left(c3)  << qSetFieldWidth(1) << " ";
                 screen.setFieldAlignment(QTextStream::AlignRight);
-                screen << qSetFieldWidth(c4) << ro["nb_trips"].toInt()               << qSetFieldWidth(0) << Qt::endl;
+                screen << qSetFieldWidth(c4) << ro["nb_trips"].toInt()               << qSetFieldWidth(0) << endl;
                 screen.setFieldAlignment(QTextStream::AlignLeft);
             }
 
-            screen << Qt::endl;
+            screen << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
@@ -291,37 +291,37 @@ void ClientGtfs::repl()
             screen << "Trip Schedule"
                    << qSetFieldWidth(this->disp.getCols() - 13)
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             if (respObj["error"].toInt() == 101) {
-                screen << "Trip not found in static database." << Qt::endl;
+                screen << "Trip not found in static database." << endl;
             } else if (respObj["error"].toInt() == 102) {
-                screen << "Trip not found in real-time data feed." << Qt::endl;
+                screen << "Trip not found in real-time data feed." << endl;
             } else {
                 bool realTimeData = respObj["real_time"].toBool();
 
-                screen << "Trip ID  . . . . . " << respObj["trip_id"].toString() << Qt::endl;
+                screen << "Trip ID  . . . . . " << respObj["trip_id"].toString() << endl;
                 if (!realTimeData) {
-                    screen << "Service ID . . . . " << respObj["service_id"].toString() << Qt::endl;
+                    screen << "Service ID . . . . " << respObj["service_id"].toString() << endl;
                     screen << "Validity . . . . . " << respObj["svc_start_date"].toString() << " - "
-                                                    << respObj["svc_end_date"].toString() << Qt::endl;
-                    screen << "Operating Days . . " << respObj["operate_days"].toString() << Qt::endl;
-                    screen << "Exceptions . . . . " << respObj["exception_dates"].toString() << Qt::endl;
-                    screen << "Additions  . . . . " << respObj["added_dates"].toString() << Qt::endl;
+                                                    << respObj["svc_end_date"].toString() << endl;
+                    screen << "Operating Days . . " << respObj["operate_days"].toString() << endl;
+                    screen << "Exceptions . . . . " << respObj["exception_dates"].toString() << endl;
+                    screen << "Additions  . . . . " << respObj["added_dates"].toString() << endl;
                 }
-                screen << "Route ID . . . . . " << respObj["route_id"].toString() << Qt::endl;
+                screen << "Route ID . . . . . " << respObj["route_id"].toString() << endl;
                 screen << "Route Name . . . . " << respObj["route_short_name"].toString() << ", \""
-                                                << respObj["route_long_name"].toString()  << "\"" << Qt::endl;
+                                                << respObj["route_long_name"].toString()  << "\"" << endl;
                 if (!realTimeData) {
-                    screen << "Headsign . . . . . " << respObj["headsign"].toString() << Qt::endl;
+                    screen << "Headsign . . . . . " << respObj["headsign"].toString() << endl;
                 } else {
-                    screen << "Vehicle  . . . . . " << respObj["vehicle"].toString() << Qt::endl;
+                    screen << "Vehicle  . . . . . " << respObj["vehicle"].toString() << endl;
                     screen << "Start Date&Time  . " << respObj["start_date"].toString() << " "
-                                                    << respObj["start_time"].toString() << Qt::endl;
-                    screen << "Real Time Data . . " << respObj["real_time_data_time"].toString() << Qt::endl;
+                                                    << respObj["start_time"].toString() << endl;
+                    screen << "Real Time Data . . " << respObj["real_time_data_time"].toString() << endl;
                 }
 
-                screen << "Short Name . . . . " << respObj["short_name"].toString() << Qt::endl << Qt::endl;
+                screen << "Short Name . . . . " << respObj["short_name"].toString() << endl << endl;
 
                 screen.setFieldAlignment(QTextStream::AlignLeft);
                 screen << qSetFieldWidth(c1)   << "SEQ"       << qSetFieldWidth(1) << " "
@@ -331,11 +331,11 @@ void ClientGtfs::repl()
                 if (!realTimeData) {
                     screen << qSetFieldWidth(c4*2) << "PD"        << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c5)   << "SCH-A"     << qSetFieldWidth(1) << " "
-                           << qSetFieldWidth(c6)   << "SCH-D"     << qSetFieldWidth(0) << Qt::endl;
+                           << qSetFieldWidth(c6)   << "SCH-D"     << qSetFieldWidth(0) << endl;
                 } else {
                     screen << qSetFieldWidth(c4*2) << "  "        << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c5)   << "PRE-A"     << qSetFieldWidth(1) << " "
-                           << qSetFieldWidth(c6)   << "PRE-D"     << qSetFieldWidth(0) << Qt::endl;
+                           << qSetFieldWidth(c6)   << "PRE-D"     << qSetFieldWidth(0) << endl;
                 }
 
                 QJsonArray stops = respObj["stops"].toArray();
@@ -349,11 +349,11 @@ void ClientGtfs::repl()
                            << qSetFieldWidth(c4) << pickUp << dropOff                   << qSetFieldWidth(1) << " ";
                     screen.setFieldAlignment(QTextStream::AlignRight);
                     screen << qSetFieldWidth(c5) << st["arr_time"].toString() << qSetFieldWidth(1) << " "
-                           << qSetFieldWidth(c6) << st["dep_time"].toString() << qSetFieldWidth(0) << Qt::endl;
+                           << qSetFieldWidth(c6) << st["dep_time"].toString() << qSetFieldWidth(0) << endl;
                     screen.setFieldAlignment(QTextStream::AlignLeft);
                 }
             }
-            screen << Qt::endl;
+            screen << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
@@ -377,16 +377,16 @@ void ClientGtfs::repl()
             screen << "Trips Serving Route"
                    << qSetFieldWidth(this->disp.getCols() - 19)
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             if (respObj["error"].toInt() == 201) {
-                screen << "Route not found." << Qt::endl;
+                screen << "Route not found." << endl;
             }
             else {
-                screen << "Route ID . . . . . " << respObj["route_id"].toString() << Qt::endl;
+                screen << "Route ID . . . . . " << respObj["route_id"].toString() << endl;
                 screen << "Route Name . . . . " << respObj["route_short_name"].toString() << ", \""
-                                                << respObj["route_long_name"].toString()  << "\"" << Qt::endl;
-                screen << "Service Date . . . " << respObj["service_date"].toString() << Qt::endl << Qt::endl;
+                                                << respObj["route_long_name"].toString()  << "\"" << endl;
+                screen << "Service Date . . . " << respObj["service_date"].toString() << endl << endl;
 
                 // Loop on all the trips
                 screen.setFieldAlignment(QTextStream::AlignLeft);
@@ -395,7 +395,7 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c3*2+1) << "VALID-DURATION" << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c4)     << "OPERATING-DAYS" << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c5*2)   << "ES"             << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c6)     << "SCH-D"          << qSetFieldWidth(0) << Qt::endl;
+                       << qSetFieldWidth(c6)     << "SCH-D"          << qSetFieldWidth(0) << endl;
 
                 QJsonArray trips = respObj["trips"].toArray();
                 for (const QJsonValue tr : trips) {
@@ -412,15 +412,15 @@ void ClientGtfs::repl()
                            << qSetFieldWidth(1) << dstOn;
                     screen.setFieldAlignment(QTextStream::AlignRight);
                     screen << qSetFieldWidth(c6) << tr["first_stop_departure"].toString()
-                           << qSetFieldWidth(0) << Qt::endl;
+                           << qSetFieldWidth(0) << endl;
                     screen.setFieldAlignment(QTextStream::AlignLeft);
                 }
 
-                screen << Qt::endl << "Query took " << respObj["proc_time_ms"].toInt() << " ms, "
-                       << trips.size() << " records loaded" << Qt::endl;
+                screen << endl << "Query took " << respObj["proc_time_ms"].toInt() << " ms, "
+                       << trips.size() << " records loaded" << endl;
             }
 
-            screen << Qt::endl;
+            screen << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
@@ -445,20 +445,20 @@ void ClientGtfs::repl()
             screen << "Trips Serving Stop"
                    << qSetFieldWidth(this->disp.getCols() - 18)
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             if (respObj["error"].toInt() == 301) {
-                screen << "Stop not found." << Qt::endl;
+                screen << "Stop not found." << endl;
             }
             else {
                 // Count how many records were returned
                 qint32 tripsLoaded = 0;
 
-                screen << "Stop ID  . . . . . " << respObj["stop_id"].toString() << Qt::endl
-                       << "Stop Name  . . . . " << respObj["stop_name"].toString() << Qt::endl
-                       << "Stop Desc  . . . . " << respObj["stop_desc"].toString() << Qt::endl
-                       << "Parent Station . . " << respObj["parent_sta"].toString() << Qt::endl
-                       << "Service Date . . . " << respObj["service_date"].toString() << Qt::endl << Qt::endl;
+                screen << "Stop ID  . . . . . " << respObj["stop_id"].toString() << endl
+                       << "Stop Name  . . . . " << respObj["stop_name"].toString() << endl
+                       << "Stop Desc  . . . . " << respObj["stop_desc"].toString() << endl
+                       << "Parent Station . . " << respObj["parent_sta"].toString() << endl
+                       << "Service Date . . . " << respObj["service_date"].toString() << endl << endl;
 
                 // ... then all the trips within each route
                 screen.setFieldAlignment(QTextStream::AlignLeft);
@@ -468,14 +468,14 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c4*2+1) << "VALID-DURATION" << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c5)     << "OPERATING-DAYS" << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c6*5)   << "ES TPD"         << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c7)     << "SCH-D"          << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                       << qSetFieldWidth(c7)     << "SCH-D"          << qSetFieldWidth(0) << endl << endl;
 
                 // Loop on all the routes
                 QJsonArray routes = respObj["routes"].toArray();
                 for (const QJsonValue ro : routes) {
                     screen << "[ Route ID " << ro["route_id"].toString() << " :: "
                                             << ro["route_short_name"].toString() << " :: "
-                                            << ro["route_long_name"].toString()  << " ]"   << Qt::endl;
+                                            << ro["route_long_name"].toString()  << " ]"   << endl;
 
                     // Loop on all the trips
                     QJsonArray trips = ro["trips"].toArray();
@@ -512,18 +512,18 @@ void ClientGtfs::repl()
                                << qSetFieldWidth(c6) << svcExempt << svcSplmnt << " " << tripTerm << pickUp << dropOff
                                << qSetFieldWidth(1) << dstIndic;
                         screen.setFieldAlignment(QTextStream::AlignRight);
-                        screen << qSetFieldWidth(c7) << tr["dep_time"].toString() << qSetFieldWidth(0) << Qt::endl;
+                        screen << qSetFieldWidth(c7) << tr["dep_time"].toString() << qSetFieldWidth(0) << endl;
                         screen.setFieldAlignment(QTextStream::AlignLeft);
                     } // End loop on Trips-within-Route
                     tripsLoaded += trips.size();
-                    screen << Qt::endl;
+                    screen << endl;
                 } // End loop on Routes-serving-Stop
 
                 screen << "Query took " << respObj["proc_time_ms"].toInt() << " ms, "
-                       << tripsLoaded << " trips loaded" << Qt::endl;
+                       << tripsLoaded << " trips loaded" << endl;
             }
 
-            screen << Qt::endl;
+            screen << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
@@ -544,25 +544,25 @@ void ClientGtfs::repl()
             screen << "Individual Stop Service Information"
                    << qSetFieldWidth(this->disp.getCols() - 35)
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             if (respObj["error"].toInt() == 401) {
-                screen << "Stop not found." << Qt::endl;
+                screen << "Stop not found." << endl;
             }
             else {
                 screen << "Stop ID/Name . . . " << respObj["stop_id"].toString() << " :: "
-                                                << respObj["stop_name"].toString() << Qt::endl;
-                screen << "Stop Desc  . . . . " << respObj["stop_desc"].toString() << Qt::endl;
+                                                << respObj["stop_name"].toString() << endl;
+                screen << "Stop Desc  . . . . " << respObj["stop_desc"].toString() << endl;
                 screen << "Location . . . . . " << respObj["loc_lat"].toString() << ", "
-                                                << respObj["loc_lon"].toString() << Qt::endl;
-                screen << "Parent Station . . " << respObj["parent_sta"].toString() << Qt::endl << Qt::endl;
+                                                << respObj["loc_lon"].toString() << endl;
+                screen << "Parent Station . . " << respObj["parent_sta"].toString() << endl << endl;
 
                 // Show all the Routes associated with the station requested
                 screen.setFieldAlignment(QTextStream::AlignLeft);
-                screen << "[ Routes Serving Stop ]" << Qt::endl;
+                screen << "[ Routes Serving Stop ]" << endl;
                 screen << qSetFieldWidth(c1) << "ROUTE-ID"         << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c2) << "ROUTE-NAME-SHORT" << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c3) << "ROUTE-NAME-LONG"  << qSetFieldWidth(1) << Qt::endl;
+                       << qSetFieldWidth(c3) << "ROUTE-NAME-LONG"  << qSetFieldWidth(1) << endl;
 
                 // Loop on all the routes
                 QJsonArray routes = respObj["routes"].toArray();
@@ -572,29 +572,29 @@ void ClientGtfs::repl()
                            << qSetFieldWidth(c2) << ro["route_short_name"].toString().left(c2)
                            << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c3) << ro["route_long_name"].toString().left(c3)
-                           << qSetFieldWidth(0) << Qt::endl;
+                           << qSetFieldWidth(0) << endl;
                 }
-                screen << Qt::endl;
+                screen << endl;
 
                 // Then display any associated stations with the parent
                 screen.setFieldAlignment(QTextStream::AlignLeft);
-                screen << "[ Stops Sharing Parent Station ]" << Qt::endl;
+                screen << "[ Stops Sharing Parent Station ]" << endl;
                 screen << qSetFieldWidth(c1) << "STOP-ID"   << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c2) << "STOP-NAME" << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c3) << "STOP-DESC" << qSetFieldWidth(1) << Qt::endl;
+                       << qSetFieldWidth(c3) << "STOP-DESC" << qSetFieldWidth(1) << endl;
 
                 QJsonArray sharedStops = respObj["stops_sharing_parent"].toArray();
                 for (const QJsonValue ss : sharedStops) {
                     screen << qSetFieldWidth(c1) << ss["stop_id"].toString().left(c1)   << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c2) << ss["stop_name"].toString().left(c2) << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c3) << ss["stop_desc"].toString().left(c3)
-                           << qSetFieldWidth(0)  << Qt::endl;
+                           << qSetFieldWidth(0)  << endl;
                 }
-                screen << Qt::endl;
-                screen << "Query took " << respObj["proc_time_ms"].toInt() << " ms" << Qt::endl;
+                screen << endl;
+                screen << "Query took " << respObj["proc_time_ms"].toInt() << " ms" << endl;
             }
 
-            screen << Qt::endl;
+            screen << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
@@ -617,29 +617,29 @@ void ClientGtfs::repl()
             screen << "Route Summary and Stop Information"
                    << qSetFieldWidth(this->disp.getCols() - 34)
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             if (respObj["error"].toInt() == 501) {
-                screen << "Route not found." << Qt::endl;
+                screen << "Route not found." << endl;
             }
             else {
-                screen << "Route ID . . . . . " << respObj["route_id"].toString() << Qt::endl
-                       << "Short Name . . . . " << respObj["route_short_name"].toString() << Qt::endl
-                       << "Long Name  . . . . " << respObj["route_long_name"].toString() << Qt::endl
-                       << "Description  . . . " << respObj["route_desc"].toString() << Qt::endl
-                       << "Type . . . . . . . " << respObj["route_type"].toString() << Qt::endl
-                       << "URL  . . . . . . . " << respObj["route_url"].toString() << Qt::endl
-                       << "Color  . . . . . . " << respObj["route_color"].toString() << Qt::endl
-                       << "Text Color . . . . " << respObj["route_text_color"].toString() << Qt::endl << Qt::endl;
+                screen << "Route ID . . . . . " << respObj["route_id"].toString() << endl
+                       << "Short Name . . . . " << respObj["route_short_name"].toString() << endl
+                       << "Long Name  . . . . " << respObj["route_long_name"].toString() << endl
+                       << "Description  . . . " << respObj["route_desc"].toString() << endl
+                       << "Type . . . . . . . " << respObj["route_type"].toString() << endl
+                       << "URL  . . . . . . . " << respObj["route_url"].toString() << endl
+                       << "Color  . . . . . . " << respObj["route_color"].toString() << endl
+                       << "Text Color . . . . " << respObj["route_text_color"].toString() << endl << endl;
 
                 // Show all the Routes associated with the station requested
                 screen.setFieldAlignment(QTextStream::AlignLeft);
-                screen << "[ Stops Served by Route ]" << Qt::endl;
+                screen << "[ Stops Served by Route ]" << endl;
                 screen << qSetFieldWidth(c1)     << "STOP-ID"   << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c2)     << "STOP-NAME" << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c3)     << "STOP-DESC" << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c4)     << "#TRIPS"    << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c5 * 2) << "LOCATION"  << qSetFieldWidth(1) << Qt::endl;
+                       << qSetFieldWidth(c5 * 2) << "LOCATION"  << qSetFieldWidth(1) << endl;
 
                 // Loop on all the routes
                 QJsonArray stops = respObj["stops"].toArray();
@@ -651,10 +651,10 @@ void ClientGtfs::repl()
                     screen << qSetFieldWidth(c4) << so["trip_count"].toInt()            << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c5) << so["stop_lat"].toString().left(c5)  << qSetFieldWidth(1) << ","
                            << qSetFieldWidth(c5) << so["stop_lon"].toString().left(c5)
-                           << qSetFieldWidth(0)  << Qt::endl;
+                           << qSetFieldWidth(0)  << endl;
                     screen.setFieldAlignment(QTextStream::AlignLeft);
                 }
-                screen << Qt::endl;
+                screen << endl;
             }
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
@@ -680,18 +680,18 @@ void ClientGtfs::repl()
             screen << "Upcoming Service at Stop"
                    << qSetFieldWidth(this->disp.getCols() - 24)
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             if (respObj["error"].toInt() == 601) {
-                screen << "Stop not found." << Qt::endl;
+                screen << "Stop not found." << endl;
             }
             else {
                 // Count how many records were returned
                 qint32 tripsLoaded = 0;
 
-                screen << "Stop ID  . . . . . " << respObj["stop_id"].toString()   << Qt::endl
-                       << "Stop Name  . . . . " << respObj["stop_name"].toString() << Qt::endl
-                       << "Stop Desc  . . . . " << respObj["stop_desc"].toString() << Qt::endl << Qt::endl;
+                screen << "Stop ID  . . . . . " << respObj["stop_id"].toString()   << endl
+                       << "Stop Name  . . . . " << respObj["stop_name"].toString() << endl
+                       << "Stop Desc  . . . . " << respObj["stop_desc"].toString() << endl << endl;
 
                 // ... then all the trips within each route
                 screen.setFieldAlignment(QTextStream::AlignLeft);
@@ -701,12 +701,12 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c4*3) << "TPD"       << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c5)   << "STOP-TIME" << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c6)   << "MINS"      << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c7)   << "STAT"      << qSetFieldWidth(0) << Qt::endl;
+                       << qSetFieldWidth(c7)   << "STAT"      << qSetFieldWidth(0) << endl;
 
                 // Loop on all the routes
                 QJsonArray routes = respObj["routes"].toArray();
                 for (const QJsonValue ro : routes) {
-                    screen << "[ Route ID " << ro["route_id"].toString() << " ]"   << Qt::endl;
+                    screen << "[ Route ID " << ro["route_id"].toString() << " ]"   << endl;
 
                     // Loop on all the trips
                     QJsonArray trips = ro["trips"].toArray();
@@ -794,7 +794,7 @@ void ClientGtfs::repl()
                                     if (offsetSec < -60 || offsetSec > 60) {
                                         screen.setNumberFlags(QTextStream::ForceSign);
                                         screen << qSetFieldWidth(c7) << offsetSec / 60 << qSetFieldWidth(0);
-                                        Qt::noforcesign(screen);
+                                        noforcesign(screen);
                                     } else {
                                         screen << qSetFieldWidth(c7) << "ONTM" << qSetFieldWidth(0);
                                     }
@@ -815,19 +815,19 @@ void ClientGtfs::repl()
                         }
 
                         screen.setFieldAlignment(QTextStream::AlignLeft);
-                        screen << Qt::endl;
+                        screen << endl;
 
                     } // End loop on Trips-within-Route
 
                     tripsLoaded += trips.size();
-                    screen << Qt::endl;
+                    screen << endl;
                 } // End loop on Routes-serving-Stop
 
                 screen << "Query took " << respObj["proc_time_ms"].toInt() << " ms, "
-                       << tripsLoaded << " trips loaded" << Qt::endl;
+                       << tripsLoaded << " trips loaded" << endl;
             }
 
-            screen << Qt::endl;
+            screen << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
@@ -853,18 +853,18 @@ void ClientGtfs::repl()
             screen << "Upcoming Service at Stop"
                    << qSetFieldWidth(this->disp.getCols() - 24)
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             if (respObj["error"].toInt() == 601) {
-                screen << "Stop not found." << Qt::endl;
+                screen << "Stop not found." << endl;
             }
             else {
                 // Count how many records were returned
                 qint32 tripsLoaded = 0;
 
-                screen << "Stop ID  . . . . . " << respObj["stop_id"].toString()   << Qt::endl
-                       << "Stop Name  . . . . " << respObj["stop_name"].toString() << Qt::endl
-                       << "Stop Desc  . . . . " << respObj["stop_desc"].toString() << Qt::endl << Qt::endl;
+                screen << "Stop ID  . . . . . " << respObj["stop_id"].toString()   << endl
+                       << "Stop Name  . . . . " << respObj["stop_name"].toString() << endl
+                       << "Stop Desc  . . . . " << respObj["stop_desc"].toString() << endl << endl;
 
                 // ... then all the trips within each route
                 screen.setFieldAlignment(QTextStream::AlignLeft);
@@ -875,7 +875,7 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c5*3) << "TPD"       << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c6)   << "STOP-TIME" << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c7)   << "MINS"      << qSetFieldWidth(1) << " "
-                       << qSetFieldWidth(c8)   << "STAT"      << qSetFieldWidth(0) << Qt::endl;
+                       << qSetFieldWidth(c8)   << "STAT"      << qSetFieldWidth(0) << endl;
 
                 // Loop on all the trips
                 QJsonArray trips = respObj["trips"].toArray();
@@ -964,7 +964,7 @@ void ClientGtfs::repl()
                                 if (offsetSec < -60 || offsetSec > 60) {
                                     screen.setNumberFlags(QTextStream::ForceSign);
                                     screen << qSetFieldWidth(c8) << offsetSec / 60 << qSetFieldWidth(0);
-                                    Qt::noforcesign(screen);
+                                    noforcesign(screen);
                                 } else {
                                     screen << qSetFieldWidth(c8) << "ONTM" << qSetFieldWidth(0);
                                 }
@@ -985,18 +985,18 @@ void ClientGtfs::repl()
                     }
 
                     screen.setFieldAlignment(QTextStream::AlignLeft);
-                    screen << Qt::endl;
+                    screen << endl;
 
                 } // End loop on Trips-within-Route
 
                 tripsLoaded += trips.size();
-                screen << Qt::endl;
+                screen << endl;
 
                 screen << "Query took " << respObj["proc_time_ms"].toInt() << " ms, "
-                       << tripsLoaded << " trips loaded" << Qt::endl;
+                       << tripsLoaded << " trips loaded" << endl;
             }
 
-            screen << Qt::endl;
+            screen << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
@@ -1018,13 +1018,13 @@ void ClientGtfs::repl()
             screen << "Stops Without Trips"
                    << qSetFieldWidth(this->disp.getCols() - 19)
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             screen.setFieldAlignment(QTextStream::AlignLeft);
             screen << qSetFieldWidth(c1) << "STOP-ID"   << qSetFieldWidth(1) << " "
                    << qSetFieldWidth(c2) << "STOP-NAME" << qSetFieldWidth(1) << " "
                    << qSetFieldWidth(c3) << "STOP-DESC" << qSetFieldWidth(1) << " "
-                   << qSetFieldWidth(c4) << "LOCATION"  << qSetFieldWidth(1) << Qt::endl;
+                   << qSetFieldWidth(c4) << "LOCATION"  << qSetFieldWidth(1) << endl;
 
             // Loop on all the routes
             QJsonArray stops = respObj["stops"].toArray();
@@ -1039,10 +1039,10 @@ void ClientGtfs::repl()
                 screen << qSetFieldWidth(c4/2) << st["loc_lat"].toString().left(c4/2)
                        << qSetFieldWidth(1)    << ","
                        << qSetFieldWidth(c4/2) << st["loc_lon"].toString().left(c4/2)
-                       << qSetFieldWidth(0)    << Qt::endl;
+                       << qSetFieldWidth(0)    << endl;
                 screen.setFieldAlignment(QTextStream::AlignLeft);
             }
-            screen << Qt::endl << "Query took " << respObj["proc_time_ms"].toInt() << " ms" << Qt::endl << Qt::endl;
+            screen << endl << "Query took " << respObj["proc_time_ms"].toInt() << " ms" << endl << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
@@ -1062,40 +1062,40 @@ void ClientGtfs::repl()
             screen << "GTFS Realtime Data Status"
                    << qSetFieldWidth(this->disp.getCols() - 25)
                    << respObj["message_time"].toString()
-                   << qSetFieldWidth(0) << Qt::endl << Qt::endl;
+                   << qSetFieldWidth(0) << endl << endl;
 
             screen.setFieldAlignment(QTextStream::AlignLeft);
 
             // Mutual Exclusion
-            screen << "[ Mutual Exclusion ]" << Qt::endl
-                   << "Active Side  . . . " << respObj["active_side"].toString() << Qt::endl
-                   << "Data Age . . . . . " << respObj["active_age_sec"].toInt() << " s" << Qt::endl
-                   << "Feed Time  . . . . " << respObj["active_feed_time"].toString() << Qt::endl
-                   << "Download Time  . . " << respObj["active_download_ms"].toInt() << " ms" << Qt::endl
-                   << "Integ Time . . . . " << respObj["active_integration_ms"].toInt() << " ms" << Qt::endl
-                   << "Next Fetch In  . . " << respObj["seconds_to_next_fetch"].toInt() << " s" << Qt::endl
-                   << "Latest RT Txn  . . " << respObj["last_realtime_query"].toString() << Qt::endl
-                   << Qt::endl << Qt::endl;
+            screen << "[ Mutual Exclusion ]" << endl
+                   << "Active Side  . . . " << respObj["active_side"].toString() << endl
+                   << "Data Age . . . . . " << respObj["active_age_sec"].toInt() << " s" << endl
+                   << "Feed Time  . . . . " << respObj["active_feed_time"].toString() << endl
+                   << "Download Time  . . " << respObj["active_download_ms"].toInt() << " ms" << endl
+                   << "Integ Time . . . . " << respObj["active_integration_ms"].toInt() << " ms" << endl
+                   << "Next Fetch In  . . " << respObj["seconds_to_next_fetch"].toInt() << " s" << endl
+                   << "Latest RT Txn  . . " << respObj["last_realtime_query"].toString() << endl
+                   << endl << endl;
 
 
             screen << qSetFieldWidth(c1) << "TRIP-ID"   << qSetFieldWidth(1) << " "
-                   << qSetFieldWidth(c2) << "ROUTE-ID"  << qSetFieldWidth(1) << Qt::endl;
+                   << qSetFieldWidth(c2) << "ROUTE-ID"  << qSetFieldWidth(1) << endl;
 
             // Loop on all the routes
             //QJsonArray stops = respObj["stops"].toArray();
 
-            screen << Qt::endl << "Query took " << respObj["proc_time_ms"].toInt() << " ms" << Qt::endl << Qt::endl;
+            screen << endl << "Query took " << respObj["proc_time_ms"].toInt() << " ms" << endl << endl;
             screen.setFieldAlignment(QTextStream::AlignRight);
         }
 
         // Probably some kind of error condition, just respond in kind
         else {
-            screen << Qt::endl << "No handler for the request: " << Qt::endl << responseStr << Qt::endl;
+            screen << endl << "No handler for the request: " << endl << responseStr << endl;
         }
     }
 
     // On exit (loop halted above)
-    screen << "*** DISCONNECTING ***" << Qt::endl;
+    screen << "*** DISCONNECTING ***" << endl;
 }
 
 QString ClientGtfs::dropoffToChar(qint8 svcDropOff)
