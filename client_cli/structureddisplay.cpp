@@ -70,42 +70,42 @@ void Display::displayWelcome()
     //
     QTextStream screen(stdout);
     screen << buffer << "GTFS Interactive Data Console -- Version: "
-                     << QCoreApplication::applicationVersion() << endl
-           << endl
-           << "[ System Information ]" << endl
-           << "SDS: Backend system and data load status" << endl
-           << "RDS: GTFS Real-Time data retrieval status" << endl
-           << "RTE: Routes available from the data set" << endl
-           << "SSR: List of all stops served by a single route" << endl
-           << "SNT: List all stops that have no trips (diagnostic)" << endl
-           << endl
-           << "[ Full Schedule Lookup ]" << endl
-           << "STA: Stop information lookup by stop_id" << endl
-           << "TSR: List of trips serving a route_id" << endl
-           << "TSS: List of trips serving a stop_id" << endl
-           << "TRI: List all the stops served by a trip_id" << endl
-           << "RTS/RTF/RTT: List the real-time data of an active trip_id or update" << endl
-           << endl
-           << "[ Data Lookup for Specific Date ]" << endl
-           << "TRD: List of trips serving a route_id on a date" << endl
-           << "TSD: List of trips serving a stop_id on a date" << endl
-           << "NEX: List upcoming trips serving a stop_id within a number of minutes" << endl
-           << endl
+                     << QCoreApplication::applicationVersion() << Qt::endl
+           << Qt::endl
+           << "[ System Information ]" << Qt::endl
+           << "SDS: Backend system and data load status" << Qt::endl
+           << "RDS: GTFS Real-Time data retrieval status" << Qt::endl
+           << "RTE: Routes available from the data set" << Qt::endl
+           << "SSR: List of all stops served by a single route" << Qt::endl
+           << "SNT: List all stops that have no trips (diagnostic)" << Qt::endl
+           << Qt::endl
+           << "[ Full Schedule Lookup ]" << Qt::endl
+           << "STA: Stop information lookup by stop_id" << Qt::endl
+           << "TSR: List of trips serving a route_id" << Qt::endl
+           << "TSS: List of trips serving a stop_id" << Qt::endl
+           << "TRI: List all the stops served by a trip_id" << Qt::endl
+           << "RTS/RTF/RTT: List the real-time data of an active trip_id or update" << Qt::endl
+           << Qt::endl
+           << "[ Data Lookup for Specific Date ]" << Qt::endl
+           << "TRD: List of trips serving a route_id on a date" << Qt::endl
+           << "TSD: List of trips serving a stop_id on a date" << Qt::endl
+           << "NEX: List upcoming trips serving a stop_id within a number of minutes" << Qt::endl
+           << Qt::endl
            << "Reinitialize the display with 'HOM', quit using 'BYE'"
-           << endl << endl;
+           << Qt::endl << Qt::endl;
 }
 
 void Display::showServer(QString hostname, int port)
 {
     QTextStream screen(stdout);
-    screen << "Connected to: " << hostname << " : " << port << endl;
+    screen << "Connected to: " << hostname << " : " << port << Qt::endl;
     screen.flush();
 }
 
 void Display::showError(QString errorText)
 {
     QTextStream screen(stdout);
-    screen << "Error: " << errorText << endl;
+    screen << "Error: " << errorText << Qt::endl;
     screen.flush();
 }
 

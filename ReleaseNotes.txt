@@ -1,9 +1,16 @@
-THIS RELEASE: Version 1.8c Fixes
---------------------------------
+THIS RELEASE: Version 1.8d
+--------------------------
+- With the release of Debian 11, Qt 5.15.2 is now the reference framework. This release brings about
+  any technical changes for a clean compilation against the new libraries but no feature additions
+  or bug fixes.
+
+
+PREVIOUS RELEASES:
+Version 1.8c Fixes
+------------------
 - Revert the endl/Qt::endl/noforcesign change for Qt 5.15, it is incompatible with Qt 5.12 which
   Debian stable uses
 
-PREVIOUS RELEASES:
 Version 1.8b Features and Fixes
 -------------------------------
 - Update copyright dates

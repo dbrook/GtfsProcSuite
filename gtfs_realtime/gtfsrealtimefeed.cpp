@@ -78,7 +78,7 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray   &gtfsRealTimeData,
     _tripUpdate.ParseFromArray(gtfsRealTimeData, gtfsRealTimeData.size());
 
     if (displayBufferInfo) {
-        qDebug() << "  (RTTU) GTFS-Realtime : LIVE Protobuf: " << _tripUpdate.ByteSize()
+        qDebug() << "  (RTTU) GTFS-Realtime : LIVE Protobuf: " << _tripUpdate.ByteSizeLong()
                  << "bytes consisting of" << _tripUpdate.entity_size() << "real-time records.";
     }
 
@@ -369,7 +369,7 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
     fillStopTimesForTrip(TRIPID_RECONCILE, -1, tripID, agencyTZ, serviceDate, tripTimes, rtStopTimes);
 
     // Pick out the stop time relevant to the requested stop and return it
-    for (const rtStopTimeUpdate &rtst : rtStopTimes) {
+    for (const rtStopTimeUpdate &rtst : qAsConst(rtStopTimes)) {
         if (((rtst.stopSequence != -1) && (rtst.stopSequence == stopSeq) && (rtst.stopID == stop_id)) ||
              (rtst.stopID == stop_id)) {
             realArrTimeUTC = rtst.arrTime;
@@ -459,7 +459,7 @@ void RealTimeTripUpdate::fillStopTimesForTrip(rtUpdateMatch               realTi
                 // (should also enforce that the stop id matches the trip update contents)
                 QString stopIdRT = QString::fromStdString(tri.stop_time_update(stUpdIdx).stop_id());
                 if (tri.stop_time_update(stUpdIdx).has_stop_sequence() &&
-                    stopRec.stop_sequence == tri.stop_time_update(stUpdIdx).stop_sequence()) {
+                    static_cast<quint32>(stopRec.stop_sequence) == tri.stop_time_update(stUpdIdx).stop_sequence()) {
                     stu.stopSequence = stopRec.stop_sequence;
                     break;
                 } else if ((!tri.stop_time_update(stUpdIdx).has_stop_sequence() || _loosenStopSeqEnf) &&
@@ -788,9 +788,9 @@ void RealTimeTripUpdate::showProtobufData() const
     google::protobuf::TextFormat::PrintToString(_tripUpdate, &data);
     qDebug() << "GTFS-Realtime : LOCAL DEBUGGING MODE";
     qDebug() << "-----[ CONTENTS ]------------------------------------------------------------------------------------";
-    qDebug() << data.c_str() << endl
+    qDebug() << data.c_str() << Qt::endl
              << "-----------------------------------------------------------------------[ END PROTOBUF CONTENTS ]-----";
-    qDebug() << "Protobuf: " << _tripUpdate.ByteSize() << " bytes" << endl;
+    qDebug() << "Protobuf: " << _tripUpdate.ByteSizeLong() << " bytes" << Qt::endl;
     qDebug() << "Processing _tripUpdate.entity_size() = " << _tripUpdate.entity_size() << "real-time records.";
 }
 

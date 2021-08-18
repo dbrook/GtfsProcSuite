@@ -73,7 +73,7 @@ void StationDetailsDisplay::fillResponseData(QJsonObject &resp)
     resp["loc_lon"]    = (*_stops)[_stopID].stop_lon;
 
     // Find more details about all the routes served by the station
-    for (const QString &routeID : listOfRoutes) {
+    for (const QString &routeID : qAsConst(listOfRoutes)) {
         QJsonObject singleRouteJSON;
         singleRouteJSON["route_id"]         = routeID;
         singleRouteJSON["route_short_name"] = (*_routes)[routeID].route_short_name;

@@ -125,7 +125,7 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
             resp["stop_id"] = _stopIDs.at(0);
         } else {
             QString stopIDconcat;
-            for (const QString &stopID : _stopIDs) {
+            for (const QString &stopID : qAsConst(_stopIDs)) {
                 stopIDconcat += stopID + " | ";
             }
             resp["stop_id"] = stopIDconcat;
@@ -148,7 +148,7 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
             // Fetch the trips
             QJsonArray stopTrips;
             quint32    tripsFoundForRoute = 0;
-            for (const GTFS::StopRecoTripRec &rts : tripsForStopByRouteID[routeID].tripRecos) {
+            for (const GTFS::StopRecoTripRec &rts : qAsConst(tripsForStopByRouteID[routeID].tripRecos)) {
                 GTFS::TripRecStat tripStat = rts.tripStatus;
                 if ((tripStat == GTFS::IRRELEVANT) || (_status->hideTerminatingTripsForNEXNCF() && rts.endOfTrip) ||
                     (_realtimeOnly && (tripStat == GTFS::SCHEDULE || tripStat == GTFS::NOSCHEDULE))) {

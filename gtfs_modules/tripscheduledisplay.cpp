@@ -193,7 +193,7 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         resp["start_date"]       = _realTimeProc->getTripStartDate(_tripID);
         resp["start_time"]       = _realTimeProc->getTripStartTime(_tripID);
 
-        for (const GTFS::rtStopTimeUpdate &rtsu : stopTimes) {
+        for (const GTFS::rtStopTimeUpdate &rtsu : qAsConst(stopTimes)) {
             QJsonObject singleStopJSON;
             if (getStatus()->format12h()) {
                 singleStopJSON["arr_time"]  = (rtsu.arrTime.isNull()) ?

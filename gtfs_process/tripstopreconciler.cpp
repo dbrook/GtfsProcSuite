@@ -90,7 +90,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
     QHash<QString, StopRecoRouteRec> fullTrips;
 
     // For every stop requested, find all relevant trips
-    for (const QString &stopID : _stopIDs) {
+    for (const QString &stopID : qAsConst(_stopIDs)) {
 
     // Retrieve all the trips that could service the stop (from yesterday, today, and tomorrow service days)
     for (const QString &routeID : (*sStops)[stopID].stopTripsRoutes.keys()) {
@@ -245,7 +245,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
         QHash<QString, QVector<QPair<QString, quint32>>> addedTrips;
         rActiveFeed->getAddedTripsServingStop(stopID, addedTrips);
         for (const QString &routeID : addedTrips.keys()) {
-            for (const QPair<QString, quint32> &tripAndIndex : addedTrips[routeID]) {
+            for (const QPair<QString, quint32> &tripAndIndex : qAsConst(addedTrips[routeID])) {
                 // Make a new tripRecord so we have a place to add current trip information
                 StopRecoTripRec tripRecord;
 

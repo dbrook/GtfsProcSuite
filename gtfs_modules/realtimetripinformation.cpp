@@ -52,7 +52,7 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
     QJsonObject canceledCollection;
     for (const QString &routeID : cancelledRouteTrips.keys()) {
         QJsonArray canceledRoute;
-        for (const QString &tripID : cancelledRouteTrips[routeID]) {
+        for (const QString &tripID : qAsConst(cancelledRouteTrips[routeID])) {
             canceledRoute.push_back(tripID);
         }
         canceledCollection[routeID] = canceledRoute;
@@ -63,7 +63,7 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
     QJsonObject addedCollection;
     for (const QString &routeID : addedRouteTrips.keys()) {
         QJsonArray addedRoute;
-        for (const QString &tripID : addedRouteTrips[routeID]) {
+        for (const QString &tripID : qAsConst(addedRouteTrips[routeID])) {
             addedRoute.push_back(tripID);
         }
         addedCollection[routeID] = addedRoute;
@@ -74,7 +74,7 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
     QJsonObject activeCollection;
     for (const QString &routeID : activeRouteTrips.keys()) {
         QJsonArray activeRoute;
-        for (const QString &tripID : activeRouteTrips[routeID]) {
+        for (const QString &tripID : qAsConst(activeRouteTrips[routeID])) {
             activeRoute.push_back(tripID);
         }
         activeCollection[routeID] = activeRoute;
@@ -83,7 +83,7 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
 
     // Routes without Trips / "Orphaned Trips"
     QJsonArray orphanedAll;
-    for (const QString &tripID : tripsWithoutRoute) {
+    for (const QString &tripID : qAsConst(tripsWithoutRoute)) {
         orphanedAll.push_back(tripID);
     }
     resp["orphaned_trips"] = orphanedAll;
@@ -92,7 +92,7 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
     QJsonObject mismatchCollection;
     for (const QString &routeID : mismatchTripIdx.keys()) {
         QJsonArray mismatchRoute;
-        for (const QString &tripID : mismatchTripIdx[routeID]) {
+        for (const QString &tripID : qAsConst(mismatchTripIdx[routeID])) {
             mismatchRoute.push_back(tripID);
         }
         mismatchCollection[routeID] = mismatchRoute;
@@ -105,7 +105,7 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
         QJsonObject duplicateRoutes;
         for (const QString &tripID : duplicateTripIdx[routeID].keys()) {
             QJsonArray duplicateTripsRoute;
-            for (qint32 rttuEntityIdx: duplicateTripIdx[routeID][tripID]) {
+            for (qint32 rttuEntityIdx : qAsConst(duplicateTripIdx[routeID][tripID])) {
                 duplicateTripsRoute.push_back(rttuEntityIdx);
             }
             duplicateRoutes[tripID] = duplicateTripsRoute;
