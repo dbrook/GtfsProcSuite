@@ -105,7 +105,10 @@ void TcpConnections::accept(qintptr handle, TcpConnection *connection)
     // connect(socket,static_cast<void (QTcpSocket::*)(QAbstractSocket::SocketError)>(&QTcpSocket::error),this,&TcpConnections::error);
 
     connect(socket,&QTcpSocket::disconnected, this, &TcpConnections::disconnected);
-    connect(socket,static_cast<void (QTcpSocket::*)(QAbstractSocket::SocketError)>(&QTcpSocket::error),this,&TcpConnections::error);
+    connect(socket,
+            static_cast<void (QTcpSocket::*)(QAbstractSocket::SocketError)>(&QTcpSocket::errorOccurred),
+            this,
+            &TcpConnections::error);
 
     connection->moveToThread(QThread::currentThread());
     connection->setSocket(socket);

@@ -125,8 +125,8 @@ qint32 StopTimes::computeSecondsLocalNoonOffset(const QString &hhmmssTime)
     }
 
     qint32 firstColon = hhmmssTime.indexOf(":");
-    qint32 hours      = hhmmssTime.left(firstColon).toInt();
-    qint32 seconds    = hhmmssTime.right(2).toInt();
+    qint32 hours      = hhmmssTime.leftRef(firstColon).toInt();
+    qint32 seconds    = hhmmssTime.rightRef(2).toInt();
     qint32 minutes    = hhmmssTime.midRef(firstColon + 1, 2).toInt();
 
     return (hours * 3600 + minutes * 60 + seconds) - s_localNoonSec;

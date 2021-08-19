@@ -129,7 +129,7 @@ void DataGateway::linkStopsTripsRoutes()
     // want to see the full scope of available service per route. What we've done here is to associate stops to routes
     // as well as the # of trips that serve them so the fuller-scale of service is clearer.
     for (const QString &stopTimeTripID : sTimDB.keys()) {
-        for (const StopTimeRec &rec : sTimDB[stopTimeTripID]) {
+        for (const StopTimeRec &rec : qAsConst(sTimDB[stopTimeTripID])) {
             _routes->connectStop(tripDB[stopTimeTripID].route_id, rec.stop_id);
         }
     }

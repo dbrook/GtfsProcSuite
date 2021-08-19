@@ -222,7 +222,7 @@ QDate GtfsRequestProcessor::determineServiceDay(const QString &userReq, QString 
 qint32 GtfsRequestProcessor::determineMinuteRange(const QString &userReq, QString &remUserQuery)
 {
     // First space determines the amount of time to request
-    qint32 futureMinutes = userReq.left(userReq.indexOf(" ")).toInt();
+    qint32 futureMinutes = userReq.leftRef(userReq.indexOf(" ")).toInt();
     remUserQuery = userReq.mid(userReq.indexOf(" ") + 1);
     return futureMinutes;
 }

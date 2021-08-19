@@ -47,7 +47,7 @@ Status::Status(const QString dataRootPath,
     QVector<QVector<QString>> dataStore;
 
     // the feed_info.txt is [unfortunately] not required, so don't assume you have it
-    if (QFileInfo(dataRootPath + "/feed_info.txt").exists()) {
+    if (QFileInfo::exists(dataRootPath + "/feed_info.txt")) {
         qDebug() << "Starting Feed Information Gathering ...";
         // Read in the feed information
         CsvProcess((dataRootPath + "/feed_info.txt").toUtf8(), &dataStore);
@@ -61,13 +61,13 @@ Status::Status(const QString dataRootPath,
         this->version   = (verPos != -1) ? dataStore.at(1).at(verPos) : "";
 
         // Save the start and end dates? Stored as text: YYYYMMDD
-        this->startDate = (sDatePos != -1) ? QDate(dataStore.at(1).at(sDatePos).left  (4)   .toInt(),
-                                                   dataStore.at(1).at(sDatePos).midRef(4, 2).toInt(),
-                                                   dataStore.at(1).at(sDatePos).right (2)   .toInt())
+        this->startDate = (sDatePos != -1) ? QDate(dataStore.at(1).at(sDatePos).left    (4)   .toInt(),
+                                                   dataStore.at(1).at(sDatePos).midRef  (4, 2).toInt(),
+                                                   dataStore.at(1).at(sDatePos).rightRef(2)   .toInt())
                                            : QDate();
-        this->endDate   = (eDatePos != -1) ? QDate(dataStore.at(1).at(eDatePos).left  (4)   .toInt(),
-                                                   dataStore.at(1).at(eDatePos).midRef(4, 2).toInt(),
-                                                   dataStore.at(1).at(eDatePos).right (2)   .toInt())
+        this->endDate   = (eDatePos != -1) ? QDate(dataStore.at(1).at(eDatePos).left    (4)   .toInt(),
+                                                   dataStore.at(1).at(eDatePos).midRef  (4, 2).toInt(),
+                                                   dataStore.at(1).at(eDatePos).rightRef(2)   .toInt())
                                            : QDate();
 
         // Say we processed a record
@@ -131,8 +131,8 @@ Status::Status(const QString dataRootPath,
                          brokenDateParams.at(4).toInt(),
                          brokenDateParams.at(5).toInt());
         frozenAgencyTime = QDateTime(frozenDate, frozenTime, this->serverFeedTZ);
-        qDebug() << endl << "TESTING/DEBUGGING/ANALYSIS MODE: All transaction will be processed as if it is "
-                 << frozenAgencyTime << endl;
+        qDebug() << Qt::endl << "TESTING/DEBUGGING/ANALYSIS MODE: All transaction will be processed as if it is "
+                 << frozenAgencyTime << Qt::endl;
     }
 
     // Show all times with AM/PM indicator instead of standard 24-hour clock

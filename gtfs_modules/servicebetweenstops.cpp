@@ -102,10 +102,10 @@ void ServiceBetweenStops::fillResponseData(QJsonObject &resp)
     QSet<QString> tripsPickingUpOrigin;
     QSet<QString> tripsDroppingOffDestination;
 
-    for (const QString &childStop : oriStopIDs) {
+    for (const QString &childStop : qAsConst(oriStopIDs)) {
         tripsForServiceDay(childStop, tripsPickingUpOrigin, true, tripSchTimes);
     }
-    for (const QString &childStop : desStopIDs) {
+    for (const QString &childStop : qAsConst(desStopIDs)) {
         tripsForServiceDay(childStop, tripsDroppingOffDestination, false, tripSchTimes);
     }
     tripsPickingUpOrigin.intersect(tripsDroppingOffDestination);
@@ -115,7 +115,7 @@ void ServiceBetweenStops::fillResponseData(QJsonObject &resp)
      * arrival/departure at origin, and arrival/departure time at destination.
      */
     QVector<tripOnDSchedule> commonTrips;
-    for (const QString &tripID : tripsPickingUpOrigin) {
+    for (const QString &tripID : qAsConst(tripsPickingUpOrigin)) {
         tripOnDSchedule singleTrip;
         singleTrip.oriStopSeq   = tripSchTimes[tripID].oriStopSeq;
         singleTrip.desStopSeq   = tripSchTimes[tripID].desStopSeq;

@@ -31,7 +31,7 @@ OperatingDay::OperatingDay(const QString dataRootPath, QObject *parent) : QObjec
     QVector<QVector<QString>> dataStore;
 
     // Ingest the calendar information if it exists: NOTE: Either calendar_dates.txt and/or calendar.txt must exist
-    if (QFileInfo(dataRootPath + "/calendar.txt").exists()) {
+    if (QFileInfo::exists(dataRootPath + "/calendar.txt")) {
         qDebug() << "Starting Calendar Information Process ...";
         CsvProcess((dataRootPath + "/calendar.txt").toUtf8(), &dataStore);
         qint8 servicePos, monPos, tuePos, wedPos, thuPos, friPos, satPos, sunPos, sDatePos, eDatePos;
@@ -48,12 +48,12 @@ OperatingDay::OperatingDay(const QString dataRootPath, QObject *parent) : QObjec
             cal.friday       = (dataStore.at(l).at(friPos).toInt() == 1);
             cal.saturday     = (dataStore.at(l).at(satPos).toInt() == 1);
             cal.sunday       = (dataStore.at(l).at(sunPos).toInt() == 1);
-            cal.start_date   = QDate(dataStore.at(l).at(sDatePos).left  (4)   .toInt(),
-                                     dataStore.at(l).at(sDatePos).midRef(4, 2).toInt(),
-                                     dataStore.at(l).at(sDatePos).right (2)   .toInt());
-            cal.end_date     = QDate(dataStore.at(l).at(eDatePos).left  (4)   .toInt(),
-                                     dataStore.at(l).at(eDatePos).midRef(4, 2).toInt(),
-                                     dataStore.at(l).at(eDatePos).right (2)   .toInt());
+            cal.start_date   = QDate(dataStore.at(l).at(sDatePos).left    (4)   .toInt(),
+                                     dataStore.at(l).at(sDatePos).midRef  (4, 2).toInt(),
+                                     dataStore.at(l).at(sDatePos).rightRef(2)   .toInt());
+            cal.end_date     = QDate(dataStore.at(l).at(eDatePos).left    (4)   .toInt(),
+                                     dataStore.at(l).at(eDatePos).midRef  (4, 2).toInt(),
+                                     dataStore.at(l).at(eDatePos).rightRef(2)   .toInt());
             this->calendarDb[dataStore.at(l).at(servicePos)] = cal;
         }
     }
@@ -61,7 +61,7 @@ OperatingDay::OperatingDay(const QString dataRootPath, QObject *parent) : QObjec
     dataStore.clear();
 
     // Ingest the calednar_dates (override) information (again, see above, it is possible for at least 1 to exist
-    if (QFileInfo(dataRootPath + "/calendar_dates.txt").exists()) {
+    if (QFileInfo::exists(dataRootPath + "/calendar_dates.txt")) {
         CsvProcess((dataRootPath + "/calendar_dates.txt").toUtf8(), &dataStore);
         qint8 idPos, datePos, exceptionPos;
         calendarDatesCSVOrder(dataStore.at(0), idPos, datePos, exceptionPos);
@@ -70,9 +70,9 @@ OperatingDay::OperatingDay(const QString dataRootPath, QObject *parent) : QObjec
             CalDateRec cd;
             cd.service_id     = dataStore.at(l).at(idPos);
             cd.exception_type = dataStore.at(l).at(exceptionPos).toShort();
-            cd.date           = QDate(dataStore.at(l).at(datePos).left  (4)   .toInt(),
-                                      dataStore.at(l).at(datePos).midRef(4, 2).toInt(),
-                                      dataStore.at(l).at(datePos).right (2)   .toInt());
+            cd.date           = QDate(dataStore.at(l).at(datePos).left    (4)   .toInt(),
+                                      dataStore.at(l).at(datePos).midRef  (4, 2).toInt(),
+                                      dataStore.at(l).at(datePos).rightRef(2)   .toInt());
             this->calendarDateDb[dataStore.at(l).at(idPos)].push_back(cd);
         }
     }
@@ -260,8 +260,8 @@ QString OperatingDay::serializeAddedServiceDates(const QString &serviceName) con
     QString calDates;
 
     if (this->calendarDateDb.contains(serviceName)) {
-        QVector<CalDateRec> rec = this->calendarDateDb[serviceName];
-        for (CalDateRec cdr : rec) {
+        const QVector<CalDateRec> &rec = this->calendarDateDb[serviceName];
+        for (const CalDateRec &cdr : rec) {
             if (cdr.exception_type == 1)
                 calDates += cdr.date.toString("ddMMMyyyy") + " ";
         }
@@ -277,8 +277,8 @@ bool OperatingDay::serviceAddedOnOtherDates(const QString &serviceName) const
     qint32 nbAddedDates = 0;
 
     if (this->calendarDateDb.contains(serviceName)) {
-        QVector<CalDateRec> rec = this->calendarDateDb[serviceName];
-        for (CalDateRec cdr : rec)
+        const QVector<CalDateRec> &rec = this->calendarDateDb[serviceName];
+        for (const CalDateRec &cdr : rec)
             if (cdr.exception_type == 1)
                 ++nbAddedDates;
     }
@@ -291,8 +291,8 @@ QString OperatingDay::serializeNoServiceDates(const QString &serviceName) const
     QString calDates;
 
     if (this->calendarDateDb.contains(serviceName)) {
-        QVector<CalDateRec> rec = this->calendarDateDb[serviceName];
-        for (CalDateRec cdr : rec) {
+        const QVector<CalDateRec> &rec = this->calendarDateDb[serviceName];
+        for (const CalDateRec &cdr : rec) {
             if (cdr.exception_type == 2)
                 calDates += cdr.date.toString("ddMMMyyyy") + " ";
         }
@@ -308,8 +308,8 @@ bool OperatingDay::serviceRemovedOnDates(const QString &serviceName) const
     qint32 nbExemptedDates = 0;
 
     if (this->calendarDateDb.contains(serviceName)) {
-        QVector<CalDateRec> rec = this->calendarDateDb[serviceName];
-        for (CalDateRec cdr : rec)
+        const QVector<CalDateRec> &rec = this->calendarDateDb[serviceName];
+        for (const CalDateRec &cdr : rec)
             if (cdr.exception_type == 2)
                 ++nbExemptedDates;
     }

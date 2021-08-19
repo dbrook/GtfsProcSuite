@@ -106,7 +106,7 @@ ServeGTFS::~ServeGTFS()
 void ServeGTFS::displayDebugging() const
 {
     const GTFS::Status *data = GTFS::DataGateway::inst().getStatus();
-    qDebug() << endl << "[ GTFS Static Data Information ]";
+    qDebug() << Qt::endl << "[ GTFS Static Data Information ]";
     qDebug() << "Recs Loaded . . . ." << data->getRecordsLoaded();
     qDebug() << "Server Start Time ." << data->getServerStartTimeUTC();
     qDebug() << "Feed Publisher  . ." << data->getPublisher();
@@ -114,7 +114,7 @@ void ServeGTFS::displayDebugging() const
     qDebug() << "Feed Language . . ." << data->getLanguage();
     qDebug() << "Feed Start Date . ." << data->getStartDate().toString("dd-MMM-yyyy");
     qDebug() << "Feed End Date . . ." << data->getEndDate().toString("dd-MMM-yyyy");
-    qDebug() << "Feed Version  . . ." << data->getVersion() << endl;
+    qDebug() << "Feed Version  . . ." << data->getVersion() << Qt::endl;
 }
 
 void ServeGTFS::incomingConnection(qintptr descriptor)

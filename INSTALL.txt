@@ -10,9 +10,9 @@ standalone server for a long period of time means data will go out of sync with
 any updated schedules.
 
 Several individual moving parts will help in this process:
-1) The following are required to build GtfsProc, install from your package manager:
-   Note: this is heavily Debian biased ;-)
-    - qt5-default
+1) The following are required to build GtfsProc, install from your package manager.
+   Note: this is heavily Debian biased (as Debian 11 is the reference system):
+    - build-essential
     - qt5-qmake
     - qtdeclarative5-dev
     - libcsv-dev

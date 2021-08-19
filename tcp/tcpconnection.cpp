@@ -22,9 +22,9 @@ void TcpConnection::setSocket(QTcpSocket *socket)
     connect(m_socket,&QTcpSocket::readyRead, this, &TcpConnection::readyRead);
     connect(m_socket,&QTcpSocket::bytesWritten, this, &TcpConnection::bytesWritten);
     connect(m_socket,&QTcpSocket::stateChanged, this, &TcpConnection::stateChanged);
-    connect(m_socket,static_cast<void (QTcpSocket::*)(QAbstractSocket::SocketError)>(&QTcpSocket::error),
+    connect(m_socket,
+            static_cast<void (QTcpSocket::*)(QAbstractSocket::SocketError)>(&QTcpSocket::errorOccurred),
             this, &TcpConnection::error);
-
 }
 
 QTcpSocket *TcpConnection::getSocket()

@@ -30,7 +30,7 @@ and canceled).
             "url": "http://www.mbta.com"
         }
     ],
-    "application": "GtfsProc 1.8c",
+    "application": "GtfsProc 1.8d",
 *   "appuptime_sec": 15,
 *   "dataloadtime_ms": 8034,
     "error": 0,
