@@ -33,6 +33,7 @@
 #include "realtimetripinformation.h"
 #include "realtimestatus.h"
 #include "realtimeproductstatus.h"
+#include "routerealtimedata.h"
 #include "upcomingstopservice.h"
 #include "servicebetweenstops.h"
 
@@ -106,7 +107,7 @@ void GtfsRequestProcessor::run()
             QString remainingReq;
             qint32 futureMinutes = determineMinuteRange(userReq, remainingReq);
             QList<QString> decodedStopIDs;
-            listifyStopIDs(remainingReq, decodedStopIDs);
+            listifyIDs(remainingReq, decodedStopIDs);
             // Requesting future trips for a time range, no limit on occurrences
             GTFS::UpcomingStopService NEX(decodedStopIDs, futureMinutes, false, false);
             NEX.fillResponseData(respJson);
@@ -114,7 +115,7 @@ void GtfsRequestProcessor::run()
             QString remainingReq;
             qint32 futureMinutes = determineMinuteRange(userReq, remainingReq);
             QList<QString> decodedStopIDs;
-            listifyStopIDs(remainingReq, decodedStopIDs);
+            listifyIDs(remainingReq, decodedStopIDs);
             // Requesting future trips for a time range, no limit on occurrences
             GTFS::UpcomingStopService NCF(decodedStopIDs, futureMinutes, true, false);
             NCF.fillResponseData(respJson);
@@ -123,7 +124,7 @@ void GtfsRequestProcessor::run()
             // NEX so the response is encoded with NEX for ease of parsing on the client side, so it would be up to the
             // client to warn about this particular usage/condition.
             QList<QString> decodedStopIDs;
-            listifyStopIDs(userReq, decodedStopIDs);
+            listifyIDs(userReq, decodedStopIDs);
             GTFS::UpcomingStopService NXR(decodedStopIDs, 4320, false, true);
             NXR.fillResponseData(respJson);
         } else if (! userApp.compare("SNT", Qt::CaseInsensitive)) {
@@ -148,7 +149,7 @@ void GtfsRequestProcessor::run()
             QString remainingReq;
             QDate reqDate = determineServiceDay(userReq, remainingReq);
             QList<QString> decodedStopIDs;
-            listifyStopIDs(remainingReq, decodedStopIDs);
+            listifyIDs(remainingReq, decodedStopIDs);
             if (decodedStopIDs.length() != 2) {
                 // TODO: This fixes the segmentation fault, but it is a little bad to do this logic here
                 respJson["error"]        = 704;
@@ -166,6 +167,12 @@ void GtfsRequestProcessor::run()
         } else if (! userApp.compare("RPS", Qt::CaseInsensitive)) {
             GTFS::RealtimeProductStatus RPS;
             RPS.fillResponseData(respJson);
+        } else if (! userApp.compare("TRR", Qt::CaseInsensitive)) {
+            QString remainingReq = userReq.mid(userReq.indexOf(" ") + 1);
+            QList<QString> decodedRouteIDs;
+            listifyIDs(remainingReq, decodedRouteIDs);
+            GTFS::RouteRealtimeData TRR(decodedRouteIDs);
+            TRR.fillResponseData(respJson);
         } else {
             // Return ERROR 1: Unknown request (userApp)
             respJson["error"] = 1;
@@ -227,13 +234,13 @@ qint32 GtfsRequestProcessor::determineMinuteRange(const QString &userReq, QStrin
     return futureMinutes;
 }
 
-void GtfsRequestProcessor::listifyStopIDs(const QString &remUserQuery, QList<QString> &listStopIDs)
+void GtfsRequestProcessor::listifyIDs(const QString &remUserQuery, QList<QString> &listOfIDs)
 {
     if (remUserQuery.indexOf("|") == -1) {
         // Simple case where no "|" was found, so a single stop ID was probably requested
-        listStopIDs.append(remUserQuery);
+        listOfIDs.append(remUserQuery);
     } else {
         // Otherwise split the whole request into discrete stop IDs
-        listStopIDs = remUserQuery.split('|');
+        listOfIDs = remUserQuery.split('|');
     }
 }

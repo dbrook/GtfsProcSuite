@@ -649,6 +649,52 @@ void RealTimeTripUpdate::getAllTripsWithPredictions(QHash<QString, QVector<QStri
     tripsWithoutRoutes = _noRouteTrips;
 }
 
+void RealTimeTripUpdate::getActiveTripsForRouteID(const QString &routeID, QVector<QString> &tripsForRoute) const
+{
+    for (const QString &tripID : _addedTrips.keys()) {
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_addedTrips[tripID]);
+        QString qRouteId;
+        if (entity.trip_update().trip().has_route_id()) {
+            qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        } else if (_tripDB->contains(tripID)) {
+            qRouteId = (*_tripDB)[tripID].route_id;
+        }
+        if (routeID == qRouteId) {
+            tripsForRoute.push_back(tripID);
+        }
+    }
+
+    for (const QString &tripID : _activeTrips.keys()) {
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_activeTrips[tripID]);
+        QString qRouteId;
+        if (entity.trip_update().trip().has_route_id()) {
+            qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        } else if (_tripDB->contains(tripID)) {
+            qRouteId = (*_tripDB)[tripID].route_id;
+        }
+        if (routeID == qRouteId) {
+            tripsForRoute.push_back(tripID);
+        }
+    }
+}
+
+QString RealTimeTripUpdate::getNextStopIDInPrediction(const QString &tripID) const
+{
+    qint32 tripUpdateEntity;
+    bool   isSupplementalTrip;
+    if (!findEntityIndex(tripID, tripUpdateEntity, isSupplementalTrip)) {
+        return "?";
+    }
+
+    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
+
+    if (tri.stop_time_update_size() == 0) {
+        return "!";
+    }
+
+    return QString::fromStdString(tri.stop_time_update(0).stop_id());
+}
+
 void RealTimeTripUpdate::serializeTripUpdates(QString &output) const
 {
     std::string data;
@@ -669,6 +715,11 @@ QString RealTimeTripUpdate::getTripIdFromEntity(quint64 realtimeTripUpdateEntity
         return "";
     }
     return QString::fromStdString(_tripUpdate.entity(realtimeTripUpdateEntity).trip_update().trip().trip_id());
+}
+
+bool RealTimeTripUpdate::getLoosenStopSeqEnf() const
+{
+    return _loosenStopSeqEnf;
 }
 
 void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)

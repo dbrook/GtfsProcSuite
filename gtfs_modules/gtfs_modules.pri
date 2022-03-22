@@ -11,6 +11,7 @@ HEADERS += \
     $$PWD/realtimeproductstatus.h \
     $$PWD/realtimestatus.h \
     $$PWD/realtimetripinformation.h \
+    $$PWD/routerealtimedata.h \
     $$PWD/servicebetweenstops.h \
     $$PWD/staticstatus.h \
     $$PWD/stationdetailsdisplay.h \
@@ -26,6 +27,7 @@ SOURCES += \
     $$PWD/realtimeproductstatus.cpp \
     $$PWD/realtimestatus.cpp \
     $$PWD/realtimetripinformation.cpp \
+    $$PWD/routerealtimedata.cpp \
     $$PWD/servicebetweenstops.cpp \
     $$PWD/staticstatus.cpp \
     $$PWD/stationdetailsdisplay.cpp \

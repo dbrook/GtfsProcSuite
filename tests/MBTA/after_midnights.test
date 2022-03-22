@@ -30,7 +30,7 @@ and canceled).
             "url": "http://www.mbta.com"
         }
     ],
-    "application": "GtfsProc 1.8d",
+    "application": "GtfsProc 1.9",
 *   "appuptime_sec": 15,
 *   "dataloadtime_ms": 8034,
     "error": 0,
@@ -269,6 +269,68 @@ and canceled).
             "trip_id": "ADDED-1580408774",
             "trip_terminates": false,
             "wait_time_sec": 109
+        }
+    ]
+}
+@End
+
+@Case:Real time operating information for a some Commerter Rail routes
+@Query:TRR CR-Providence|CR-Fitchburg
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:07:30 EDT",
+    "message_type": "TRR",
+*   "proc_time_ms": 4,
+    "realtime_age_sec": 20,
+    "routes": [
+        {
+            "color": "80276C",
+            "route_id": "CR-Providence",
+            "route_long_name": "Providence/Stoughton Line",
+            "route_short_name": "",
+            "text_color": "FFFFFF",
+            "trips": [
+                {
+                    "arrive": "Fri 00:10",
+                    "depart": "Fri 00:10",
+                    "drop_off_type": 0,
+                    "headsign": "Providence",
+                    "next_stop_id": "South Attleboro",
+                    "next_stop_name": "South Attleboro",
+                    "next_stop_parent": "place-NEC-1919",
+                    "pickup_type": 0,
+                    "rt_start_date": "21-May-2020",
+                    "short_name": "1817",
+                    "skipped": false,
+                    "trip_id": "CR-Weekday-StormB-19-1817C0",
+                    "vehicle": "1719"
+                }
+            ]
+        },
+        {
+            "color": "80276C",
+            "route_id": "CR-Fitchburg",
+            "route_long_name": "Fitchburg Line",
+            "route_short_name": "",
+            "text_color": "FFFFFF",
+            "trips": [
+                {
+                    "arrive": "Fri 00:10",
+                    "depart": "Fri 00:10",
+                    "drop_off_type": 0,
+                    "headsign": "Wachusett",
+                    "next_stop_id": "Concord",
+                    "next_stop_name": "Concord",
+                    "next_stop_parent": "place-FR-0201",
+                    "pickup_type": 0,
+                    "rt_start_date": "21-May-2020",
+                    "short_name": "1413",
+                    "skipped": false,
+                    "trip_id": "CR-Weekday-StormB-19-1413C0",
+                    "vehicle": "1625"
+                }
+            ]
         }
     ]
 }
