@@ -85,13 +85,22 @@ void RouteRealtimeData::fillResponseData(QJsonObject &resp)
 
         QJsonArray tripsForRoute;
         for (const QString &tripID : tripIDsForRouteID) {
+            // There's no guarantee the real-time feed has the date filled at all. If this field is empty for the
+            // real-time trip update, then 1) assume the current actual day, 2) do not print the day in arrive/depart.
             const QString rtTripStartDate = _realTimeProc->getTripStartDate(tripID);
-            QDate qRtTripStartDate = QDate::fromString(rtTripStartDate, "yyyyMMdd");
+            bool startDateMissing = false;
+            QDate qRtTripStartDate;
+            if (rtTripStartDate.isEmpty()) {
+                qRtTripStartDate = getAgencyTime().date();
+                startDateMissing = true;
+            } else {
+                qRtTripStartDate = QDate::fromString(rtTripStartDate, "yyyyMMdd");
+            }
             QDateTime localNoon = QDateTime(qRtTripStartDate, QTime(12, 0, 0), getAgencyTime().timeZone());
 
             QJsonObject tripInfo;
             tripInfo["trip_id"] = tripID;
-            tripInfo["rt_start_date"] = qRtTripStartDate.toString("dd-MMM-yyyy");
+            tripInfo["rt_start_date"] = startDateMissing ? "-" : qRtTripStartDate.toString("dd-MMM-yyyy");
             tripInfo["vehicle"] = _realTimeProc->getOperatingVehicle(tripID);
 
             // Static trip feed details (if possible)
@@ -169,13 +178,11 @@ void RouteRealtimeData::fillResponseData(QJsonObject &resp)
                     tripInfo["skipped"] = rtstu.stopSkipped;
 
                     // Arrival/Departure Real-Time display
-                    if (getStatus()->format12h()) {
-                        tripInfo["arrive"] = rtstu.arrTime.toTimeZone(getAgencyTime().timeZone()).toString("ddd h:mma");
-                        tripInfo["depart"] = rtstu.depTime.toTimeZone(getAgencyTime().timeZone()).toString("ddd h:mma");
-                    } else {
-                        tripInfo["arrive"] = rtstu.arrTime.toTimeZone(getAgencyTime().timeZone()).toString("ddd hh:mm");
-                        tripInfo["depart"] = rtstu.depTime.toTimeZone(getAgencyTime().timeZone()).toString("ddd hh:mm");
-                    }
+                    QString timeFormat = (startDateMissing) ?
+                                             ((getStatus()->format12h()) ? "h:mma" : "hh:mm") :
+                                             ((getStatus()->format12h()) ? "ddd h:mma" : "ddd hh:mm");
+                    tripInfo["arrive"] = rtstu.arrTime.toTimeZone(getAgencyTime().timeZone()).toString(timeFormat);
+                    tripInfo["depart"] = rtstu.depTime.toTimeZone(getAgencyTime().timeZone()).toString(timeFormat);
                     break;
                 }
             }

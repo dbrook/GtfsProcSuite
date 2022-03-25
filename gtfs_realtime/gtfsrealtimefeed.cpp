@@ -394,6 +394,13 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
         if (stu.arrival().has_delay() && !schedArrTimeUTC.isNull()) {
             realArrTimeUTC = schedArrTimeUTC.addSecs(stu.arrival().delay());
             realArrBased = 'O';
+
+            // If the arrival offset is known but the departure is NOT, then extrapolate the arrival's delay to this
+            // stop's departure time, too - this should almost always be the case
+            if (!stu.has_departure() && !stu.departure().has_delay()) {
+                realDepTimeUTC = schedDepTimeUTC.addSecs(stu.arrival().delay());
+                realDepBased = 'E';
+            }
         } else if (stu.arrival().has_time()) {
             realArrTimeUTC = QDateTime::fromSecsSinceEpoch(stu.arrival().time(), QTimeZone::utc());
             realArrBased = 'P';
