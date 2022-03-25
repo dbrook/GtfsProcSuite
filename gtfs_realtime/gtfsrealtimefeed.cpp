@@ -397,7 +397,7 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
 
             // If the arrival offset is known but the departure is NOT, then extrapolate the arrival's delay to this
             // stop's departure time, too - this should almost always be the case
-            if (!stu.has_departure() && !stu.departure().has_delay()) {
+            if (!stu.has_departure() && !stu.departure().has_delay() && !schedDepTimeUTC.isNull()) {
                 realDepTimeUTC = schedDepTimeUTC.addSecs(stu.arrival().delay());
                 realDepBased = 'E';
             }
