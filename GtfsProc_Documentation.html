@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 1.8b)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 1.9)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -33,10 +33,10 @@
     Thank you for trying GtfsProc! This is a GTFS data processor to present stop, route, service, and schedule lookups, but its principal purpose is to provide wait time estimations for stops in a transit system, integrating GTFS-Realtime data where available. All data processing is done on a server process in response to client queries over a TCP connection. This allows the process to work over network connections or on local machines.
 </p>
 <p>
-    GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2021, GPL v 3.
+    GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2022, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 1.8d (17-Aug-2021)</b>
+    This is the documentation for <b>GtfsProc Version 1.9 (22-Mar-2022)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -78,7 +78,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 1.8c - Running on Process ID: 22112<br>
+GtfsProc version 1.9 - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>
@@ -3347,6 +3347,292 @@ Possible error values:
             Duration of the trip from departure time at origin to drop off time at destination (format: “hh:mm”)
         </td>
     </tr>
+</table>
+
+<h2>Trip Realtime Information for Route(s) (TRR)</h2>
+<p>
+    This module displays the list of all added (supplemental) trips and scheduled trips with real time data for the requested routes. This information includes vehicle numbers (if available), headsign (or a stop-specific one) from the static feed, or a guessed one based on added trip last-available-stop details, the first stop in the prediction feed along with the time of arrival and departure at that stop. Note that real time trip updates lacking trip start date / post-24-hour clocks will render the day of arrival incorrectly (potentially) ... effort was made to detect these situations and simply avoid printing the day-of-week along with the time to not look as bad. Many agencies also use improper start dates and times on real-time-trip-updates (not computed by the operating day but the actual local day that the trip started if it's after midnight). You've been warned. This is more of a module for entertainment purposes and tracking which vehicles are operating on a Route ID.
+</p>
+<h4>Request Format</h4>
+    TRR {RouteID}<br>
+    TRR {RouteID1}|{RouteID2}|...|{RouteIDn}<br>
+    <b>Example</b>: "TRR Blue|Orange"
+<h4>Response Format</h4>
+<p>
+The ‘message_type’ is “TRR”.<br>
+Possible error values:
+    <ul>
+        <li>0: Success</li>
+        <li>801: No Real-Time Data/Predictions are available - (backend idle or not available on server)</li>
+        <li>802: RouteID (or one of the list of RouteIDs provided) are not in the data feed (see RTE)</li>
+        <li>803: The Real-Time data buffer is present/allocated but is empty</li>
+    </ul>
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            realtime_age_sec
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Age of the currently-active real-time feed buffer (same value as the active_age_sec field from RDS), relative to the agency time (even if frozen at startup with -f).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>routes</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            Array of route information with an inner array of trips serving those routes pulled from the added and active scheduled trips.
+        </td>
+    </tr>
+</table>
+<p>The “routes” array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Background color of the Route branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            text_color
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Foreground color of the Route branding
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route ID of the trips contained in the inner trips array.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Short name of the route (the one that renders with higher priority in Google Maps, if present) on which the trips in the inner trips array operate.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            route_long_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Long name of the route on which the trips in the inner trips array operate.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trips
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            Set of trips on the route that are either: scheduled and have real-time predictions, added trips. Canceled trips will not show.
+        </td>
+    </tr>
+</table>
+<p>The “trips” array contains the following fields:</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            trip_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            The ID of the trip as provided by the real-time feed, not the static feed.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            rt_start_date
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Start date of the trip as provided by the real-time feed (may not have been provided, indicated with a - (hyphen)).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            vehicle
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Vehicle ID(s) that are operating the trip (may be empty).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            vehicle
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Vehicle ID(s) that are operating the trip (may be empty).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            headsign
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Headsign of the vehicle operating (may be computed for an added/supplemental trip (where only the last stop in the feed can really say anything), this may not match what is shown on the vehicle).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            short_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Optional short name of the trip (from the static feed, added trips always labeled with *SPLM*).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            next_stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            The first stop ID in the realtime trip update (a - is used if stop is not in static feed).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            next_stop_name
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Name of the first stop in the realtime trip update (a - is used if stop is not in static feed).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            next_stop_parent
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Parent station ID of the next stop in the realtime trip update (a - is used if stop is not in static feed).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            drop_off_type
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            0/Empty = Regular drop-off, 1 = No drop-off, 2 = Call agency to arrange drop-off, 3 = Coordinate with operator
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            pickup_type
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            0/Empty = Regular pickup, 1 = No pickup, 2 = Call agency to arrange pickup, 3 = Arrange/Flag operator
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            skipped
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the trip will be skipping (not stopping at) the next_stop_id but under normal operations it would (it was scheduled to do so originally).
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            arrive
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Predicated arrival time at the next_stop_id (a - if the matching of the prediction data did not adhere to the static feed, see the -l option documentation). This field may be empty if the arrival already happened at the next_stop_id or it is the first stop in the trip. If the real-time trip update used was missing a start date then the day-of-week will not show. Be advised that trips operating for a service day after midnight can be filled unpredictably by agencies and may be off by 24-hours.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            depart
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Predicted departure time at the next_stop_id (a - if the matching of the prediction data did not adhere to the static feed, see the -l option documentation). This field may be empty if the trip is terminating at the next_stop_id. If the real-time trip update used was missing a start date then the day-of-week will not show. Be advised that trips operating for a service day after midnight can be filled unpredictably by agencies and may be off by 24-hours.
+        </td>
+    </tr>
+
 </table>
 
 <!--
