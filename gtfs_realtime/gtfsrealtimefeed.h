@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2021, Daniel Brook
+ * Copyright (C) 2018-2022, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -221,6 +221,12 @@ public:
                                     QHash<QString, QHash<QString, QVector<qint32>>> &duplicateRTTrips,
                                     QVector<QString> &tripsWithoutRoutes) const;
 
+    // Get a list of Trip IDs from the realtime feed that pertain to the route requested
+    void getActiveTripsForRouteID(const QString &routeID, QVector<QString> &) const;
+
+    // Retrieve next prediction in the real time feed
+    QString getNextStopIDInPrediction(const QString &tripID) const;
+
     // Dump a string-representation of the protobuf trip updates
     void serializeTripUpdates(QString &output) const;
 
@@ -229,6 +235,9 @@ public:
 
     // Get trip ID from a direct real-time trip update index
     QString getTripIdFromEntity(quint64 realtimeTripUpdateEntity) const;
+
+    // See if the real-time data comparisons match stop sequence numbers (true) or just first-matched stop ID (false)
+    bool getLoosenStopSeqEnf() const;
 
 signals:
 

@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2021, Daniel Brook
+ * Copyright (C) 2018-2022, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
      */
     QCoreApplication a(argc, argv);
     QCoreApplication::setApplicationName("GtfsProc");
-    QCoreApplication::setApplicationVersion("1.8d");
+    QCoreApplication::setApplicationVersion("1.9");
 
     QTextStream console(stdout);
     QString appName = QCoreApplication::applicationName();

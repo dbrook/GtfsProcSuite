@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2021, Daniel Brook
+ * Copyright (C) 2018-2022, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -394,6 +394,13 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
         if (stu.arrival().has_delay() && !schedArrTimeUTC.isNull()) {
             realArrTimeUTC = schedArrTimeUTC.addSecs(stu.arrival().delay());
             realArrBased = 'O';
+
+            // If the arrival offset is known but the departure is NOT, then extrapolate the arrival's delay to this
+            // stop's departure time, too - this should almost always be the case
+            if (!stu.has_departure() && !stu.departure().has_delay() && !schedDepTimeUTC.isNull()) {
+                realDepTimeUTC = schedDepTimeUTC.addSecs(stu.arrival().delay());
+                realDepBased = 'E';
+            }
         } else if (stu.arrival().has_time()) {
             realArrTimeUTC = QDateTime::fromSecsSinceEpoch(stu.arrival().time(), QTimeZone::utc());
             realArrBased = 'P';
@@ -649,6 +656,52 @@ void RealTimeTripUpdate::getAllTripsWithPredictions(QHash<QString, QVector<QStri
     tripsWithoutRoutes = _noRouteTrips;
 }
 
+void RealTimeTripUpdate::getActiveTripsForRouteID(const QString &routeID, QVector<QString> &tripsForRoute) const
+{
+    for (const QString &tripID : _addedTrips.keys()) {
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_addedTrips[tripID]);
+        QString qRouteId;
+        if (entity.trip_update().trip().has_route_id()) {
+            qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        } else if (_tripDB->contains(tripID)) {
+            qRouteId = (*_tripDB)[tripID].route_id;
+        }
+        if (routeID == qRouteId) {
+            tripsForRoute.push_back(tripID);
+        }
+    }
+
+    for (const QString &tripID : _activeTrips.keys()) {
+        const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_activeTrips[tripID]);
+        QString qRouteId;
+        if (entity.trip_update().trip().has_route_id()) {
+            qRouteId = QString::fromStdString(entity.trip_update().trip().route_id());
+        } else if (_tripDB->contains(tripID)) {
+            qRouteId = (*_tripDB)[tripID].route_id;
+        }
+        if (routeID == qRouteId) {
+            tripsForRoute.push_back(tripID);
+        }
+    }
+}
+
+QString RealTimeTripUpdate::getNextStopIDInPrediction(const QString &tripID) const
+{
+    qint32 tripUpdateEntity;
+    bool   isSupplementalTrip;
+    if (!findEntityIndex(tripID, tripUpdateEntity, isSupplementalTrip)) {
+        return "?";
+    }
+
+    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
+
+    if (tri.stop_time_update_size() == 0) {
+        return "!";
+    }
+
+    return QString::fromStdString(tri.stop_time_update(0).stop_id());
+}
+
 void RealTimeTripUpdate::serializeTripUpdates(QString &output) const
 {
     std::string data;
@@ -669,6 +722,11 @@ QString RealTimeTripUpdate::getTripIdFromEntity(quint64 realtimeTripUpdateEntity
         return "";
     }
     return QString::fromStdString(_tripUpdate.entity(realtimeTripUpdateEntity).trip_update().trip().trip_id());
+}
+
+bool RealTimeTripUpdate::getLoosenStopSeqEnf() const
+{
+    return _loosenStopSeqEnf;
 }
 
 void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)

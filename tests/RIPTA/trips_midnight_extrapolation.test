@@ -1,5 +1,5 @@
 @Description
-RIPTA uss Level-1 date matching (-l 1) for matching the actual date of the trip start, not
+RIPTA uses Level-1 date matching (-l 1) for matching the actual date of the trip start, not
 that of the service date. This case asserts the correct matching of trip IDs serving the
 stop in question. RIPTA also uses offsets in their realtime data, so stops after the last
 offset prediction in a trip can be extrapolated from the last known offset.
@@ -27,7 +27,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "url": "http://www.ripta.com/"
         }
     ],
-    "application": "GtfsProc 1.8d",
+    "application": "GtfsProc 1.9",
 *   "appuptime_sec": 57,
 *   "dataloadtime_ms": 807,
     "error": 0,
@@ -162,6 +162,44 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "trip_id": "2948526",
             "trip_terminates": false,
             "wait_time_sec": 2310
+        }
+    ]
+}
+@End
+
+@Case:Trip realtime information for Route 66
+@Query:TRR 66
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:11:30 EDT",
+    "message_type": "TRR",
+*   "proc_time_ms": 7,
+    "realtime_age_sec": 15,
+    "routes": [
+        {
+            "color": "",
+            "route_id": "66",
+            "route_long_name": "URI-Kingston/Galilee",
+            "route_short_name": "66",
+            "text_color": "",
+            "trips": [
+                {
+                    "arrive": "Fri 00:11",
+                    "depart": "Fri 00:11",
+                    "drop_off_type": 0,
+                    "headsign": "GALILEE via TF GREEN AIRPORT",
+                    "next_stop_id": "50645",
+                    "next_stop_name": "RT 2 NS WAITES CORNER",
+                    "next_stop_parent": "",
+                    "pickup_type": 0,
+                    "rt_start_date": "21-May-2020",
+                    "short_name": "",
+                    "skipped": false,
+                    "trip_id": "2948917",
+                    "vehicle": "1920"
+                }
+            ]
         }
     ]
 }

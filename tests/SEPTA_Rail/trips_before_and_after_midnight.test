@@ -28,7 +28,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "url": "http://www.septa.org"
         }
     ],
-    "application": "GtfsProc 1.8d",
+    "application": "GtfsProc 1.9",
 *   "appuptime_sec": 9,
 *   "dataloadtime_ms": 8,
     "error": 0,
@@ -88,7 +88,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:32",
-                "actual_departure": "",
+                "actual_departure": "Fri 00:32",
                 "offset_seconds": 0,
                 "status": "RNNG",
                 "stop_status": "FULL",
@@ -139,6 +139,92 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "trip_id": "PAO_575_V25_M",
             "trip_terminates": false,
             "wait_time_sec": 930
+        }
+    ]
+}
+@End
+
+@Case:List of trips on routes with realtime information
+@Query TRR PAO|LAN|WAR
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:30:30 EDT",
+    "message_type": "TRR",
+*   "proc_time_ms": 1,
+    "realtime_age_sec": 28,
+    "routes": [
+        {
+            "color": "20825C",
+            "route_id": "PAO",
+            "route_long_name": "Paoli/Thorndale Line",
+            "route_short_name": "Paoli/Thorndale Line",
+            "text_color": "FFFFFF",
+            "trips": [
+                {
+                    "arrive": "00:31",
+                    "depart": "00:31",
+                    "drop_off_type": 0,
+                    "headsign": "Malvern",
+                    "next_stop_id": "90005",
+                    "next_stop_name": "Suburban Station",
+                    "next_stop_parent": "90005",
+                    "pickup_type": 0,
+                    "rt_start_date": "-",
+                    "short_name": "575",
+                    "skipped": false,
+                    "trip_id": "PAO_575_V25_M",
+                    "vehicle": ""
+                }
+            ]
+        },
+        {
+            "color": "775B49",
+            "route_id": "LAN",
+            "route_long_name": "Lansdale/Doylestown Line",
+            "route_short_name": "Lansdale/Doylestown Line",
+            "text_color": "FFFFFF",
+            "trips": [
+                {
+                    "arrive": "00:32",
+                    "depart": "00:32",
+                    "drop_off_type": 0,
+                    "headsign": "Lansdale",
+                    "next_stop_id": "90530",
+                    "next_stop_name": "Pennbrook",
+                    "next_stop_parent": "90530",
+                    "pickup_type": 0,
+                    "rt_start_date": "-",
+                    "short_name": "578",
+                    "skipped": false,
+                    "trip_id": "LAN_578_V26_M",
+                    "vehicle": ""
+                }
+            ]
+        },
+        {
+            "color": "F7AF42",
+            "route_id": "WAR",
+            "route_long_name": "Warminster Line",
+            "route_short_name": "Warminster Line",
+            "text_color": "FFFFFF",
+            "trips": [
+                {
+                    "arrive": "00:31",
+                    "depart": "00:31",
+                    "drop_off_type": 0,
+                    "headsign": "Warminster",
+                    "next_stop_id": "90407",
+                    "next_stop_name": "Fern Rock T C",
+                    "next_stop_parent": "90407",
+                    "pickup_type": 0,
+                    "rt_start_date": "-",
+                    "short_name": "474",
+                    "skipped": false,
+                    "trip_id": "WAR_474_V25_M",
+                    "vehicle": ""
+                }
+            ]
         }
     ]
 }
