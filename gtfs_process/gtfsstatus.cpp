@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2022, Daniel Brook
+ * Copyright (C) 2018-2023, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -61,13 +61,15 @@ Status::Status(const QString dataRootPath,
         this->version   = (verPos != -1) ? dataStore.at(1).at(verPos) : "";
 
         // Save the start and end dates? Stored as text: YYYYMMDD
-        this->startDate = (sDatePos != -1) ? QDate(dataStore.at(1).at(sDatePos).left    (4)   .toInt(),
-                                                   dataStore.at(1).at(sDatePos).midRef  (4, 2).toInt(),
-                                                   dataStore.at(1).at(sDatePos).rightRef(2)   .toInt())
+        QStringView startDateStr = dataStore.at(1).at(sDatePos);
+        this->startDate = (sDatePos != -1) ? QDate(startDateStr.left (4)   .toInt(),
+                                                   startDateStr.mid  (4, 2).toInt(),
+                                                   startDateStr.right(2)   .toInt())
                                            : QDate();
-        this->endDate   = (eDatePos != -1) ? QDate(dataStore.at(1).at(eDatePos).left    (4)   .toInt(),
-                                                   dataStore.at(1).at(eDatePos).midRef  (4, 2).toInt(),
-                                                   dataStore.at(1).at(eDatePos).rightRef(2)   .toInt())
+        QStringView endDateStr = dataStore.at(1).at(eDatePos);
+        this->endDate   = (eDatePos != -1) ? QDate(endDateStr.left (4)   .toInt(),
+                                                   endDateStr.mid  (4, 2).toInt(),
+                                                   endDateStr.right(2)   .toInt())
                                            : QDate();
 
         // Say we processed a record

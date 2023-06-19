@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2022, Daniel Brook
+ * Copyright (C) 2018-2023, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -78,7 +78,7 @@ public:
     static bool compareByStopSequence(const StopTimeRec &a, const StopTimeRec &b);
 
     // Notion of local noon (for offset calculations)
-    static qint32 computeSecondsLocalNoonOffset(const QString &hhmmssTime);  // Send time as (h)h:mm:ss
+    static qint32 computeSecondsLocalNoonOffset(QStringView hhmmssTime);  // Send time as (h)h:mm:ss
     static const qint32 s_localNoonSec;
 
 private:

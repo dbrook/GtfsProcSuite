@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2022, Daniel Brook
+ * Copyright (C) 2018-2023, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -24,7 +24,6 @@
 #include "staticstatus.h"
 #include "availableroutes.h"
 #include "tripscheduledisplay.h"
-#include "tripstopreconciler.h"
 #include "tripsservingroute.h"
 #include "tripsservingstop.h"
 #include "stationdetailsdisplay.h"
@@ -229,7 +228,8 @@ QDate GtfsRequestProcessor::determineServiceDay(const QString &userReq, QString 
 qint32 GtfsRequestProcessor::determineMinuteRange(const QString &userReq, QString &remUserQuery)
 {
     // First space determines the amount of time to request
-    qint32 futureMinutes = userReq.leftRef(userReq.indexOf(" ")).toInt();
+    QStringView requestView = userReq;
+    qint32 futureMinutes = requestView.left(userReq.indexOf(" ")).toInt();
     remUserQuery = userReq.mid(userReq.indexOf(" ") + 1);
     return futureMinutes;
 }

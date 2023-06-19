@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2022, Daniel Brook
+ * Copyright (C) 2018-2023, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -48,12 +48,14 @@ OperatingDay::OperatingDay(const QString dataRootPath, QObject *parent) : QObjec
             cal.friday       = (dataStore.at(l).at(friPos).toInt() == 1);
             cal.saturday     = (dataStore.at(l).at(satPos).toInt() == 1);
             cal.sunday       = (dataStore.at(l).at(sunPos).toInt() == 1);
-            cal.start_date   = QDate(dataStore.at(l).at(sDatePos).left    (4)   .toInt(),
-                                     dataStore.at(l).at(sDatePos).midRef  (4, 2).toInt(),
-                                     dataStore.at(l).at(sDatePos).rightRef(2)   .toInt());
-            cal.end_date     = QDate(dataStore.at(l).at(eDatePos).left    (4)   .toInt(),
-                                     dataStore.at(l).at(eDatePos).midRef  (4, 2).toInt(),
-                                     dataStore.at(l).at(eDatePos).rightRef(2)   .toInt());
+            QStringView dateStrStart = dataStore.at(l).at(sDatePos);
+            QStringView dateStrEnd = dataStore.at(l).at(eDatePos);
+            cal.start_date   = QDate(dateStrStart.left (4)   .toInt(),
+                                     dateStrStart.mid  (4, 2).toInt(),
+                                     dateStrStart.right(2)   .toInt());
+            cal.end_date     = QDate(dateStrEnd.left (4)   .toInt(),
+                                     dateStrEnd.mid  (4, 2).toInt(),
+                                     dateStrEnd.right(2)   .toInt());
             this->calendarDb[dataStore.at(l).at(servicePos)] = cal;
         }
     }
@@ -68,11 +70,12 @@ OperatingDay::OperatingDay(const QString dataRootPath, QObject *parent) : QObjec
 
         for (int l = 1; l < dataStore.size(); ++l) {
             CalDateRec cd;
-            cd.service_id     = dataStore.at(l).at(idPos);
-            cd.exception_type = dataStore.at(l).at(exceptionPos).toShort();
-            cd.date           = QDate(dataStore.at(l).at(datePos).left    (4)   .toInt(),
-                                      dataStore.at(l).at(datePos).midRef  (4, 2).toInt(),
-                                      dataStore.at(l).at(datePos).rightRef(2)   .toInt());
+            cd.service_id       = dataStore.at(l).at(idPos);
+            cd.exception_type   = dataStore.at(l).at(exceptionPos).toShort();
+            QStringView dateStr = dataStore.at(l).at(datePos);
+            cd.date             = QDate(dateStr.left (4)   .toInt(),
+                                        dateStr.mid  (4, 2).toInt(),
+                                        dateStr.right(2)   .toInt());
             this->calendarDateDb[dataStore.at(l).at(idPos)].push_back(cd);
         }
     }

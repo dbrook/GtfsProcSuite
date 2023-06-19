@@ -1,5 +1,19 @@
-THIS RELEASE: Version 1.9
--------------------------
+THIS RELEASE: Version 2.0.0
+---------------------------
+- Debian is the reference platform for GtfsProc, so with the release of Debian 12, which uses Qt 6
+  (6.4.2, to be precise), the GtfsProc code has been updated to compile on Qt 6.
+- Only compilation errors and any new warnings have been addressed as of this version, so future
+  patch releases could (should?) be expected as further testing on upgraded production environments
+  is performed.
+- Switched to Semantic Versioning going forward. A "major upgrade" (1.x --> 2.x.y) was chosen due to
+  the change in versioning scheme, but also because of the underlying Qt upgrade, despite no outward-
+  facing functionality was changed. This should also make front-end applications easier to check
+  against
+
+
+PREVIOUS RELEASES:
+Version 1.9
+-----------
 - Add a new transaction: "TRR" for revealing all real-time (scheduled and added) trip data by
   route ID, specifically vehicle information and where the next stop that vehicle/trip will make.
 - Despite the version increment to 1.9, the new transaction has no impact on existing payloads.
@@ -8,8 +22,6 @@ THIS RELEASE: Version 1.9
 - [BUGFIX] Extrapolate "lateness" for offset-based real-time trip updates (i.e. SEPTA Rail) from
   arrival offsets at a stop to that stop's corresponding departure time (if present).
 
-
-PREVIOUS RELEASES:
 Version 1.8d Technical Update
 -----------------------------
 - With the release of Debian 11, Qt 5.15.2 is now the reference framework. This release brings about

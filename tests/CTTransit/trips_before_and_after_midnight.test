@@ -59,7 +59,7 @@ case proves that both types of trips are visible to a single stop that is served
             "url": "http://www.cttransit.com"
         }
     ],
-    "application": "GtfsProc 1.9",
+    "application": "GtfsProc 2.0.0",
 *   "appuptime_sec": 16,
 *   "dataloadtime_ms": 2736,
     "error": 0,

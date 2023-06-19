@@ -11,10 +11,10 @@ any updated schedules.
 
 Several individual moving parts will help in this process:
 1) The following are required to build GtfsProc, install from your package manager.
-   Note: this is heavily Debian biased (as Debian 11 is the reference system):
+   Note: this is heavily Debian biased (as Qt 6 on Debian 12 is the reference system):
     - build-essential
-    - qt5-qmake
-    - qtdeclarative5-dev
+    - qmake6
+    - qt6-declarative-dev
     - libcsv-dev
     - protobuf-compiler
     - libncurses-dev
