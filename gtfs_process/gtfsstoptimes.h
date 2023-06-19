@@ -78,7 +78,7 @@ public:
     static bool compareByStopSequence(const StopTimeRec &a, const StopTimeRec &b);
 
     // Notion of local noon (for offset calculations)
-    static qint32 computeSecondsLocalNoonOffset(const QString &hhmmssTime);  // Send time as (h)h:mm:ss
+    static qint32 computeSecondsLocalNoonOffset(QStringView hhmmssTime);  // Send time as (h)h:mm:ss
     static const qint32 s_localNoonSec;
 
 private:

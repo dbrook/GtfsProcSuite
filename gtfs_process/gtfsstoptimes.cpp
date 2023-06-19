@@ -113,21 +113,21 @@ void StopTimes::stopTimesCSVOrder(const QVector<QString> csvHeader,
     }
 }
 
-qint32 StopTimes::computeSecondsLocalNoonOffset(const QString &hhmmssTime)
+qint32 StopTimes::computeSecondsLocalNoonOffset(QStringView hhmmssTime)
 {
     /*
      * Time comes in in the format of hh:mm:ss but with a 24+ hour format to deal with trip times that
      * occur past midnight the following day but for operational trips that fall on the previous day's schedule
      * It is not unusual to see times posted like 25:14 for a stop at 1:14 AM the following day, for instance
      */
-    if (hhmmssTime == "") {
+    if (hhmmssTime.isEmpty()) {
         return kNoTime;
     }
 
-    qint32 firstColon = hhmmssTime.indexOf(":");
-    qint32 hours      = hhmmssTime.leftRef(firstColon).toInt();
-    qint32 seconds    = hhmmssTime.rightRef(2).toInt();
-    qint32 minutes    = hhmmssTime.midRef(firstColon + 1, 2).toInt();
+    qint32 firstColon = hhmmssTime.indexOf(':');
+    qint32 hours      = hhmmssTime.left(firstColon).toInt();
+    qint32 seconds    = hhmmssTime.right(2).toInt();
+    qint32 minutes    = hhmmssTime.mid(firstColon + 1, 2).toInt();
 
     return (hours * 3600 + minutes * 60 + seconds) - s_localNoonSec;
 }
