@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2022, Daniel Brook
+ * Copyright (C) 2018-2023, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -22,7 +22,6 @@
 #define ROUTEREALTIMEDATA_H
 
 #include "staticstatus.h"
-#include "operatingday.h"
 #include "gtfsstops.h"
 #include "gtfsroute.h"
 #include "gtfsrealtimegateway.h"
