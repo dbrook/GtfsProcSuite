@@ -41,6 +41,7 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
                      quint32  numberTripsPerRouteNEX,
                      bool     hideEndingTrips,
                      bool     loosenRealTimeStopSeq,
+                     bool     allSkippedCan,
                      QObject *parent) :
     TcpServer(parent)
 {
@@ -85,6 +86,7 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
                                showProtobuf,
                                dateEnforcement,
                                loosenRealTimeStopSeq,
+                               allSkippedCan,
                                _showTraces,
                                data.getTripsDB(),
                                data.getStopTimesDB());

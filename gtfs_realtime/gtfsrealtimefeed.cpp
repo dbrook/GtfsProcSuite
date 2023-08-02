@@ -34,6 +34,7 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString      &rtPath,
                                        bool                dumpProtobuf,
                                        rtDateLevel         skipDateMatching,
                                        bool                loosenStopSeqEnf,
+                                       bool                allSkippedCanceled,
                                        const TripData     *tripsDB,
                                        const StopTimeData *stopTimeDB,
                                        QObject            *parent)
@@ -41,7 +42,8 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString      &rtPath,
       _tripDB(tripsDB),
       _stopTimeDB(stopTimeDB),
       _dateEnforcement(skipDateMatching),
-      _loosenStopSeqEnf(loosenStopSeqEnf)
+      _loosenStopSeqEnf(loosenStopSeqEnf),
+      _allSkippedCan(allSkippedCanceled)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -62,6 +64,7 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray   &gtfsRealTimeData,
                                        rtDateLevel         skipDateMatching,
                                        bool                loosenStopSeqEnf,
                                        bool                displayBufferInfo,
+                                       bool                allSkippedCanceled,
                                        const TripData     *tripsDB,
                                        const StopTimeData *stopTimeDB,
                                        QObject            *parent)
@@ -69,7 +72,8 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray   &gtfsRealTimeData,
       _tripDB(tripsDB),
       _stopTimeDB(stopTimeDB),
       _dateEnforcement(skipDateMatching),
-      _loosenStopSeqEnf(loosenStopSeqEnf)
+      _loosenStopSeqEnf(loosenStopSeqEnf),
+      _allSkippedCan(allSkippedCanceled)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -783,6 +787,28 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
             _cancelledTrips[tripCancelled] = recIdx;
         } else {
             QString tripRealTime = QString::fromStdString(entity.trip_update().trip().trip_id());
+
+            // Some agencies mark all the stops in a trip as skipped if they are actually canceled trips, but it's not
+            // a hard / accurate implementation of the GTFS specification, so this is optional.
+            if (_allSkippedCan) {
+                bool tripHasAllSkipped = false;
+                for (qint32 stopTimeIdx = 0; stopTimeIdx < entity.trip_update().stop_time_update_size(); ++stopTimeIdx) {
+                    const transit_realtime::TripUpdate_StopTimeUpdate &stopTime = entity.trip_update().
+                                                                                  stop_time_update(stopTimeIdx);
+                    if (stopTime.schedule_relationship() !=
+                        transit_realtime::TripUpdate_StopTimeUpdate_ScheduleRelationship_SKIPPED) {
+                        tripHasAllSkipped = true;
+                        break;
+                    }
+                }
+                if (!tripHasAllSkipped) {
+                    QString tripCancelled = QString::fromStdString(entity.trip_update().trip().trip_id());
+                    _cancelledTrips[tripCancelled] = recIdx;
+                    continue;
+                }
+            }
+
+            // We consider this an active trip (not canceled), continue to check if stops are skipped
             _activeTrips[tripRealTime] = recIdx;
 
             // For active trips which are scheduled, there is a chance that individual stops have been removed from

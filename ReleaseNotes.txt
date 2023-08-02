@@ -1,5 +1,15 @@
-THIS RELEASE: Version 2.0.0
+THIS RELEASE: Version 2.1.0
 ---------------------------
+- Created the notion of "Z-Options", which are Boolean process flags that (will) allow for the
+  altering of "standard" GTFS algorithm processing.
+- Created the "ALL_SKIPPED_IS_CANCELED" Z-Option for processing real-time trip updates with only
+  skipped stops as canceled trips like the MBTA does for certain bus routes.
+- Added information to SDS transactions to see the algorithms chosen at startup.
+
+
+PREVIOUS RELEASES:
+Version 2.0.0
+-------------
 - Debian is the reference platform for GtfsProc, so with the release of Debian 12, which uses Qt 6
   (6.4.2, to be precise), the GtfsProc code has been updated to compile on Qt 6.
 - Only compilation errors and any new warnings have been addressed as of this version, so future
@@ -10,8 +20,6 @@ THIS RELEASE: Version 2.0.0
   facing functionality was changed. This should also make front-end applications easier to check
   against
 
-
-PREVIOUS RELEASES:
 Version 1.9
 -----------
 - Add a new transaction: "TRR" for revealing all real-time (scheduled and added) trip data by

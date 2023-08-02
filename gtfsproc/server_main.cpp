@@ -26,6 +26,16 @@
 
 #include "servegtfs.h"
 
+const QStringList CreateZOptions(QString zOptComma)
+{
+    return zOptComma.split(',');
+}
+
+bool IsInZOptions(const QStringList &zOpts, const QString zOpt)
+{
+    return zOpts.contains(zOpt);
+}
+
 int main(int argc, char *argv[])
 {
     /*
@@ -33,7 +43,7 @@ int main(int argc, char *argv[])
      */
     QCoreApplication a(argc, argv);
     QCoreApplication::setApplicationName("GtfsProc");
-    QCoreApplication::setApplicationVersion("2.0.0");
+    QCoreApplication::setApplicationVersion("2.1.0");
 
     QTextStream console(stdout);
     QString appName = QCoreApplication::applicationName();
@@ -66,6 +76,8 @@ int main(int argc, char *argv[])
                     QCoreApplication::translate("main", "nbSeconds"));
     QCommandLineOption ampmTimes(QStringList() << "a",
                     QCoreApplication::translate("main", "Render all times with 12-hour AM/PM format, not 24-hour."));
+
+    // Trip Processing Behavioral Options
     QCommandLineOption hideTermTrips(QStringList() << "m",
                     QCoreApplication::translate("main", "Do not show terminating trips in NEX/NCF modules."));
     QCommandLineOption tripsPerNEX(QStringList() << "s",
@@ -76,6 +88,14 @@ int main(int argc, char *argv[])
                     QCoreApplication::translate("main", "0|1|2"));
     QCommandLineOption noRTStopSeqEnf(QStringList() << "q",
                     QCoreApplication::translate("main", "Do not check stop sequences in real-time feed to static."));
+
+    // Non-Standard "Z Options" - things that (sort of (?)) violate the GTFS specificaiton but are necessary to
+    // display the data normally or as expected - we'll break these into a list
+    QCommandLineOption zOptions(QStringList() << "z",
+                    QCoreApplication::translate("main", "Processing Override Z-Option List."),
+                    QCoreApplication::translate("main", "Comma-separated Z-Options"));
+
+    // Debugging Options - Fix system date and time for debugging, dump realtime protobuf when processing
     QCommandLineOption showFrontendRequests(QStringList() << "i",
                     QCoreApplication::translate("main", "Show every transaction and real-time update to the screen."));
     QCommandLineOption fixedLocalTime(QStringList() << "f",
@@ -94,6 +114,7 @@ int main(int argc, char *argv[])
     parser.addOption(tripsPerNEX);
     parser.addOption(noRTDateMatch);
     parser.addOption(noRTStopSeqEnf);
+    parser.addOption(zOptions);
     parser.addOption(showFrontendRequests);
     parser.addOption(fixedLocalTime);
     parser.addOption(dumpRTProtobuf);
@@ -180,6 +201,9 @@ int main(int argc, char *argv[])
         loosenRTStopSeqStopIDEnforce = true;
     }
 
+    QStringList zOpts = CreateZOptions(parser.value(zOptions));
+    bool allSkippedIsCanceled = IsInZOptions(zOpts, "ALL_SKIPPED_IS_CANCELED");
+
     ServeGTFS gtfsRequestServer(databaseRootPath,
                                 realTimePath,
                                 rtDataInterval,
@@ -190,7 +214,8 @@ int main(int argc, char *argv[])
                                 showTransactions,
                                 nbTripsPerNEXRoute,
                                 hideTerminatingTripsNEXNCF,
-                                loosenRTStopSeqStopIDEnforce);
+                                loosenRTStopSeqStopIDEnforce,
+                                allSkippedIsCanceled);
     gtfsRequestServer.displayDebugging();
 
     /*

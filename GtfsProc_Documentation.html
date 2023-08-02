@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 2.0.0)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 2.1.0)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2023, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 2.0.0 (19-Jun-2023)</b>
+    This is the documentation for <b>GtfsProc Version 2.1.0 (02-Aug-2023)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -57,6 +57,7 @@
     <li><b class="fixed">-i</b>: Displays a record of all transactions and data refetches to standard error.</li>
     <li><b class="fixed">-s</b>: Limit of the number of trips that will appear in output per route of NEX module responses.</li>
     <li><b class="fixed">-m</b>: Do not show terminating trips in NEX and NCF module responses (this is basically what Google Maps does).</li>
+    <li><b class="fixed">-z {z-option list (comma-separate)}</b>: processing override options (Z-Options). A list of supported Z-Options is provided herein.</li>
 </ul>
 <p>The following options are only for debugging purposes</p>
 <ul>
@@ -78,7 +79,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 2.0.0 - Running on Process ID: 22112<br>
+GtfsProc version 2.1.0 - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>
@@ -175,6 +176,16 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
 </div>
 <p>
     Commands are entered at the ‘%’ prompt, but not all GtfsProc modules are supported by this interface. For how to enter commands, see the “Modules” section below. If you want to repeat a command, just type R + Enter at the prompt and the same command as used before will be resent to the server (this is basically how to do a “refresh” in the terminal view).
+</p>
+
+<h1>Z-Options</h1>
+<p>
+    The GtfsProc server may be started with optional process flags that override the default processing abilities when processing transations. These are typically for processing data that may not conform to the GTFS specification exactly. These are inherently fluid and will likely be added to through future versions of GtfsProc. The supported versions are provided below.
+</p>
+
+<h2>ALL_SKIPPED_IS_CANCELED</h2>
+<p>
+    When ingesting a real-time trip update (RTTU) ProtoBuf into GtfsProc's internal data structures, if all stop time updates in a given trip update are listed as "canceled", then instead of marking that trip as skipping those stops, just say the trip is canceled. This operation will apply without considering the trip start time field (so all future and past instances would also be marked as canceled). This is a work-around in place for the MBTA way of marking most bus trips as skipped when they're actually canceling the entire trip.
 </p>
 
 <h1>Modules</h1>
