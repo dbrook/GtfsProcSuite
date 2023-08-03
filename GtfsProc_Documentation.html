@@ -409,6 +409,61 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
     </tr>
     <tr>
         <td class="fixed">
+            <b>overrides</b>
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Comma-separated list of the Override Options that the server was started with.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>hide_terminating</b>
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            If true, then trips that terminate at a stop (for NCF or NEX transactions) will not be shown in output.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>nb_nex_trips</b>
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Maximum number of trips that will show up for each route in a NEX transaction.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>rt_date_match</b>
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            The real-time date enforcement looseness parameter that will be used when comparing scheduled trips to their real-time trip updates.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>rt_trip_seq_match</b>
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the real-time trip update and scheduled trip match based on the trip sequence number, False if they are matched only with stop ID.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
             <b>agencies</b>
         </td>
         <td class="fixed">

@@ -27,7 +27,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "url": "http://www.ripta.com/"
         }
     ],
-*   "application": "",
+    "application": "GtfsProc 2.1.0",
 *   "appuptime_sec": 57,
 *   "dataloadtime_ms": 807,
     "error": 0,
@@ -37,11 +37,16 @@ offset prediction in a trip can be extrapolated from the last known offset.
     "feed_valid_end": "__-___-____",
     "feed_valid_start": "__-___-____",
     "feed_version": "Not Provided",
+    "hide_terminating": false,
     "message_time": "22-May-2020 00:11:30 EDT",
     "message_type": "SDS",
+    "nb_nex_trips": 4,
+    "overrides": "",
 *   "proc_time_ms": 1,
 *   "processed_reqs": 1,
     "records": 250125,
+    "rt_date_match": 1,
+    "rt_trip_seq_match": true,
     "threadpool_count": 1
 }
 @End

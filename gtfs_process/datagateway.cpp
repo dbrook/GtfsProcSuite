@@ -42,9 +42,20 @@ void DataGateway::initDataPath(QString databaseFilePath)
 void DataGateway::initStatus(const QString frozenLocalDateTime,
                              bool          use12hourTimes,
                              quint32       maxTripsNEX,
-                             bool          hideTermTrips)
+                             bool          hideTermTrips,
+                             quint32       rtDateMatchLev,
+                             bool          loosenRealTimeStopSeq,
+                             const QString zOptions)
 {
-    _status = new GTFS::Status(_dbRootPath, frozenLocalDateTime, use12hourTimes, maxTripsNEX, hideTermTrips, this);
+    _status = new GTFS::Status(_dbRootPath,
+                               frozenLocalDateTime,
+                               use12hourTimes,
+                               maxTripsNEX,
+                               hideTermTrips,
+                               rtDateMatchLev,
+                               loosenRealTimeStopSeq,
+                               zOptions,
+                               this);
 }
 
 void DataGateway::initRoutes()

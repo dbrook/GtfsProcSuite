@@ -52,7 +52,7 @@ public:
      * nbTripsRtNEX:   number of trips per route that should be serialized in NEX responses
      * hideTermTrips:  set to true if trips terminating at the requested stop should be hidden (NEX/NCF only)
      * looseRTStopSeq: do not enforce strict stop sequence / stop id checks when sequences are avail. in realtime feed
-     * allSkippedCan:  mark a real-time trip as canceled if all the stop time updates are skipped
+     * zOptions:       special GtfsProc server processing override flags for various work-arounds
      */
     ServeGTFS(QString  dbRootPath,
               QString  realTimePath,
@@ -65,7 +65,7 @@ public:
               quint32  nbTripsRtNEX,
               bool     hideTermTrips,
               bool     looseRTStopSeq,
-              bool     allSkippedCan,
+              QString  zOptions,
               QObject *parent        = nullptr);
     virtual ~ServeGTFS();
 
@@ -75,6 +75,9 @@ protected:
     virtual void incomingConnection(qintptr descriptor); //qint64, qHandle, qintptr, uint
 
 private:
+    QStringList CreateZOptions(QString zOptComma);
+    bool IsInZOptions(const QStringList &zOpts, const QString zOpt);
+
     bool _showTraces;
 };
 

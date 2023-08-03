@@ -41,12 +41,16 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
                      quint32  numberTripsPerRouteNEX,
                      bool     hideEndingTrips,
                      bool     loosenRealTimeStopSeq,
-                     bool     allSkippedCan,
+                     QString  zOptions,
                      QObject *parent) :
     TcpServer(parent)
 {
     // Transaction and update logging:
     _showTraces = showTraces;
+
+    // Determine the Z-Options for setting extra process flags in the server
+    QStringList zOpts = CreateZOptions(zOptions);
+    bool allSkippedIsCanceled = IsInZOptions(zOpts, "ALL_SKIPPED_IS_CANCELED");
 
     // Setup the global data access
     GTFS::DataGateway &data = GTFS::DataGateway::inst();
@@ -54,8 +58,9 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
 
     // Populate each data set
 
-    // "Status" is special, it holds process, feed_info.txt, and agency.txt data
-    data.initStatus(frozenTime, use12h, numberTripsPerRouteNEX, hideEndingTrips);
+    // "Status" is special: it holds server parameters as well as the content from feed_info.txt and agency.txt
+    data.initStatus(frozenTime, use12h, numberTripsPerRouteNEX, hideEndingTrips,
+                    rtDateMatchLev, loosenRealTimeStopSeq, zOptions);
     data.initRoutes();                   // Fill the Routes database from routes.txt
     data.initOperatingDay();             // Fill the calendar.txt and calendar_dates.txt
     data.initTrips();                    // Fill the trips.txt data
@@ -81,12 +86,13 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
     } else if (rtDateMatchLev == 2) {
         dateEnforcement = GTFS::NO_MATCHING;
     }
+
     rtData.setRealTimeFeedPath(realTimePath,
                                rtInterval,
                                showProtobuf,
                                dateEnforcement,
                                loosenRealTimeStopSeq,
-                               allSkippedCan,
+                               allSkippedIsCanceled,
                                _showTraces,
                                data.getTripsDB(),
                                data.getStopTimesDB());
@@ -131,4 +137,14 @@ void ServeGTFS::incomingConnection(qintptr descriptor)
 
     // Accept a connection into the event loop
     accept(descriptor, connection);
+}
+
+QStringList ServeGTFS::CreateZOptions(QString zOptComma)
+{
+    return zOptComma.split(',');
+}
+
+bool ServeGTFS::IsInZOptions(const QStringList &zOpts, const QString zOpt)
+{
+    return zOpts.contains(zOpt);
 }

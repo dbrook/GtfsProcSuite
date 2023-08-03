@@ -28,7 +28,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "url": "http://www.septa.org"
         }
     ],
-*   "application": "",
+    "application": "GtfsProc 2.1.0",
 *   "appuptime_sec": 9,
 *   "dataloadtime_ms": 8,
     "error": 0,
@@ -38,11 +38,16 @@ published with an offset, the remaining stops in a trip are assumed to have the 
     "feed_valid_end": "30-May-2020",
     "feed_valid_start": "10-May-2020",
     "feed_version": "Mon May  4 16:45:34 UTC 2020",
+    "hide_terminating": false,
     "message_time": "22-May-2020 00:30:30 EDT",
     "message_type": "SDS",
+    "nb_nex_trips": 4,
+    "overrides": "",
 *   "proc_time_ms": 0,
 *   "processed_reqs": 2,
     "records": 2476,
+    "rt_date_match": 2,
+    "rt_trip_seq_match": true,
     "threadpool_count": 1
 }
 @End

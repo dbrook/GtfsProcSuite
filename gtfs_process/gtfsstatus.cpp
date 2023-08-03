@@ -34,10 +34,16 @@ Status::Status(const QString dataRootPath,
                bool           use12hClock,
                quint32        nbTripsPerRouteNEX,
                bool           hideTermTrips,
+               quint32        rtDateMatchLev,
+               bool           loosenRealTimeStopSeq,
+               const QString  zOptions,
                QObject       *parent)
     : QObject(parent),
       numberTripsPerRouteNEX(nbTripsPerRouteNEX),
-      hideEndingTrips(hideTermTrips)
+      hideEndingTrips(hideTermTrips),
+      zOpts(zOptions),
+      rtDateMatchLevel(rtDateMatchLev),
+      rtLooseSeqMatch(loosenRealTimeStopSeq)
 {
     // We should pass the start time from the main server start?
     this->serverStartTimeUTC = QDateTime::currentDateTimeUtc();
@@ -214,6 +220,21 @@ bool Status::hideTerminatingTripsForNEXNCF() const
 QDateTime Status::getStaticDatasetModifiedTime() const
 {
     return staticDataRevision;
+}
+
+QString Status::getZOptions() const
+{
+    return zOpts;
+}
+
+quint32 Status::getRtDateMatchLevel() const
+{
+    return rtDateMatchLevel;
+}
+
+bool Status::getRtLooseSeqMatch() const
+{
+    return rtLooseSeqMatch;
 }
 
 void Status::incrementRecordsLoaded(const qint64 &value)

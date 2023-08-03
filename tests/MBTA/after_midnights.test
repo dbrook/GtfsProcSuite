@@ -30,7 +30,7 @@ and canceled).
             "url": "http://www.mbta.com"
         }
     ],
-*   "application": "",
+    "application": "GtfsProc 2.1.0",
 *   "appuptime_sec": 15,
 *   "dataloadtime_ms": 8034,
     "error": 0,
@@ -40,11 +40,16 @@ and canceled).
     "feed_valid_end": "20-Jun-2020",
     "feed_valid_start": "14-May-2020",
     "feed_version": "Spring 2020, 2020-05-21T20:06:36+00:00, version D",
+    "hide_terminating": false,
     "message_time": "22-May-2020 00:07:30 EDT",
     "message_type": "SDS",
+    "nb_nex_trips": 4,
+    "overrides": "",
 *   "proc_time_ms": 0,
 *   "processed_reqs": 1,
     "records": 2040956,
+    "rt_date_match": 0,
+    "rt_trip_seq_match": true,
     "threadpool_count": 1
 }
 @End

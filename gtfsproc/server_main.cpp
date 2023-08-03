@@ -26,16 +26,6 @@
 
 #include "servegtfs.h"
 
-const QStringList CreateZOptions(QString zOptComma)
-{
-    return zOptComma.split(',');
-}
-
-bool IsInZOptions(const QStringList &zOpts, const QString zOpt)
-{
-    return zOpts.contains(zOpt);
-}
-
 int main(int argc, char *argv[])
 {
     /*
@@ -201,9 +191,6 @@ int main(int argc, char *argv[])
         loosenRTStopSeqStopIDEnforce = true;
     }
 
-    QStringList zOpts = CreateZOptions(parser.value(zOptions));
-    bool allSkippedIsCanceled = IsInZOptions(zOpts, "ALL_SKIPPED_IS_CANCELED");
-
     ServeGTFS gtfsRequestServer(databaseRootPath,
                                 realTimePath,
                                 rtDataInterval,
@@ -215,7 +202,7 @@ int main(int argc, char *argv[])
                                 nbTripsPerNEXRoute,
                                 hideTerminatingTripsNEXNCF,
                                 loosenRTStopSeqStopIDEnforce,
-                                allSkippedIsCanceled);
+                                parser.value(zOptions));
     gtfsRequestServer.displayDebugging();
 
     /*
