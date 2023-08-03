@@ -1,8 +1,8 @@
 THIS RELEASE: Version 2.1.0
 ---------------------------
-- Created the notion of "Z-Options", which are Boolean process flags that (will) allow for the
+- Created the notion of Override Lists, which are Boolean process flags that (will) allow for the
   altering of "standard" GTFS algorithm processing.
-- Created the "ALL_SKIPPED_IS_CANCELED" Z-Option for processing real-time trip updates with only
+- Created the "ALL_SKIPPED_IS_CANCELED" Override for processing real-time trip updates with only
   skipped stops as canceled trips like the MBTA does for certain bus routes.
 - Added information to SDS transactions to see the algorithms chosen at startup.
 

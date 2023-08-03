@@ -99,7 +99,7 @@ public:
     // Returns the last-modified time from the agency.txt file in the static dataset
     QDateTime getStaticDatasetModifiedTime() const;
 
-    // Returns the list of Z-Options provided at server startup time
+    // Returns the list of Override Options provided at server startup time
     QString getZOptions() const;
 
     // Diagnostic purposes

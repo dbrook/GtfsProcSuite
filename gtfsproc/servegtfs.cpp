@@ -48,7 +48,7 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
     // Transaction and update logging:
     _showTraces = showTraces;
 
-    // Determine the Z-Options for setting extra process flags in the server
+    // Determine the Override Options for setting extra process flags in the server
     QStringList zOpts = CreateZOptions(zOptions);
     bool allSkippedIsCanceled = IsInZOptions(zOpts, "ALL_SKIPPED_IS_CANCELED");
 

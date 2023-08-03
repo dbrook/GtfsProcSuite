@@ -79,11 +79,11 @@ int main(int argc, char *argv[])
     QCommandLineOption noRTStopSeqEnf(QStringList() << "q",
                     QCoreApplication::translate("main", "Do not check stop sequences in real-time feed to static."));
 
-    // Non-Standard "Z Options" - things that (sort of (?)) violate the GTFS specificaiton but are necessary to
+    // Non-Standard Override Options - things that (sort of (?)) violate the GTFS specificaiton but are necessary to
     // display the data normally or as expected - we'll break these into a list
     QCommandLineOption zOptions(QStringList() << "z",
-                    QCoreApplication::translate("main", "Processing Override Z-Option List."),
-                    QCoreApplication::translate("main", "Comma-separated Z-Options"));
+                    QCoreApplication::translate("main", "Processing Overrides List."),
+                    QCoreApplication::translate("main", "Comma-separated Options"));
 
     // Debugging Options - Fix system date and time for debugging, dump realtime protobuf when processing
     QCommandLineOption showFrontendRequests(QStringList() << "i",
