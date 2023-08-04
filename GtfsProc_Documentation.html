@@ -185,7 +185,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
 
 <h2>ALL_SKIPPED_IS_CANCELED</h2>
 <p>
-    When ingesting a real-time trip update (RTTU) ProtoBuf into GtfsProc's internal data structures, if all stop time updates in a given trip update are listed as "canceled", then instead of marking that trip as skipping those stops, just say the trip is canceled. This operation will apply without considering the trip start time field (so all future and past instances would also be marked as canceled). This is a work-around in place for the MBTA way of marking most bus trips as skipped when they're actually canceling the entire trip.
+    When ingesting a real-time trip update (RTTU) ProtoBuf into GtfsProc's internal data structures, if all stop time updates in a given trip update are listed as "canceled", then instead of marking that trip as skipping those stops, just say the trip is canceled. This operation will apply without considering the trip start date field if it is not filled in from the provider (so all future and past instances would also be marked as canceled). This is a work-around in place for the MBTA way of marking most bus trips as skipped when they're actually canceling the entire trip.
 </p>
 
 <h1>Modules</h1>

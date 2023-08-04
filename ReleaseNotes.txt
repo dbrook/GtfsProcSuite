@@ -3,7 +3,9 @@ THIS RELEASE: Version 2.1.0
 - Created the notion of Override Lists, which are Boolean process flags that (will) allow for the
   altering of "standard" GTFS algorithm processing.
 - Created the "ALL_SKIPPED_IS_CANCELED" Override for processing real-time trip updates with only
-  skipped stops as canceled trips like the MBTA does for certain bus routes.
+  skipped stops as canceled trips like the MBTA does for certain bus routes. This flag will operate
+  on these trips with-or-without strict date matching as they don't actually put a start date field
+  with trips canceled in this manner.
 - Added information to SDS transactions to see the algorithms chosen at startup.
 
 

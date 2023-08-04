@@ -1,0 +1,44 @@
+service_id,date,exception_type,holiday_name
+SPR23-S-Sa-C1-S49,20230703,1,
+SPR23-S-Wdy-1-S8f,20230703,1,
+SPR23-S-Wdy-1-Sb6,20230703,1,
+SPR23-S-Wdy-1-Sc0,20230703,1,
+BUS323-hbb33j47-Su-02,20230704,1,Independence Day
+BUS323-hbc33j47-Su-02,20230704,1,Independence Day
+BUS323-hbg33j47-Su-02,20230704,1,Independence Day
+BUS323-hbl33j47-Su-02,20230704,1,Independence Day
+BUS323-hbq33j47-Su-02,20230704,1,Independence Day
+BUS323-hbs33j47-Su-02,20230704,1,Independence Day
+BUS323-hbt33j47-Su-02,20230704,1,Independence Day
+Boat-EastBoston-Sa-Smr-23,20230704,1,Independence Day
+Boat-EastBoston-Wdy-Smr-23,20230704,2,Independence Day
+Boat-F1-Sa-Smr-23,20230704,1,Independence Day
+Boat-F1-Wdy-Smr-23,20230704,2,Independence Day
+Boat-F4-Sa-Smr-23,20230704,1,Independence Day
+Boat-F4-Wdy-Smr-23,20230704,2,Independence Day
+Boat-Lynn-Wdy-Smr-23,20230704,2,Independence Day
+CR-Newburyport-LynnShuttleSmr-Std,20230704,1,Independence Day
+CR-Newburyport-LynnShuttleSmr-Wkd,20230704,2,Independence Day
+IncD,20230704,1,Independence Day
+LRV323-hlb33j41-Wdy-01,20230704,1,Independence Day
+LRV323-hlm33j41-Wdy-01,20230704,1,Independence Day
+PRIV323-hpj33017-Su-01,20230704,1,Independence Day
+PRIV323-hpp33hl7-Su-01,20230704,1,Independence Day
+RTL323-hmb33j41-Wdy-01,20230704,1,Independence Day
+RTL323-hmo33j41-Wdy-01,20230704,1,Independence Day
+RTL323-hms33j41-Wdy-01,20230704,1,Independence Day
+SmrWkd,20230704,2,Independence Day
+SprWkd,20230704,2,Independence Day
+SPR23-S-Sa-C1-S49,20230705,1,
+SPR23-S-Wdy-1-S8f,20230705,1,
+SPR23-S-Wdy-1-Sb6,20230705,1,
+SPR23-S-Wdy-1-Sc0,20230705,1,
+SPR23-S-Wdy-1-S8f,20230706,1,
+SPR23-S-Wdy-1-Sb6,20230706,1,
+SPR23-S-Wdy-1-Sc0,20230706,1,
+SPR23-S-Wdy-1-S8f,20230707,1,
+SPR23-S-Wdy-1-Sb6,20230707,1,
+SPR23-S-Wdy-1-Sc0,20230707,1,
+RTL323-hms33011-Wdy-01,20230710,1,
+LRV323-hlb33016-Sa-01,20230715,2,
+LRV323-hlb33017-Su-01,20230716,2,

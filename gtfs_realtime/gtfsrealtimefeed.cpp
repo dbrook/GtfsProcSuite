@@ -164,6 +164,9 @@ bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id,
             (_dateEnforcement == SERVICE_DATE && startDate == serviceDateStr) ||
             (_dateEnforcement == ACTUAL_DATE  && startDate == actualDateStr)) {
             return true;
+        } else if (startDate == "" && _allSkippedCan) {
+            // If there is no start date field, but the "ALL_SKIPPED_IS_CANCELED" flag is on, then let it mark canceled
+            return true;
         }
     }
     return false;

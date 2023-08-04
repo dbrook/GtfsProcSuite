@@ -1,0 +1,163 @@
+@Description
+This is a collection of real-time trip updates for trips that are part of a service day
+but are operating "after midnight" to prove that with harsh date checking (-l 0) we are
+enforcing the service date of the real-time trip update against that of the static data.
+There are expected problems in the data with the first case (the MBTA update included
+a prediction for a trip for the next service date, so it looks like it's coming 86093 s
+(~1 day) early. Other cases demonstrate a trip update fully after midnight (supplemental
+and canceled).
+@End
+
+@StartParams
+-dstatic_skip_cancel
+-rmbta_tripUpdates_skip_cancel.pb
+-u600
+-f2023,7,9,11,02,30
+-zALL_SKIPPED_IS_CANCELED
+@End
+
+@Case:Assert Running and Expected Records Loaded
+@Query:SDS
+@Expected
+{
+    "agencies": [
+        {
+            "id": "3",
+            "lang": "EN",
+            "name": "Cape Cod Regional Transit Authority",
+            "phone": "800-352-7155",
+            "tz": "America/New_York",
+            "url": "http://www.capecodrta.org/"
+        },
+        {
+            "id": "1",
+            "lang": "EN",
+            "name": "MBTA",
+            "phone": "617-222-3200",
+            "tz": "America/New_York",
+            "url": "http://www.mbta.com"
+        }
+    ],
+    "application": "GtfsProc 2.1.0",
+*   "appuptime_sec": 375,
+*   "dataloadtime_ms": 5728,
+    "error": 0,
+    "feed_lang": "EN",
+    "feed_publisher": "MBTA",
+    "feed_url": "http://www.mbta.com",
+    "feed_valid_end": "26-Aug-2023",
+    "feed_valid_start": "01-Jul-2023",
+    "feed_version": "Summer 2023, 2023-07-08T15:26:29+00:00, version D",
+    "hide_terminating": false,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "SDS",
+    "nb_nex_trips": 4,
+    "overrides": "ALL_SKIPPED_IS_CANCELED",
+*   "proc_time_ms": 0,
+*   "processed_reqs": 1,
+    "records": 1526500,
+    "rt_date_match": 0,
+    "rt_trip_seq_match": true,
+    "threadpool_count": 1
+}
+@End
+
+@Case:Realtime Data Integrated and Active
+@Query:RDS
+@Expected
+{
+*   "active_age_sec": 4,
+*   "active_download_ms": 0,
+    "active_feed_time": "09-Jul-2023 11:02:26 EDT",
+*   "active_integration_ms": 30,
+    "active_rt_version": "2.0",
+*   "active_side": "B",
+    "error": 0,
+*   "last_realtime_query": "03-Aug-2023 22:55:43 EDT",
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "RDS",
+*   "proc_time_ms": 0,
+*   "seconds_to_next_fetch": 34
+}
+@End
+
+@Case:Trip ID 57483042 is marked as canceled as all stops are marked as skipped upstream
+@Query:NCF 5 11257
+@Expected
+{
+    "error": 0,
+*   "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": 11,
+*   "realtime_age_sec": 4,
+*   "static_data_modif": "08-Jul-2023 11:27:50 EDT",
+    "stop_desc": "",
+    "stop_id": "11257",
+    "stop_name": "Malcolm X Blvd @ King St",
+    "trips": [
+        {
+            "arr_time": "Sun 11:03",
+            "dep_time": "Sun 11:03",
+            "drop_off_type": 0,
+            "headsign": "Jackson Square",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Sun 11:02",
+                "actual_departure": "Sun 11:02",
+                "offset_seconds": -26,
+                "status": "ARRV",
+                "stop_status": "FULL",
+                "vehicle": "1881"
+            },
+            "route_id": "44",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "57247902",
+            "trip_terminates": false,
+            "wait_time_sec": 4
+        },
+        {
+            "arr_time": "Sun 11:06",
+            "dep_time": "Sun 11:06",
+            "drop_off_type": 0,
+            "headsign": "Mattapan",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+                "offset_seconds": 0,
+                "status": "CNCL",
+                "stop_status": "",
+                "vehicle": ""
+            },
+            "route_id": "28",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "57483042",
+            "trip_terminates": false,
+            "wait_time_sec": 210
+        },
+        {
+            "arr_time": "Sun 10:58",
+            "dep_time": "Sun 10:58",
+            "drop_off_type": 0,
+            "headsign": "Nubian via Allston",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Sun 11:06",
+                "actual_departure": "Sun 11:06",
+                "offset_seconds": 493,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "1785"
+            },
+            "route_id": "66",
+            "short_name": "",
+            "trip_begins": false,
+            "trip_id": "57248013",
+            "trip_terminates": false,
+            "wait_time_sec": 223
+        }
+    ]
+}
+@End
