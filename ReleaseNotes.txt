@@ -1,5 +1,12 @@
-THIS RELEASE: Version 2.1.0
+THIS RELEASE: Version 2.1.1
 ---------------------------
+- Fixed a wrong order-of-arguments bug in constructing RealTimeTripUpdate objects (trace parameter
+  and all-skipped-is-canceled flag were stepping on each other)
+
+
+PREVIOUS RELEASES:
+Version 2.1.0
+-------------
 - Created the notion of Override Lists, which are Boolean process flags that (will) allow for the
   altering of "standard" GTFS algorithm processing.
 - Created the "ALL_SKIPPED_IS_CANCELED" Override for processing real-time trip updates with only
@@ -8,8 +15,6 @@ THIS RELEASE: Version 2.1.0
   with trips canceled in this manner.
 - Added information to SDS transactions to see the algorithms chosen at startup.
 
-
-PREVIOUS RELEASES:
 Version 2.0.0
 -------------
 - Debian is the reference platform for GtfsProc, so with the release of Debian 12, which uses Qt 6

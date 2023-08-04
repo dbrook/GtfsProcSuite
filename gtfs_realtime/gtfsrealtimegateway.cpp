@@ -209,8 +209,8 @@ void RealTimeGateway::refetchData()
                                                 _debugProtobuf,
                                                 _skipDateMatching,
                                                 _loosenStopSeqEnf,
-                                                _allSkippedCan,
                                                 _trace,
+                                                _allSkippedCan,
                                                 _staticFeedTripDB,
                                                 _staticStopTimeDB);
             }
@@ -233,8 +233,8 @@ void RealTimeGateway::refetchData()
                                                 _debugProtobuf,
                                                 _skipDateMatching,
                                                 _loosenStopSeqEnf,
-                                                _allSkippedCan,
                                                 _trace,
+                                                _allSkippedCan,
                                                 _staticFeedTripDB,
                                                 _staticStopTimeDB);
             }
