@@ -93,6 +93,7 @@ public:
                                 bool                dumpProtobuf,
                                 rtDateLevel         skipDateMatching,
                                 bool                loosenStopSeqEnf,
+                                bool                allSkippedCanceled,
                                 const TripData     *tripsDB,
                                 const StopTimeData *stopTimeDB,
                                 QObject            *parent = nullptr);
@@ -101,6 +102,7 @@ public:
                                 rtDateLevel         skipDateMatching,
                                 bool                loosenStopSeqEnf,
                                 bool                displayBufferInfo,
+                                bool                allSkippedCanceled,
                                 const TripData     *tripsDB,
                                 const StopTimeData *stopTimeDB,
                                 QObject            *parent = nullptr);
@@ -300,6 +302,7 @@ private:
 
     rtDateLevel _dateEnforcement;   // Service / operating date enforcement level
     bool        _loosenStopSeqEnf;  // Match stop_id from static and realtime feeds regardless of stop seq (if provided)
+    bool        _allSkippedCan;     // If a trip update is all skipped stops, consider it canceled
 };
 
 } // namespace GTFS

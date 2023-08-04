@@ -51,6 +51,7 @@ public:
                              bool                showProtobuf,
                              rtDateLevel         rtDateMatchLevel,
                              bool                loosenStopSeqEnf,
+                             bool                allSkippedCan,
                              bool                showDebugTrace,
                              const TripData     *tripsDB,
                              const StopTimeData *stopTimeDB);
@@ -101,6 +102,7 @@ private:
     bool                _debugProtobuf;      // true if a protobuf should be serialized each time it is received
     rtDateLevel         _skipDateMatching;   // true to skip all date matching from schedule trips and realtime feed
     bool                _loosenStopSeqEnf;   // true to skip stop seq checks from stop ids from static vs. realtime feed
+    bool                _allSkippedCan;      // true to automatically mark a trip update as a canceled trip if skipping
     bool                _trace;              // true if the periodic real-time trip update refresh traces should show
     RealTimeTripUpdate *_sideA;
     RealTimeTripUpdate *_sideB;

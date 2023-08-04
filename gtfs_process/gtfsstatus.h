@@ -51,6 +51,9 @@ public:
                     bool           use12hClock,
                     quint32        numberTripsPerRouteNEX,
                     bool           hideEndingTrips,
+                    quint32        rtDateMatchLev,
+                    bool           loosenRealTimeStopSeq,
+                    const QString  zOptions,
                     QObject       *parent = nullptr);
 
     // Returns the number of records loaded from the agency.txt and feed_into.txt files
@@ -95,6 +98,13 @@ public:
 
     // Returns the last-modified time from the agency.txt file in the static dataset
     QDateTime getStaticDatasetModifiedTime() const;
+
+    // Returns the list of Override Options provided at server startup time
+    QString getZOptions() const;
+
+    // Diagnostic purposes
+    quint32 getRtDateMatchLevel() const;
+    bool    getRtLooseSeqMatch() const;
 
 private:
     // Determine order of CSV table columns from feed_info.txt
@@ -145,6 +155,13 @@ private:
 
     // When was the static dataset last revised?
     QDateTime staticDataRevision;
+
+    // List of Z-Options (processing algorithm and other unique override flags)
+    const QString zOpts;
+
+    // Just for diagnostic output
+    quint32 rtDateMatchLevel;
+    bool    rtLooseSeqMatch;
 };
 
 }  // Namespace GTFS

@@ -47,6 +47,7 @@ void RealTimeGateway::setRealTimeFeedPath(const QString      &realTimeFeedPath,
                                           bool                showProtobuf,
                                           rtDateLevel         rtDateMatchLevel,
                                           bool                loosenStopSeqEnf,
+                                          bool                allSkippedCan,
                                           bool                showDebugTrace,
                                           const TripData     *tripsDB,
                                           const StopTimeData *stopTimeDB)
@@ -81,6 +82,9 @@ void RealTimeGateway::setRealTimeFeedPath(const QString      &realTimeFeedPath,
 
     // Skip strict stop sequence and stop id matching when reconciling realtime and static feeds
     _loosenStopSeqEnf = loosenStopSeqEnf;
+
+    // Assume a trip with all skipped stops is just canceled
+    _allSkippedCan = allSkippedCan;
 }
 
 qint64 RealTimeGateway::secondsToFetch() const
@@ -94,9 +98,9 @@ void RealTimeGateway::dataRetrievalLoop()
     QTimer *dataTimer = new QTimer();
     connect(dataTimer, SIGNAL(timeout()), SLOT(refetchData()));
 
-    // Check interval is 10 seconds, but data will only refresh at the specified interval setting when not "idle"
+    // Check interval is 5 seconds, but data will only refresh at the specified interval setting when not "idle"
     // TODO: this could be more event driven maybe?
-    dataTimer->start(10000);
+    dataTimer->start(5000);
 }
 
 void RealTimeGateway::realTimeTransactionHandled()
@@ -197,6 +201,7 @@ void RealTimeGateway::refetchData()
                                                 _debugProtobuf,
                                                 _skipDateMatching,
                                                 _loosenStopSeqEnf,
+                                                _allSkippedCan,
                                                 _staticFeedTripDB,
                                                 _staticStopTimeDB);
             } else {
@@ -204,6 +209,7 @@ void RealTimeGateway::refetchData()
                                                 _debugProtobuf,
                                                 _skipDateMatching,
                                                 _loosenStopSeqEnf,
+                                                _allSkippedCan,
                                                 _trace,
                                                 _staticFeedTripDB,
                                                 _staticStopTimeDB);
@@ -219,6 +225,7 @@ void RealTimeGateway::refetchData()
                                                 _debugProtobuf,
                                                 _skipDateMatching,
                                                 _loosenStopSeqEnf,
+                                                _allSkippedCan,
                                                 _staticFeedTripDB,
                                                 _staticStopTimeDB);
             } else {
@@ -226,6 +233,7 @@ void RealTimeGateway::refetchData()
                                                 _debugProtobuf,
                                                 _skipDateMatching,
                                                 _loosenStopSeqEnf,
+                                                _allSkippedCan,
                                                 _trace,
                                                 _staticFeedTripDB,
                                                 _staticStopTimeDB);

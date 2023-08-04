@@ -92,6 +92,11 @@ void StaticStatus::fillResponseData(QJsonObject &resp)
     resp["feed_valid_end"]   = (!_stat->getEndDate().isNull())   ? _stat->getEndDate().toString("dd-MMM-yyyy")
                                                                  : "__-___-____";
     resp["feed_version"]     = _stat->getVersion();
+    resp["overrides"]        = _stat->getZOptions();
+    resp["hide_terminating"] = _stat->hideTerminatingTripsForNEXNCF();
+    resp["nb_nex_trips"]     = (double) _stat->getNbTripsPerRoute();
+    resp["rt_date_match"]    = (double) _stat->getRtDateMatchLevel();
+    resp["rt_trip_seq_match"]= !_stat->getRtLooseSeqMatch();
 
     QJsonArray agencyArray;
     const QVector<GTFS::AgencyRecord> agencyVec = _stat->getAgencies();

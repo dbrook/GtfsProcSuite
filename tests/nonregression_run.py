@@ -191,6 +191,7 @@ def loadGtfsProcAndRunCases(regression_file):
             total_cases += 1
 
     gtfs_process.kill()
+    sleep(2)
 
     return passed_cases, total_cases
     
