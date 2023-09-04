@@ -8,6 +8,7 @@ DEPENDPATH += $$PWD
 
 HEADERS += \
     $$PWD/availableroutes.h \
+    $$PWD/endtoendtrips.h \
     $$PWD/realtimeproductstatus.h \
     $$PWD/realtimestatus.h \
     $$PWD/realtimetripinformation.h \
@@ -24,6 +25,7 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/availableroutes.cpp \
+    $$PWD/endtoendtrips.cpp \
     $$PWD/realtimeproductstatus.cpp \
     $$PWD/realtimestatus.cpp \
     $$PWD/realtimetripinformation.cpp \

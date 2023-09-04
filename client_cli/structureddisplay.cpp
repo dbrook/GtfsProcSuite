@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2021, Daniel Brook
+ * Copyright (C) 2018-2023, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -89,7 +89,12 @@ void Display::displayWelcome()
            << "[ Data Lookup for Specific Date ]" << Qt::endl
            << "TRD: List of trips serving a route_id on a date" << Qt::endl
            << "TSD: List of trips serving a stop_id on a date" << Qt::endl
-           << "NEX: List upcoming trips serving a stop_id within a number of minutes" << Qt::endl
+           << "NEX/NCF: List upcoming trips serving stop_id within a number of minutes" << Qt::endl
+           << Qt::endl
+           << "[ Service Connecting Stops ]" << Qt::endl
+           << "SBS: Service between 2 stops, scheduled" << Qt::endl
+           << "EES: End-to-end connecting services with times" << Qt::endl
+           << "EER: End-to-end connecting services (real-time data only)" << Qt::endl
            << Qt::endl
            << "Reinitialize the display with 'HOM', quit using 'BYE'"
            << Qt::endl << Qt::endl;

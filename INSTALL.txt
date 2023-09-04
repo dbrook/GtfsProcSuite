@@ -42,3 +42,8 @@ Several individual moving parts will help in this process:
    you like to keep stuff running in perpetuity.
     -or-
    Create a SysV-style init or systemd init script to have it load on system startup?
+
+Build Issues?
+1) At least on Arch / Manjaro, your Protocol Buffer setup requires explicit linking of
+   libasl, so if you're having issues on that distribution, go to gtfs_realtime.pri and
+   do the necessary uncommenting.

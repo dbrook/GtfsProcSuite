@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 2.1.0)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 2.2.0)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2023, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 2.1.0 (02-Aug-2023)</b>
+    This is the documentation for <b>GtfsProc Version 2.2.0 (27-Aug-2023)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -79,7 +79,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 2.1.0 - Running on Process ID: 22112<br>
+GtfsProc version 2.2.0 - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>
@@ -149,7 +149,7 @@ SERVER STARTED - READY TO ACCEPT INCOMING CONNECTIONS<br>
     This will connect to a server on localhost which receives requests on TCP port 5000. Upon startup, a small help window will display the supported transactions. If you resize the terminal window at all, the ncurses-based window geometry detection must be refreshed / "reinitialized" using "HOM" again.
 </p>
 <div class="fixed">
-GTFS Interactive Data Console -- Version: 0.1 <br>
+GTFS Interactive Data Console -- Version: 0.2 <br>
 <br>
 [ System Information ] <br>
 SDS: Backend system and data load status <br>
@@ -170,6 +170,10 @@ TRD: List of trips serving a route_id on a date <br>
 TSD: List of trips serving a stop_id on a date <br>
 NEX: List upcoming trips serving a stop_id within a number of minutes <br>
 <br>
+[ Service Connecting Stops ] <br>
+SBS: Service between 2 stops, scheduled <br>
+EES: End-to-end connecting services with times <br>
+EER: End-to-end connecting services (real-time data only) <br>
 Reinitialize the display with 'HOM', quit using 'BYE' <br>
 <br>
 %
@@ -2891,6 +2895,28 @@ NEX {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
     </tr>
     <tr>
         <td class="fixed">
+            route_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Route ID for the trip ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            stop_id
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Stop ID for the stop that the trip actually serves (like a unique platform within a parent stop)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
             dep_time
         </td>
         <td class="fixed">
@@ -3110,6 +3136,17 @@ NCF {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
         </td>
         <td>
             Stop ID of the stop requested, or the parent station, or a “|” delimited list of all stop IDs requested
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            static_data_modif
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Last-modified time and date of the GTFS Static Dataset for the whole transit agency.
         </td>
     </tr>
     <tr>
@@ -3699,6 +3736,87 @@ Possible error values:
         </td>
     </tr>
 
+</table>
+
+<h3>End-to-End Journey Travel and Transfer Times</h3>
+<p>Given a list of origin and destination stop IDs split by connection times in minutes, returns the upcoming trips (and downstream connections if requested) that will travel from end-to-end.</p>
+<p>A single trip origin/destination may be specified, but if additional legs are needed, they'll have to be separated by a connection "penalty" time in minutes.</p>
+<h4>Request Format</h4>
+<p>
+Scheduled and real-time data:
+<ul>
+    <li>EES {look-ahead minutes} {stopIDori1}|{stopIDdes1}</li>
+    <li>EES {look-ahead minutes} {stopIDori1}|{stopIDdes1}|{connectTime1}|{stopIDori2}|{stopIDdes2}|...</li>
+</ul>
+Only trips that have predictions (real-time data):
+<ul>
+    <li>EER {look-ahead minutes} {stopIDori1}|{stopIDdes1}</li>
+    <li>EER {look-ahead minutes} {stopIDori1}|{stopIDdes1}|{connectTime1}|{stopIDori2}|{stopIDdes2}|...</li>
+</ul>
+
+</p>
+<h4>Response Format</h4>
+<p>
+    The ‘message_type’ is “E2E”.<br>
+    Possible error values:
+    <ul>
+        <li>0: Success</li>
+        <li>901: Incorrect number of arguments</li>
+        <li>902: Non-numeric or negative value requested in a connection time field</li>
+        <li>903: One of the stop IDs requested does not exist in the dataset</li>
+    </ul>
+    <b>The trip array contents are identical to "NEX" and "NCF" messages:</b>
+</p>
+<table class="fieldDocumentation">
+    <tr>
+        <th>Field</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td class="fixed">
+            realtime_age_sec
+        </td>
+        <td class="fixed">
+            integer
+        </td>
+        <td>
+            Age of the real-time data used to compute the arrival/departure times (if available)
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            static_data_modif
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Last-modified time and date of the GTFS Static Dataset for the whole transit agency.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>stops<b>
+        </td>
+        <td class="fixed">
+            object
+        </td>
+        <td>
+            Associative array of stop IDs with their stop_desc and stop_name fields from the static dataset. Includes every stop that shows up in the trips array for this message.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>trips</b>
+        </td>
+        <td class="fixed">
+            array
+        </td>
+        <td>
+            An array (sorted by the departure time of the first leg of a trip sequence) of all recommended journeys. Each element of the array contains an array with 2 items: the origin and destination stop (identical to a NEX/NCF trip response).
+        </td>
+    </tr>
 </table>
 
 <!--

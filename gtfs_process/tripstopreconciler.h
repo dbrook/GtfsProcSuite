@@ -49,6 +49,7 @@ typedef enum {
  */
 typedef struct {
     QString      tripID;              // Trip ID of the trip serving the stop
+    QString      routeID;             // Route ID of the trip serving the stop
     bool         realTimeDataAvail;   // TRUE if there is real-time data available for this item
     qint64       realTimeOffsetSec;   // Schedule deviation (if a real-time recommendation with a static counterpart)
     TripRecStat  tripStatus;          // * See above *

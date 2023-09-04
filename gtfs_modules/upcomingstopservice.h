@@ -80,6 +80,9 @@ public:
     /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
 
+    // Utility Functions
+    static void fillTripData(const GTFS::StopRecoTripRec &rts, QJsonObject &stopTripItem, bool format12h, QString shortName);
+
 private:
     QList<QString> _stopIDs;
     QDate          _serviceDate;
@@ -97,9 +100,6 @@ private:
 
     bool _rtData;
     const GTFS::RealTimeTripUpdate *_realTimeProc;
-
-    // Utility Functions
-    void fillTripData(const GTFS::StopRecoTripRec &rts, QJsonObject &stopTripItem);
 };
 
 }  // Namespace GTFS

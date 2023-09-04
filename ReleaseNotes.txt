@@ -1,10 +1,21 @@
-THIS RELEASE: Version 2.1.1
+THIS RELEASE: Version 2.2.0
 ---------------------------
-- Fixed a wrong order-of-arguments bug in constructing RealTimeTripUpdate objects (trace parameter
-  and all-skipped-is-canceled flag were stepping on each other)
+- Created EES and EER transactions to show arrival and departure times of entire trips with
+  connecting routes and specified transfer fimes.
+    - EES: End-to-End Service with scheduled and real-time data
+    - EER: End-to-End Service with trips using ONLY real-time data
+- Added stop ID, route ID, name information to NEX/NCF trip payloads
+- Added skip column to real-time trips in the terminal client
+- Fixed real-time trip stop sequence matching to also take into effect the stop ID (not just the
+  sequence number) because the "-q" option shuold have been evaluated first when doing comparisons.
 
 
 PREVIOUS RELEASES:
+Version 2.1.1
+-------------
+- Fixed a wrong order-of-arguments bug in constructing RealTimeTripUpdate objects (trace parameter
+  and all-skipped-is-canceled flag were stepping on each other)
+
 Version 2.1.0
 -------------
 - Created the notion of Override Lists, which are Boolean process flags that (will) allow for the

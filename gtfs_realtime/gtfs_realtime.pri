@@ -19,7 +19,6 @@ protobuf_impl.commands = $$escape_expand(\n)
 protobuf_impl.variable_out = SOURCES
 QMAKE_EXTRA_COMPILERS += protobuf_impl
 
-
 # Wrapper /abstraction objects to avoid coding directly against protobuf files
 INCLUDEPATH += $$PWD
 
@@ -32,4 +31,8 @@ SOURCES += \
     $$PWD/gtfsrealtimegateway.cpp\
     $$PWD/gtfsrealtimefeed.cpp
 
-LIBS += -lprotobuf -latomic
+# For Debian/Ubunto Linux:
+#LIBS += -lprotobuf -latomic
+
+# For Arch/Manjaro Linux:
+LIBS += -lprotobuf -latomic -labsl_log_internal_check_op -labsl_log_internal_message -labsl_status
