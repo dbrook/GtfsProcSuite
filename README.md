@@ -34,13 +34,9 @@ agencies were tested and work with this agent:
 - RTC Southern Nevada
 
 Agencies with realtime data have some differences in feed details, and the GtfsProc server can be started with several
-options to work around these differences (see the GtfsProc_Documentation.html file for details). Testing on the following
-agencies with realtime data revealed the following overrides were necessary to correctly calculate trip predictions:
-- MBTA: default options are fine (MBTA data was used at the original reference)
-- RIPTA: use '-l 1' (less-strict realtime trip start-time enforcement)
-- CT Transit: use '-r 90 -l 1 -q' (refresh at 90 seconds, disable stop sequence matching)
-- SEPTA: use '-l 2' (no date enforcement)
-- RTC Southern Nevada: use '-l 2'
+options to work around these differences (see the GtfsProc_Documentation.html file for details). Depending on your
+agency and how they publish real-time data, you'll want to experiment with: override options (-z), matching real-time
+schedules with stop IDs and/or sequence numbers (-l 0/1/2) to show the most number of predicted trips.
 
 Before finalizing any changes, be sure to run the non-regression tests under tests/*. You need Python (3) installed and
 simply need to:

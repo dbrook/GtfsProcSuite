@@ -156,7 +156,7 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
                 }
 
                 QJsonObject stopTripItem;
-                fillTripData(rts, stopTripItem);
+                fillTripData(rts, stopTripItem, getStatus()->format12h(), (*_tripDB)[rts.tripID].trip_short_name);
                 stopTrips.push_back(stopTripItem);
 
                 ++tripsFoundForRoute;
@@ -206,7 +206,8 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
         for (const QPair<GTFS::StopRecoTripRec, QString> &rts : unifiedTrips) {
             QJsonObject stopTripItem;
             stopTripItem["route_id"] = rts.second;    // Link to the route information
-            fillTripData(rts.first, stopTripItem);
+            fillTripData(rts.first, stopTripItem, getStatus()->format12h(),
+                         (*_tripDB)[rts.first.tripID].trip_short_name);
             stopRouteArray.push_back(stopTripItem);
         }
 
@@ -222,12 +223,14 @@ void UpcomingStopService::fillResponseData(QJsonObject &resp)
     }
 }
 
-void UpcomingStopService::fillTripData(const StopRecoTripRec &rts, QJsonObject &stopTripItem)
+void UpcomingStopService::fillTripData(const StopRecoTripRec &rts, QJsonObject &stopTripItem, bool format12h, QString shortName)
 {
     GTFS::TripRecStat tripStat = rts.tripStatus;
 
     stopTripItem["trip_id"]         = rts.tripID;
-    stopTripItem["short_name"]      = (*_tripDB)[rts.tripID].trip_short_name;
+    stopTripItem["stop_id"]         = rts.stopID;
+    stopTripItem["route_id"]        = rts.routeID;
+    stopTripItem["short_name"]      = shortName;
     stopTripItem["wait_time_sec"]   = rts.waitTimeSec;
     stopTripItem["headsign"]        = rts.headsign;
     stopTripItem["pickup_type"]     = rts.pickupType;
@@ -235,7 +238,7 @@ void UpcomingStopService::fillTripData(const StopRecoTripRec &rts, QJsonObject &
     stopTripItem["trip_begins"]     = rts.beginningOfTrip;
     stopTripItem["trip_terminates"] = rts.endOfTrip;
 
-    if (getStatus()->format12h()) {
+    if (format12h) {
         stopTripItem["dep_time"]        = rts.schDepTime.isNull() ? "-" : rts.schDepTime.toString("ddd h:mma");
         stopTripItem["arr_time"]        = rts.schArrTime.isNull() ? "-" : rts.schArrTime.toString("ddd h:mma");
     } else {
@@ -264,7 +267,7 @@ void UpcomingStopService::fillTripData(const StopRecoTripRec &rts, QJsonObject &
         realTimeData["offset_seconds"] = rts.realTimeOffsetSec;
         realTimeData["vehicle"]        = rts.vehicleRealTime;
 
-        if (getStatus()->format12h()) {
+        if (format12h) {
             realTimeData["actual_arrival"]   = rts.realTimeArrival.toString("ddd h:mma");
             realTimeData["actual_departure"] = rts.realTimeDeparture.toString("ddd h:mma");
         } else {

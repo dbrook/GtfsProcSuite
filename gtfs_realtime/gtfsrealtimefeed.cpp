@@ -345,7 +345,7 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
         // (for quality assurance, these kinds of trips will still be considered mimatches as they violate spec)
         QString stopIdRT = QString::fromStdString(tri.stop_time_update(rtSTUpd).stop_id());
         if (tri.stop_time_update(rtSTUpd).has_stop_sequence() &&
-            stopSeq == tri.stop_time_update(rtSTUpd).stop_sequence()) {
+            stopSeq == tri.stop_time_update(rtSTUpd).stop_sequence() && stopIdRT == stop_id) {
             // Match Stop ID and Stop Sequence when both are provided
             break;
         } else if ((!tri.stop_time_update(rtSTUpd).has_stop_sequence() || _loosenStopSeqEnf) && stop_id == stopIdRT) {
@@ -473,7 +473,8 @@ void RealTimeTripUpdate::fillStopTimesForTrip(rtUpdateMatch               realTi
                 // (should also enforce that the stop id matches the trip update contents)
                 QString stopIdRT = QString::fromStdString(tri.stop_time_update(stUpdIdx).stop_id());
                 if (tri.stop_time_update(stUpdIdx).has_stop_sequence() &&
-                    static_cast<quint32>(stopRec.stop_sequence) == tri.stop_time_update(stUpdIdx).stop_sequence()) {
+                    static_cast<quint32>(stopRec.stop_sequence) == tri.stop_time_update(stUpdIdx).stop_sequence() &&
+                    stopRec.stop_id == stopIdRT) {
                     stu.stopSequence = stopRec.stop_sequence;
                     break;
                 } else if ((!tri.stop_time_update(stUpdIdx).has_stop_sequence() || _loosenStopSeqEnf) &&

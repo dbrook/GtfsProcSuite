@@ -23,6 +23,7 @@
 // GTFS logical modules
 #include "staticstatus.h"
 #include "availableroutes.h"
+#include "endtoendtrips.h"
 #include "tripscheduledisplay.h"
 #include "tripsservingroute.h"
 #include "tripsservingstop.h"
@@ -160,6 +161,17 @@ void GtfsRequestProcessor::run()
                 GTFS::ServiceBetweenStops SBS(decodedStopIDs.at(0), decodedStopIDs.at(1), reqDate);
                 SBS.fillResponseData(respJson);
             }
+        } else if (! userApp.compare("EES", Qt::CaseInsensitive) || ! userApp.compare("EER", Qt::CaseInsensitive)) {
+            bool realtimeOnly = false;
+            if (! userApp.compare("EER", Qt::CaseInsensitive)) {
+                realtimeOnly = true;
+            }
+            QList<QString> args;
+            QString remainingReq;
+            qint32 futureMinutes = determineMinuteRange(userReq, remainingReq);
+            listifyIDs(remainingReq, args);
+            GTFS::EndToEndTrips E2E(futureMinutes, realtimeOnly, args);
+            E2E.fillResponseData(respJson);
         } else if (! userApp.compare("DRT", Qt::CaseInsensitive)) {
             GTFS::RealtimeTripInformation DRT;
             DRT.dumpRealTime(SystemResponse);

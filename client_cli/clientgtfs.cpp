@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2021, Daniel Brook
+ * Copyright (C) 2018-2023, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -195,6 +195,13 @@ void ClientGtfs::repl()
                                             << secs  << "s " << qSetFieldWidth(0) << Qt::endl;
             screen << "Data Load Time . . " << respObj["dataloadtime_ms"].toInt() << "ms" << Qt::endl;
             screen << "Thread Pool  . . . " << respObj["threadpool_count"].toInt() << Qt::endl;
+
+            screen << "Override Opts  . . " << respObj["overrides"].toString() << Qt::endl;
+            screen << "Term Trips . . . . " << (respObj["hide_terminating"].toBool() ? "Hidden" : "Shown") << Qt::endl;
+            screen << "NEX Trips/Rte  . . " << respObj["nb_nex_trips"].toInt() << Qt::endl;
+            screen << "RT Date Match  . . " << respObj["rt_date_match"].toInt() << Qt::endl;
+            screen << "RT Trip Match  . . " << (respObj["rt_trip_seq_match"].toBool() ? "Sequence Numbers" : "Stop ID Only") << Qt::endl;
+
             screen << "System Version . . " << respObj["application"].toString() << Qt::endl << Qt::endl;
 
             screen << "[ Static Feed Information ]" << Qt::endl;
@@ -216,7 +223,7 @@ void ClientGtfs::repl()
                    << qSetFieldWidth(c4) << "PHONE"     << qSetFieldWidth(0) << Qt::endl;
 
             QJsonArray agencies = respObj["agencies"].toArray();
-            for (const QJsonValue ag : agencies) {
+            for (const QJsonValue &ag : agencies) {
                 screen << qSetFieldWidth(c1) << ag["id"].toString().left(c1)   << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c2) << ag["name"].toString().left(c2) << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c3) << ag["tz"].toString().left(c3)   << qSetFieldWidth(1) << " "
@@ -258,7 +265,7 @@ void ClientGtfs::repl()
                    << qSetFieldWidth(c4) << "TRIPS"      << qSetFieldWidth(0) << Qt::endl;
 
             QJsonArray routes = respObj["routes"].toArray();
-            for (const QJsonValue ro : routes) {
+            for (const QJsonValue &ro : routes) {
                 screen << qSetFieldWidth(c1) << ro["id"].toString().left(c1)         << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c2) << ro["short_name"].toString().left(c2) << qSetFieldWidth(1) << " "
                        << qSetFieldWidth(c3) << ro["long_name"].toString().left(c3)  << qSetFieldWidth(1) << " ";
@@ -277,7 +284,7 @@ void ClientGtfs::repl()
         else if (respObj["message_type"] == "TRI") {
             // Scalable column width determination
             qint32 totalCol = this->disp.getCols();
-            totalCol -= 24;                          // Remove 3 for SEQ + 14 for times + 2 for P/D + 5 for spacers
+            totalCol -= 26;                          // Remove 3 for SEQ + 14 for times + 2 for P/D + 5 for spacers + 1 for SKIP
             qint32 c1 = 3;
             qint32 c2 = totalCol * 0.30;             // 30% of remaining space for STOP-ID
             qint32 c3 = totalCol - c2;               // All remaining space for STOP-NAME
@@ -335,11 +342,12 @@ void ClientGtfs::repl()
                 } else {
                     screen << qSetFieldWidth(c4*2) << "  "        << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c5)   << "PRE-A"     << qSetFieldWidth(1) << " "
-                           << qSetFieldWidth(c6)   << "PRE-D"     << qSetFieldWidth(0) << Qt::endl;
+                           << qSetFieldWidth(c6)   << "PRE-D"     << qSetFieldWidth(1) << " "
+                           << qSetFieldWidth(c4)   << "S"         << qSetFieldWidth(0) << Qt::endl;
                 }
 
                 QJsonArray stops = respObj["stops"].toArray();
-                for (const QJsonValue st : stops) {
+                for (const QJsonValue &st : stops) {
                     QString dropOff = dropoffToChar(st["drop_off_type"].toInt());
                     QString pickUp  = pickupToChar(st["pickup_type"].toInt());
 
@@ -348,8 +356,9 @@ void ClientGtfs::repl()
                            << qSetFieldWidth(c3) << st["stop_name"].toString().left(c3) << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c4) << pickUp << dropOff                   << qSetFieldWidth(1) << " ";
                     screen.setFieldAlignment(QTextStream::AlignRight);
-                    screen << qSetFieldWidth(c5) << st["arr_time"].toString() << qSetFieldWidth(1) << " "
-                           << qSetFieldWidth(c6) << st["dep_time"].toString() << qSetFieldWidth(0) << Qt::endl;
+                    screen << qSetFieldWidth(c5) << st["arr_time"].toString()           << qSetFieldWidth(1) << " "
+                           << qSetFieldWidth(c6) << st["dep_time"].toString()           << qSetFieldWidth(1) << " "
+                           << qSetFieldWidth(c4) << (st["skipped"].toBool() ? "X" : "") << qSetFieldWidth(0) << Qt::endl;
                     screen.setFieldAlignment(QTextStream::AlignLeft);
                 }
             }
@@ -398,7 +407,7 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c6)     << "SCH-D"          << qSetFieldWidth(0) << Qt::endl;
 
                 QJsonArray trips = respObj["trips"].toArray();
-                for (const QJsonValue tr : trips) {
+                for (const QJsonValue &tr : trips) {
                     QString svcExempt = (tr["exceptions_present"].toBool())     ? "E": " ";
                     QString svcSplmnt = (tr["supplements_other_days"].toBool()) ? "S": " ";
                     QString dstOn     = " ";
@@ -472,14 +481,14 @@ void ClientGtfs::repl()
 
                 // Loop on all the routes
                 QJsonArray routes = respObj["routes"].toArray();
-                for (const QJsonValue ro : routes) {
+                for (const QJsonValue &ro : routes) {
                     screen << "[ Route ID " << ro["route_id"].toString() << " :: "
                                             << ro["route_short_name"].toString() << " :: "
                                             << ro["route_long_name"].toString()  << " ]"   << Qt::endl;
 
                     // Loop on all the trips
                     QJsonArray trips = ro["trips"].toArray();
-                    for (const QJsonValue tr : trips) {
+                    for (const QJsonValue &tr : trips) {
                         QString headsign   = tr["headsign"].toString().left(c3);
                         QString svcExempt  = (tr["exceptions_present"].toBool())     ? "E": " ";
                         QString svcSplmnt  = (tr["supplements_other_days"].toBool()) ? "S": " ";
@@ -566,7 +575,7 @@ void ClientGtfs::repl()
 
                 // Loop on all the routes
                 QJsonArray routes = respObj["routes"].toArray();
-                for (const QJsonValue ro : routes) {
+                for (const QJsonValue &ro : routes) {
                     screen << qSetFieldWidth(c1) << ro["route_id"].toString().left(c1)
                            << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c2) << ro["route_short_name"].toString().left(c2)
@@ -584,7 +593,7 @@ void ClientGtfs::repl()
                        << qSetFieldWidth(c3) << "STOP-DESC" << qSetFieldWidth(1) << Qt::endl;
 
                 QJsonArray sharedStops = respObj["stops_sharing_parent"].toArray();
-                for (const QJsonValue ss : sharedStops) {
+                for (const QJsonValue &ss : sharedStops) {
                     screen << qSetFieldWidth(c1) << ss["stop_id"].toString().left(c1)   << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c2) << ss["stop_name"].toString().left(c2) << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c3) << ss["stop_desc"].toString().left(c3)
@@ -643,7 +652,7 @@ void ClientGtfs::repl()
 
                 // Loop on all the routes
                 QJsonArray stops = respObj["stops"].toArray();
-                for (const QJsonValue so : stops) {
+                for (const QJsonValue &so : stops) {
                     screen << qSetFieldWidth(c1) << so["stop_id"].toString().left(c1)   << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c2) << so["stop_name"].toString().left(c2) << qSetFieldWidth(1) << " "
                            << qSetFieldWidth(c3) << so["stop_desc"].toString().left(c3) << qSetFieldWidth(1) << " ";
@@ -705,12 +714,12 @@ void ClientGtfs::repl()
 
                 // Loop on all the routes
                 QJsonArray routes = respObj["routes"].toArray();
-                for (const QJsonValue ro : routes) {
+                for (const QJsonValue &ro : routes) {
                     screen << "[ Route ID " << ro["route_id"].toString() << " ]"   << Qt::endl;
 
                     // Loop on all the trips
                     QJsonArray trips = ro["trips"].toArray();
-                    for (const QJsonValue tr : trips) {
+                    for (const QJsonValue &tr : trips) {
                         QString headsign   = tr["headsign"].toString().left(c3);
                         QString tripTerm;
                         if (tr["trip_begins"].toBool()) {
@@ -879,7 +888,7 @@ void ClientGtfs::repl()
 
                 // Loop on all the trips
                 QJsonArray trips = respObj["trips"].toArray();
-                for (const QJsonValue tr : trips) {
+                for (const QJsonValue &tr : trips) {
                     QString headsign   = tr["headsign"].toString().left(c4);
                     QString tripTerm;
                     if (tr["trip_begins"].toBool()) {
@@ -1028,7 +1037,7 @@ void ClientGtfs::repl()
 
             // Loop on all the routes
             QJsonArray stops = respObj["stops"].toArray();
-            for (const QJsonValue st : stops) {
+            for (const QJsonValue &st : stops) {
                 screen << qSetFieldWidth(c1)   << st["stop_id"].toString().left(c1)
                        << qSetFieldWidth(1)    << " "
                        << qSetFieldWidth(c2)   << st["stop_name"].toString().left(c2)

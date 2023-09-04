@@ -262,6 +262,8 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                 tripRecord.tripID          = tripAndIndex.first;
                 tripRecord.vehicleRealTime = rActiveFeed->getOperatingVehicle(tripRecord.tripID);
                 tripRecord.stopID          = stopID;
+                tripRecord.stopSequenceNum = tripAndIndex.second;
+                tripRecord.routeID         = routeID;
 
                 // Calculate wait time and actual departure/arrivals if available
                 QDateTime prArrTime, prDepTime;
@@ -356,6 +358,7 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
         // Populate the trip-record with all the pertinent / necessary details
         StopRecoTripRec tripRec;
         tripRec.tripID          = curTripId;
+        tripRec.routeID         = routeID;
         tripRec.stopID          = (*sStopTimes)[curTripId].at(stopTripIdx).stop_id;
         tripRec.stopSequenceNum = (*sStopTimes)[curTripId].at(stopTripIdx).stop_sequence;
         tripRec.beginningOfTrip = (stopTripIdx == 0) ? true : false;

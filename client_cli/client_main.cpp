@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
 
     QCoreApplication::setApplicationName("GtfsProc_Client");
-    QCoreApplication::setApplicationVersion("0.1");
+    QCoreApplication::setApplicationVersion("0.2");
 
     QCommandLineParser parser;
     parser.setApplicationDescription("GtfsProc Debugging Console and Data Access Client");
