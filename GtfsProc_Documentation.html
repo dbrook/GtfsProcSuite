@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 2.2.0)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 2.3.0)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2023, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 2.2.0 (27-Aug-2023)</b>
+    This is the documentation for <b>GtfsProc Version 2.3.0 (15-Sep-2023)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -79,7 +79,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 2.2.0 - Running on Process ID: 22112<br>
+GtfsProc version 2.3.0 - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>
@@ -2678,6 +2678,17 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
         </td>
         <td>
             Stop ID of the stop served by the requested Route ID
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            parent_sta
+        </td>
+        <td class="fixed">
+            string
+        </td>
+        <td>
+            Parent station of the stop served by the requested Route ID
         </td>
     </tr>
     <tr>
