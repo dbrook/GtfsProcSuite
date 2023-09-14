@@ -200,6 +200,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
 
                         // Trip has already departed, still shows up in the feed and departed more than 30 seconds ago
                         qint64 secondsUntilDeparture = _agencyTime.secsTo(predictDepUTC);
+                        qDebug() << "Trip" << tripRecord.tripID << "seconds until departure:" << secondsUntilDeparture;
                         if (!predictDepUTC.isNull() && secondsUntilDeparture <= 0) {
                             if (secondsUntilDeparture > -30)
                                 tripRecord.tripStatus = DEPART;
@@ -208,6 +209,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                         }
 
                         // Trip is boarding (current time is between the drop-off and pickup - requires both times))
+                        qDebug() << "SCH Agency:" << _agencyTime.toLocalTime() << "ArrPred" << predictArrUTC.toLocalTime() << "DepPred" << predictDepUTC.toLocalTime();
                         if (!predictArrUTC.isNull() && !predictDepUTC.isNull()) {
                             if (_agencyTime >= predictArrUTC && _agencyTime < predictDepUTC)
                                 tripRecord.tripStatus = BOARD;
@@ -301,6 +303,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
 
                 // Trip has already departed but still shows up in the feed (and within 30 seconds since leaving)
                 qint64 secondsUntilDeparture = _agencyTime.secsTo(prDepTime);
+                qDebug() << "Trip" << tripRecord.tripID << "seconds until departure:" << secondsUntilDeparture;
                 if (!prDepTime.isNull() && secondsUntilDeparture <=0) {
                     if (secondsUntilDeparture > -30)
                         tripRecord.tripStatus = DEPART;
@@ -309,6 +312,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                 }
 
                 // Trip is boarding (current time is between the drop-off and pickup - requires both times))
+                qDebug() << "SUP Agency:" << _agencyTime.toLocalTime() << "ArrPred" << prArrTime.toLocalTime() << "DepPred" << prDepTime.toLocalTime();
                 if (!prArrTime.isNull() && !prDepTime.isNull()) {
                     if (_agencyTime >= prArrTime && _agencyTime < prDepTime)
                         tripRecord.tripStatus = BOARD;
@@ -462,12 +466,10 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
             if (tripRecord.tripStatus == RUNNING || tripRecord.tripStatus == DEPART ||
                 tripRecord.tripStatus == BOARD   || tripRecord.tripStatus == ARRIVE) {
                 if (!tripRecord.realTimeArrival.isNull() &&
-                    ((_agencyTime.secsTo(tripRecord.realTimeArrival) < -60) ||
-                     (_lookaheadMins != 0 && tripRecord.realTimeArrival > _lookaheadTime))) {
+                    ((_lookaheadMins != 0 && tripRecord.realTimeArrival > _lookaheadTime))) {
                     tripRecord.tripStatus = IRRELEVANT;
                 } else if (!tripRecord.realTimeDeparture.isNull() &&
-                         ((_agencyTime.secsTo(tripRecord.realTimeDeparture) < -60) ||
-                          (_lookaheadMins != 0 && tripRecord.realTimeDeparture > _lookaheadTime))) {
+                         ((_lookaheadMins != 0 && tripRecord.realTimeDeparture > _lookaheadTime))) {
                     tripRecord.tripStatus = IRRELEVANT;
                 }
             } else if (tripRecord.tripStatus == CANCEL || tripRecord.tripStatus == SKIP) {
