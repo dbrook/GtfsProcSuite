@@ -59,7 +59,7 @@ case proves that both types of trips are visible to a single stop that is served
             "url": "http://www.cttransit.com"
         }
     ],
-    "application": "GtfsProc 2.1.1",
+    "application": "GtfsProc 2.3.0",
 *   "appuptime_sec": 16,
 *   "dataloadtime_ms": 2736,
     "error": 0,
@@ -132,6 +132,7 @@ case proves that both types of trips are visible to a single stop that is served
             },
             "route_id": "11395",
             "short_name": "",
+            "stop_id": "6671",
             "trip_begins": false,
             "trip_id": "1275930",
             "trip_terminates": false,
@@ -153,6 +154,7 @@ case proves that both types of trips are visible to a single stop that is served
             },
             "route_id": "11388",
             "short_name": "",
+            "stop_id": "6671",
             "trip_begins": false,
             "trip_id": "1275181",
             "trip_terminates": false,

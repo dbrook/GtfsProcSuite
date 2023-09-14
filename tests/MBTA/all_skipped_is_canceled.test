@@ -12,6 +12,7 @@ and canceled).
 -dstatic_skip_cancel
 -rmbta_tripUpdates_skip_cancel.pb
 -u600
+-q
 -f2023,7,9,11,02,30
 -zALL_SKIPPED_IS_CANCELED
 @End
@@ -38,7 +39,7 @@ and canceled).
             "url": "http://www.mbta.com"
         }
     ],
-    "application": "GtfsProc 2.1.1",
+    "application": "GtfsProc 2.3.0",
 *   "appuptime_sec": 375,
 *   "dataloadtime_ms": 5728,
     "error": 0,
@@ -57,7 +58,7 @@ and canceled).
 *   "processed_reqs": 1,
     "records": 1526500,
     "rt_date_match": 0,
-    "rt_trip_seq_match": true,
+    "rt_trip_seq_match": false,
     "threadpool_count": 1
 }
 @End
@@ -111,6 +112,7 @@ and canceled).
             },
             "route_id": "44",
             "short_name": "",
+            "stop_id": "11257",
             "trip_begins": false,
             "trip_id": "57247902",
             "trip_terminates": false,
@@ -132,6 +134,7 @@ and canceled).
             },
             "route_id": "28",
             "short_name": "",
+            "stop_id": "11257",
             "trip_begins": false,
             "trip_id": "57483042",
             "trip_terminates": false,
@@ -153,10 +156,51 @@ and canceled).
             },
             "route_id": "66",
             "short_name": "",
+            "stop_id": "11257",
             "trip_begins": false,
             "trip_id": "57248013",
             "trip_terminates": false,
             "wait_time_sec": 223
+        }
+    ]
+}
+@End
+
+@Case:Trip ID 57599688 should show as DPRT (not removed/invalidated for being over 60s since arriving)
+@Query:NCF 5 70076
+@Expected
+{
+    "error": 0,
+*   "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": 3,
+*   "realtime_age_sec": 4,
+*   "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stop_desc": "Park Street - Red Line - Alewife",
+    "stop_id": "70076",
+    "stop_name": "Park Street",
+    "trips": [
+        {
+            "arr_time": "Sun 11:08",
+            "dep_time": "Sun 11:08",
+            "drop_off_type": 0,
+            "headsign": "Alewife",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Sun 11:00",
+                "actual_departure": "Sun 11:02",
+                "offset_seconds": -423,
+                "status": "DPRT",
+                "stop_status": "FULL",
+                "vehicle": "1730"
+            },
+            "route_id": "Red",
+            "short_name": "",
+            "stop_id": "70076",
+            "trip_begins": false,
+            "trip_id": "57599688",
+            "trip_terminates": false,
+            "wait_time_sec": -93
         }
     ]
 }
