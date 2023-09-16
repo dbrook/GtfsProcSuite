@@ -3752,19 +3752,29 @@ Possible error values:
 <h3>End-to-End Journey Travel and Transfer Times</h3>
 <p>Given a list of origin and destination stop IDs split by connection times in minutes, returns the upcoming trips (and downstream connections if requested) that will travel from end-to-end.</p>
 <p>A single trip origin/destination may be specified, but if additional legs are needed, they'll have to be separated by a connection "penalty" time in minutes.</p>
+<p>You can also use ETS/ETR to get the arrival time at the first destination of a trip in progress, as well as any downstream connection information. If that first trip does not exist, then it's ignored and the response will have an empty currentTrip object.</p>
 <h4>Request Format</h4>
 <p>
-Scheduled and real-time data:
+Stop-to-Stop Scheduled and real-time data:
 <ul>
     <li>EES {look-ahead minutes} {stopIDori1}|{stopIDdes1}</li>
     <li>EES {look-ahead minutes} {stopIDori1}|{stopIDdes1}|{connectTime1}|{stopIDori2}|{stopIDdes2}|...</li>
 </ul>
-Only trips that have predictions (real-time data):
+Stop-to-Stop Only trips that have predictions (real-time data):
 <ul>
     <li>EER {look-ahead minutes} {stopIDori1}|{stopIDdes1}</li>
     <li>EER {look-ahead minutes} {stopIDori1}|{stopIDdes1}|{connectTime1}|{stopIDori2}|{stopIDdes2}|...</li>
 </ul>
-
+Current Trip-to-Stop with Scheduled and real-time data:
+<ul>
+    <li>ETS {look-ahead minutes} {currentTrip}|{tripDes}</li>
+    <li>ETS {look-ahead minutes} {currentTrip}|{tripDes}|{connectTime1}|{stopIDori2}|{stopIDdes2}|...</li>
+</ul>
+Current Trip-to-Stop Only trips that have predictions (real-time data):
+<ul>
+    <li>ETR {look-ahead minutes} {currentTrip}|{tripDes}</li>
+    <li>ETR {look-ahead minutes} {currentTrip}|{tripDes}|{connectTime1}|{stopIDori2}|{stopIDdes2}|...</li>
+</ul>
 </p>
 <h4>Response Format</h4>
 <p>
@@ -3775,6 +3785,7 @@ Only trips that have predictions (real-time data):
         <li>901: Incorrect number of arguments</li>
         <li>902: Non-numeric or negative value requested in a connection time field</li>
         <li>903: One of the stop IDs requested does not exist in the dataset</li>
+        <li>904: The requested trip does not serve the destination station specified</li>
     </ul>
     <b>The trip array contents are identical to "NEX" and "NCF" messages:</b>
 </p>
@@ -3815,6 +3826,17 @@ Only trips that have predictions (real-time data):
         </td>
         <td>
             Associative array of stop IDs with their stop_desc and stop_name fields from the static dataset. Includes every stop that shows up in the trips array for this message.
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            <b>current_trip</b>
+        </td>
+        <td class="fixed">
+            object
+        </td>
+        <td>
+            NEX/NCF style detail of the current trip at its requested destination.
         </td>
     </tr>
     <tr>

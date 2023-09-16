@@ -40,16 +40,24 @@ public:
      *
      * futureMinutes    - number of minutes into the future to search for departures from the origin station
      * realtimeOnly     - only use trips with realtime data to make the journey recommendations
+     * firstIsTripId    - set to true if the first arg is actually a trip id (to show an in-progress trip)
      * argList          - list of stop ids interspersed with connection times in minutes
      *
-     * Example argument schema:
+     * Example argument schema for firstIsTripId == false:
      * [0] "stopIdOrigin"
      * [1] "stopIdFirstConnection"
      * [2] "2"                      // Indicates 2 minute buffer between alighting at [1] and boarding at [3]
      * [3] "stopIdConnectionDep"
      * [4] "stopIdDestination"
+     *
+     * Example argument schema for firstIsTripId == true:
+     * [0] "tripIdCurrentTrip"
+     * [1] "stopIdAlightCurTrip"    // The stop ID you'll get off of tripIdCurrentTrip
+     * [2] "2"                      // Indicates 2 minute buffer between alighting at [1] and boarding at [3]
+     * [3] "stopIdConnectionDep"
+     * [4] "stopIdDestination"
      */
-    EndToEndTrips(qint32 futureMinutes, bool realtimeOnly, QList<QString> argList);
+    EndToEndTrips(qint32 futureMinutes, bool realtimeOnly, bool firstIsTripId, QList<QString> argList);
 
     /* See GtfsProc_Documentation.html for JSON response format */
     void fillResponseData(QJsonObject &resp);
@@ -63,6 +71,7 @@ private:
      *
      * Arguments:
      * legNum           - 0-indexed leg number of the origin-destination requested
+     * initialCnx       - specify a valid time that the first connection must be caught after (initial delay)
      * xferMin          - transfer time minutes between previous destination arrival and the current origin departure
      * oriStopId        - stop ID of the beginning of the leg to board
      * desStopId        - stop ID of the end of the leg to alight
@@ -70,6 +79,7 @@ private:
      * allRecos         - internal data structure for each leg and the origin/destination within each leg
      */
     void fillRecoOD(quint8                             legNum,
+                    QDateTime                          initialCnx,
                     quint32                            xferMin,
                     QString                            oriStopId,
                     QString                            desStopId,
@@ -78,6 +88,7 @@ private:
 
     qint32         _futureMinutes;
     bool           _realtimeOnly;
+    bool           _firstIsTripId;
     QList<QString> _tripCnx;
 
     bool                  _rtData;
