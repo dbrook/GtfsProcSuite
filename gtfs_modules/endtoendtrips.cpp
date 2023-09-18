@@ -110,6 +110,7 @@ void EndToEndTrips::fillResponseData(QJsonObject &resp)
     QVector<QVector<StopRecoTripRec>> travelRecoTimes;
     QSet<qsizetype>                   deadRecos;
     StopRecoTripRec                   currentTrip;
+    bool                              foundCurrentTrip = false;
 
     if (_firstIsTripId) {
         QHash<QString, GTFS::StopRecoRouteRec> tripInProgDest;
@@ -134,13 +135,8 @@ void EndToEndTrips::fillResponseData(QJsonObject &resp)
                 }
             }
         }
-        if (tripIdx == -1) {
-//            _firstIsTripId = false;
-            // THIS ERROR IS PROBABLY UNNECESSARY - JUST SHOW FUTURE CONNECTION IF INITIAL TRIP DOESN'T MAKE SENSE?
-            fillProtocolFields("E2E", 904, resp);  // Trip does not reach termination point within lookahead time
-        } else {
-            qDebug() << "Route:" << routeId << ", trip:" << tripInProgDest[routeId].tripRecos[tripIdx].tripID
-                     << ", going to:" << tripInProgDest[routeId].tripRecos[tripIdx].stopID;
+        if (tripIdx != -1) {
+            foundCurrentTrip = true;
             currentTrip = tripInProgDest[routeId].tripRecos[tripIdx];
         }
     }
@@ -150,24 +146,24 @@ void EndToEndTrips::fillResponseData(QJsonObject &resp)
     quint32 xferMin = 0;
     quint8 cnxOriStartIdx = 0;
     quint8 cnxDesStartIdx = 1;
-    if (_firstIsTripId) {
+    if (_firstIsTripId && argLength > 2) {
         xferMin = _tripCnx[2].toUInt();
         cnxOriStartIdx = 3;
         cnxDesStartIdx = 4;
-        // FIXME: Make more robust... (not just using arr/rt-arr time?)
-        firstConnection = !currentTrip.realTimeArrival.isNull()
-                              ? currentTrip.realTimeArrival.addSecs(xferMin * 60)
-                              : currentTrip.schArrTime.addSecs(xferMin * 60);
+        if (foundCurrentTrip) {
+            // FIXME: Maybe make more robust ... (not just using arr/rt-arr time?) if issues arise
+            firstConnection = !currentTrip.realTimeArrival.isNull()
+                                ? currentTrip.realTimeArrival.addSecs(xferMin * 60)
+                                : currentTrip.schArrTime.addSecs(xferMin * 60);
+        }
     }
-    qDebug() << "There were args:" << argLength << 0 << xferMin << _tripCnx[cnxOriStartIdx] << _tripCnx[cnxDesStartIdx];
-    fillRecoOD(0, firstConnection, xferMin, _tripCnx[cnxOriStartIdx], _tripCnx[cnxDesStartIdx], deadRecos, travelRecoTimes);
+    if (!(_firstIsTripId && argLength == 2)) {
+        fillRecoOD(0, firstConnection, xferMin, _tripCnx[cnxOriStartIdx], _tripCnx[cnxDesStartIdx], deadRecos, travelRecoTimes);
+    }
+
     if ((_firstIsTripId && argLength > 5) || (!_firstIsTripId && argLength > 2)) {
         quint32 totalConnections = _firstIsTripId ? (argLength - 5) / 3 : (argLength - 2) / 3;
         for (quint32 connection = 0; connection < totalConnections; ++connection) {
-            qDebug() << connection + 1
-                     << 2 + cnxOriStartIdx + connection * 3
-                     << 3 + cnxOriStartIdx + connection * 3
-                     << 4 + cnxOriStartIdx + connection * 3;
             qint32 cnxTime = _tripCnx[2 + cnxOriStartIdx + connection * 3].toInt();
             QString originStopId = _tripCnx[3 + cnxOriStartIdx + connection * 3];
             QString destinationStopId = _tripCnx[4 + cnxOriStartIdx + connection * 3];
@@ -177,6 +173,9 @@ void EndToEndTrips::fillResponseData(QJsonObject &resp)
 
     // Get stop information from every stop encountered - then save them to JSON
     QSet<QString> stopIds;
+    if (foundCurrentTrip) {
+        stopIds.insert(currentTrip.stopID);
+    }
     for (qsizetype r = 0; r < travelRecoTimes.length(); ++r) {
         if (deadRecos.contains(r)) {
             continue;
@@ -211,11 +210,14 @@ void EndToEndTrips::fillResponseData(QJsonObject &resp)
         stopRouteArray.push_back(connectionArray);
     }
 
-    if (_firstIsTripId) {
+    if (foundCurrentTrip) {
         QJsonObject stopTripItem;
         UpcomingStopService::fillTripData(currentTrip, stopTripItem, getStatus()->format12h(),
                                           (*_tripDB)[currentTrip.tripID].trip_short_name);
         resp["current_trip"] = stopTripItem;
+    } else if (_firstIsTripId) {
+        // This is an ETS/ETR request but no initial connection rendered, keep the field but make it null
+        resp["current_trip"] = QJsonValue();
     }
 
     // Attach the routes and trips collections
@@ -307,11 +309,12 @@ void EndToEndTrips::fillRecoOD(quint8                             legNum,
                 connection.push_back(rtorigin);
 
                 // If the first connection has a specified transfer time, only add trips if they can be caught
-                QDateTime dep = rtorigin.realTimeDeparture.isNull() ? rtorigin.schDepTime : rtorigin.realTimeDeparture;
-                if (dep < initialCnx) {
-                    continue;
+                if (!initialCnx.isNull()) {
+                    QDateTime dep = rtorigin.realTimeDeparture.isNull() ? rtorigin.schDepTime : rtorigin.realTimeDeparture;
+                    if (dep < initialCnx) {
+                        continue;
+                    }
                 }
-
 
                 // Add destination arrival info as second item
                 for (const GTFS::StopRecoTripRec &rtdest : tripsForBothStopsDes[routeID].tripRecos) {

@@ -204,7 +204,6 @@ void GtfsRequestProcessor::run()
         // Just catch anything and return an error to the client ... hopefully THIS does not cause an exception too!
         respJson["error"] = 2;
         respJson["user_string"] = this->request;
-        qDebug() << e.what();
     }
 
     // Serialize for Transport (Note: we append "\n" so clients can detect the end of the stream)
