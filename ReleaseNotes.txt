@@ -1,6 +1,8 @@
 THIS RELEASE: Version 2.3.0
 ---------------------------
--
+- Extended EES/EER to ETS/ETR, respectively, allowing the requests to handle a current trip and
+  destination so it's easier to track the trip you are riding and the rest of your connections
+  in real-time!
 - Added parent station to SSR responses
 - Fixed a bug where boarding trips were disappearing from the arrival displays after 1 minute of
   being stopped at a station (removed unnecessary invalidation logic)

@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2023, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 2.3.0 (15-Sep-2023)</b>
+    This is the documentation for <b>GtfsProc Version 2.3.0 (18-Sep-2023)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -3785,9 +3785,8 @@ Current Trip-to-Stop Only trips that have predictions (real-time data):
         <li>901: Incorrect number of arguments</li>
         <li>902: Non-numeric or negative value requested in a connection time field</li>
         <li>903: One of the stop IDs requested does not exist in the dataset</li>
-        <li>904: The requested trip does not serve the destination station specified</li>
     </ul>
-    <b>The trip array contents are identical to "NEX" and "NCF" messages:</b>
+    <b>The trip array and current_trip contents are identical to "NEX" and "NCF" messages:</b>
 </p>
 <table class="fieldDocumentation">
     <tr>
@@ -3836,7 +3835,7 @@ Current Trip-to-Stop Only trips that have predictions (real-time data):
             object
         </td>
         <td>
-            NEX/NCF style detail of the current trip at its requested destination.
+            NEX/NCF style detail of the current trip at its requested destination. If it is undefined/not present then it is a response to an EES/EER request. if it is null, then it means either: the starting trip + destination is not operating within the requested time, the trip has passed the stop, or the trip doesn't reach the requested destination.
         </td>
     </tr>
     <tr>
