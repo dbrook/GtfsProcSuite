@@ -205,3 +205,1444 @@ and canceled).
     ]
 }
 @End
+
+@Case:EES with 0 connections
+@Query:EES 20 70077|place-jfk
+@Expected
+{
+    "error": 0,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "E2E",
+*   "proc_time_ms": 31,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stops": {
+        "70077": {
+            "stop_desc": "Downtown Crossing - Red Line - Ashmont/Braintree",
+            "stop_name": "Downtown Crossing"
+        },
+        "70095": {
+            "stop_desc": "JFK/UMass - Red Line - Braintree",
+            "stop_name": "JFK/UMass"
+        }
+    },
+    "trips": [
+        [
+            {
+                "arr_time": "Sun 11:05",
+                "dep_time": "Sun 11:05",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:07",
+                    "actual_departure": "Sun 11:08",
+                    "offset_seconds": 163,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1807"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599662",
+                "trip_terminates": false,
+                "wait_time_sec": 313
+            },
+            {
+                "arr_time": "Sun 11:22",
+                "dep_time": "Sun 11:22",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:18",
+                    "actual_departure": "Sun 11:19",
+                    "offset_seconds": -210,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1807"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70095",
+                "trip_begins": false,
+                "trip_id": "57599662",
+                "trip_terminates": false,
+                "wait_time_sec": 960
+            }
+        ]
+    ]
+}
+@End
+
+@Case:EES with 1 connection
+@Query:EES 40 70028|70020|3|70077|place-jfk
+@Expected
+{
+    "error": 0,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "E2E",
+*   "proc_time_ms": 28,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stops": {
+        "70020": {
+            "stop_desc": "Downtown Crossing - Orange Line - Forest Hills",
+            "stop_name": "Downtown Crossing"
+        },
+        "70028": {
+            "stop_desc": "Community College - Orange Line - Forest Hills",
+            "stop_name": "Community College"
+        },
+        "70077": {
+            "stop_desc": "Downtown Crossing - Red Line - Ashmont/Braintree",
+            "stop_name": "Downtown Crossing"
+        },
+        "70095": {
+            "stop_desc": "JFK/UMass - Red Line - Braintree",
+            "stop_name": "JFK/UMass"
+        }
+    },
+    "trips": [
+        [
+            {
+                "arr_time": "Sun 11:03",
+                "dep_time": "Sun 11:03",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:09",
+                    "actual_departure": "Sun 11:10",
+                    "offset_seconds": 373,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1464"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70028",
+                "trip_begins": false,
+                "trip_id": "57223257",
+                "trip_terminates": false,
+                "wait_time_sec": 403
+            },
+            {
+                "arr_time": "Sun 11:09",
+                "dep_time": "Sun 11:09",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:16",
+                    "actual_departure": "Sun 11:17",
+                    "offset_seconds": 477,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1464"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70020",
+                "trip_begins": false,
+                "trip_id": "57223257",
+                "trip_terminates": false,
+                "wait_time_sec": 867
+            },
+            {
+                "arr_time": "Sun 11:27",
+                "dep_time": "Sun 11:27",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:27",
+                    "actual_departure": "Sun 11:28",
+                    "offset_seconds": 50,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1813"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599663",
+                "trip_terminates": false,
+                "wait_time_sec": 1520
+            },
+            {
+                "arr_time": "Sun 11:44",
+                "dep_time": "Sun 11:44",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:38",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": -323,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1813"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70095",
+                "trip_begins": false,
+                "trip_id": "57599663",
+                "trip_terminates": false,
+                "wait_time_sec": 2167
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:14",
+                "dep_time": "Sun 11:14",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:17",
+                    "actual_departure": "Sun 11:18",
+                    "offset_seconds": 226,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1466"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70028",
+                "trip_begins": false,
+                "trip_id": "57223301",
+                "trip_terminates": false,
+                "wait_time_sec": 916
+            },
+            {
+                "arr_time": "Sun 11:20",
+                "dep_time": "Sun 11:20",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:25",
+                    "actual_departure": "Sun 11:26",
+                    "offset_seconds": 330,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1466"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70020",
+                "trip_begins": false,
+                "trip_id": "57223301",
+                "trip_terminates": false,
+                "wait_time_sec": 1380
+            },
+            {
+                "arr_time": "Sun 11:27",
+                "dep_time": "Sun 11:27",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:27",
+                    "actual_departure": "Sun 11:28",
+                    "offset_seconds": 50,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1813"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599663",
+                "trip_terminates": false,
+                "wait_time_sec": 1520
+            },
+            {
+                "arr_time": "Sun 11:44",
+                "dep_time": "Sun 11:44",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:38",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": -323,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1813"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70095",
+                "trip_begins": false,
+                "trip_id": "57599663",
+                "trip_terminates": false,
+                "wait_time_sec": 2167
+            }
+        ]
+    ]
+}
+@End
+
+@Case:EER with 1 connection (only real-time trips)
+@Query:EER 120 70059|place-state|5|place-state|70006
+@Expected
+{
+    "error": 0,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "E2E",
+*   "proc_time_ms": 55,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stops": {
+        "70006": {
+            "stop_desc": "Jackson Square - Orange Line - Forest Hills",
+            "stop_name": "Jackson Square"
+        },
+        "70022": {
+            "stop_desc": "State - Orange Line - Forest Hills",
+            "stop_name": "State"
+        },
+        "70041": {
+            "stop_desc": "State - Blue Line - Bowdoin",
+            "stop_name": "State"
+        },
+        "70059": {
+            "stop_desc": "Wonderland - Blue Line - Bowdoin",
+            "stop_name": "Wonderland"
+        }
+    },
+    "trips": [
+        [
+            {
+                "arr_time": "Sun 11:05",
+                "dep_time": "Sun 11:05",
+                "drop_off_type": 1,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "",
+                    "actual_departure": "Sun 11:06",
+                    "offset_seconds": 60,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "0751"
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70059",
+                "trip_begins": true,
+                "trip_id": "57626910",
+                "trip_terminates": false,
+                "wait_time_sec": 210
+            },
+            {
+                "arr_time": "Sun 11:26",
+                "dep_time": "Sun 11:26",
+                "drop_off_type": 0,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:23",
+                    "actual_departure": "Sun 11:24",
+                    "offset_seconds": -124,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "0751"
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70041",
+                "trip_begins": false,
+                "trip_id": "57626910",
+                "trip_terminates": false,
+                "wait_time_sec": 1286
+            },
+            {
+                "arr_time": "Sun 11:29",
+                "dep_time": "Sun 11:29",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:34",
+                    "actual_departure": "Sun 11:35",
+                    "offset_seconds": 316,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223336",
+                "trip_terminates": false,
+                "wait_time_sec": 1906
+            },
+            {
+                "arr_time": "Sun 11:46",
+                "dep_time": "Sun 11:46",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:47",
+                    "actual_departure": "Sun 11:48",
+                    "offset_seconds": 80,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70006",
+                "trip_begins": false,
+                "trip_id": "57223336",
+                "trip_terminates": false,
+                "wait_time_sec": 2690
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:16",
+                "dep_time": "Sun 11:16",
+                "drop_off_type": 1,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "",
+                    "actual_departure": "Sun 11:17",
+                    "offset_seconds": 60,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70059",
+                "trip_begins": true,
+                "trip_id": "57626911",
+                "trip_terminates": false,
+                "wait_time_sec": 870
+            },
+            {
+                "arr_time": "Sun 11:37",
+                "dep_time": "Sun 11:37",
+                "drop_off_type": 0,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:34",
+                    "actual_departure": "Sun 11:35",
+                    "offset_seconds": -124,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70041",
+                "trip_begins": false,
+                "trip_id": "57626911",
+                "trip_terminates": false,
+                "wait_time_sec": 1946
+            },
+            {
+                "arr_time": "Sun 11:40",
+                "dep_time": "Sun 11:40",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:45",
+                    "actual_departure": "Sun 11:46",
+                    "offset_seconds": 316,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223179",
+                "trip_terminates": false,
+                "wait_time_sec": 2566
+            },
+            {
+                "arr_time": "Sun 11:57",
+                "dep_time": "Sun 11:57",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:58",
+                    "actual_departure": "Sun 11:59",
+                    "offset_seconds": 80,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70006",
+                "trip_begins": false,
+                "trip_id": "57223179",
+                "trip_terminates": false,
+                "wait_time_sec": 3350
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:27",
+                "dep_time": "Sun 11:27",
+                "drop_off_type": 1,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "",
+                    "actual_departure": "Sun 11:28",
+                    "offset_seconds": 60,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70059",
+                "trip_begins": true,
+                "trip_id": "57626912",
+                "trip_terminates": false,
+                "wait_time_sec": 1530
+            },
+            {
+                "arr_time": "Sun 11:48",
+                "dep_time": "Sun 11:48",
+                "drop_off_type": 0,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:45",
+                    "actual_departure": "Sun 11:46",
+                    "offset_seconds": -124,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70041",
+                "trip_begins": false,
+                "trip_id": "57626912",
+                "trip_terminates": false,
+                "wait_time_sec": 2606
+            },
+            {
+                "arr_time": "Sun 11:50",
+                "dep_time": "Sun 11:50",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:55",
+                    "actual_departure": "Sun 11:56",
+                    "offset_seconds": 316,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223180",
+                "trip_terminates": false,
+                "wait_time_sec": 3166
+            },
+            {
+                "arr_time": "Sun 12:07",
+                "dep_time": "Sun 12:07",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 12:08",
+                    "actual_departure": "Sun 12:09",
+                    "offset_seconds": 80,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70006",
+                "trip_begins": false,
+                "trip_id": "57223180",
+                "trip_terminates": false,
+                "wait_time_sec": 3950
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:38",
+                "dep_time": "Sun 11:38",
+                "drop_off_type": 1,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": 60,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70059",
+                "trip_begins": true,
+                "trip_id": "57626913",
+                "trip_terminates": false,
+                "wait_time_sec": 2190
+            },
+            {
+                "arr_time": "Sun 11:59",
+                "dep_time": "Sun 11:59",
+                "drop_off_type": 0,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:56",
+                    "actual_departure": "Sun 11:57",
+                    "offset_seconds": -124,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70041",
+                "trip_begins": false,
+                "trip_id": "57626913",
+                "trip_terminates": false,
+                "wait_time_sec": 3266
+            },
+            {
+                "arr_time": "Sun 12:01",
+                "dep_time": "Sun 12:01",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 12:06",
+                    "actual_departure": "Sun 12:07",
+                    "offset_seconds": 316,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223183",
+                "trip_terminates": false,
+                "wait_time_sec": 3826
+            },
+            {
+                "arr_time": "Sun 12:18",
+                "dep_time": "Sun 12:18",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 12:19",
+                    "actual_departure": "Sun 12:20",
+                    "offset_seconds": 80,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70006",
+                "trip_begins": false,
+                "trip_id": "57223183",
+                "trip_terminates": false,
+                "wait_time_sec": 4610
+            }
+        ]
+    ]
+}
+@End
+
+@Case:EES with 2 connections
+@Query:EES 70 70059|place-state|5|place-state|place-dwnxg|4|place-dwnxg|70093
+@Expected
+{
+    "error": 0,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "E2E",
+*   "proc_time_ms": 110,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stops": {
+        "70020": {
+            "stop_desc": "Downtown Crossing - Orange Line - Forest Hills",
+            "stop_name": "Downtown Crossing"
+        },
+        "70022": {
+            "stop_desc": "State - Orange Line - Forest Hills",
+            "stop_name": "State"
+        },
+        "70041": {
+            "stop_desc": "State - Blue Line - Bowdoin",
+            "stop_name": "State"
+        },
+        "70059": {
+            "stop_desc": "Wonderland - Blue Line - Bowdoin",
+            "stop_name": "Wonderland"
+        },
+        "70077": {
+            "stop_desc": "Downtown Crossing - Red Line - Ashmont/Braintree",
+            "stop_name": "Downtown Crossing"
+        },
+        "70093": {
+            "stop_desc": "Ashmont - Red Line - Exit Only",
+            "stop_name": "Ashmont"
+        }
+    },
+    "trips": [
+        [
+            {
+                "arr_time": "Sun 11:05",
+                "dep_time": "Sun 11:05",
+                "drop_off_type": 1,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "",
+                    "actual_departure": "Sun 11:06",
+                    "offset_seconds": 60,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "0751"
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70059",
+                "trip_begins": true,
+                "trip_id": "57626910",
+                "trip_terminates": false,
+                "wait_time_sec": 210
+            },
+            {
+                "arr_time": "Sun 11:26",
+                "dep_time": "Sun 11:26",
+                "drop_off_type": 0,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:23",
+                    "actual_departure": "Sun 11:24",
+                    "offset_seconds": -124,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "0751"
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70041",
+                "trip_begins": false,
+                "trip_id": "57626910",
+                "trip_terminates": false,
+                "wait_time_sec": 1286
+            },
+            {
+                "arr_time": "Sun 11:29",
+                "dep_time": "Sun 11:29",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:34",
+                    "actual_departure": "Sun 11:35",
+                    "offset_seconds": 316,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223336",
+                "trip_terminates": false,
+                "wait_time_sec": 1906
+            },
+            {
+                "arr_time": "Sun 11:30",
+                "dep_time": "Sun 11:30",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:35",
+                    "actual_departure": "Sun 11:36",
+                    "offset_seconds": 331,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70020",
+                "trip_begins": false,
+                "trip_id": "57223336",
+                "trip_terminates": false,
+                "wait_time_sec": 1981
+            },
+            {
+                "arr_time": "Sun 11:38",
+                "dep_time": "Sun 11:38",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:39",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": 61,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1716"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599630",
+                "trip_terminates": false,
+                "wait_time_sec": 2191
+            },
+            {
+                "arr_time": "Sun 12:13",
+                "dep_time": "Sun 12:13",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 1,
+                "realtime_data": {
+                    "actual_arrival": "Sun 12:05",
+                    "actual_departure": "",
+                    "offset_seconds": -479,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1716"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70093",
+                "trip_begins": false,
+                "trip_id": "57599630",
+                "trip_terminates": true,
+                "wait_time_sec": 3751
+            }
+        ]
+    ]
+}
+@End
+
+@Case:ETS with only a current trip before alighting
+@Query:ETS 70 57626909|place-state
+@Expected
+{
+    "current_trip": {
+        "arr_time": "Sun 11:15",
+        "dep_time": "Sun 11:15",
+        "drop_off_type": 0,
+        "headsign": "Bowdoin",
+        "pickup_type": 0,
+        "realtime_data": {
+            "actual_arrival": "Sun 11:12",
+            "actual_departure": "Sun 11:13",
+            "offset_seconds": -157,
+            "status": "RNNG",
+            "stop_status": "FULL",
+            "vehicle": "0725"
+        },
+        "route_id": "Blue",
+        "short_name": "",
+        "stop_id": "70041",
+        "trip_begins": false,
+        "trip_id": "57626909",
+        "trip_terminates": false,
+        "wait_time_sec": 593
+    },
+    "error": 0,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "E2E",
+*   "proc_time_ms": 26,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stops": {
+        "70041": {
+            "stop_desc": "State - Blue Line - Bowdoin",
+            "stop_name": "State"
+        }
+    },
+    "trips": [
+    ]
+}
+@End
+
+@Case:ETS with a current trip after alighting, no downstream connection
+@Query:ETS 70 700395|place-state
+@Expected
+{
+    "current_trip": null,
+    "error": 0,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "E2E",
+*   "proc_time_ms": 27,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stops": {
+    },
+    "trips": [
+    ]
+}
+@End
+
+@Case:ETS with a current trip and a connection
+@Query:ETS 40 57223257|70020|3|70077|place-jfk
+@Expected
+{
+    "current_trip": {
+        "arr_time": "Sun 11:09",
+        "dep_time": "Sun 11:09",
+        "drop_off_type": 0,
+        "headsign": "Forest Hills",
+        "pickup_type": 0,
+        "realtime_data": {
+            "actual_arrival": "Sun 11:16",
+            "actual_departure": "Sun 11:17",
+            "offset_seconds": 477,
+            "status": "RNNG",
+            "stop_status": "FULL",
+            "vehicle": "1464"
+        },
+        "route_id": "Orange",
+        "short_name": "",
+        "stop_id": "70020",
+        "trip_begins": false,
+        "trip_id": "57223257",
+        "trip_terminates": false,
+        "wait_time_sec": 867
+    },
+    "error": 0,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "E2E",
+*   "proc_time_ms": 29,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stops": {
+        "70020": {
+            "stop_desc": "Downtown Crossing - Orange Line - Forest Hills",
+            "stop_name": "Downtown Crossing"
+        },
+        "70077": {
+            "stop_desc": "Downtown Crossing - Red Line - Ashmont/Braintree",
+            "stop_name": "Downtown Crossing"
+        },
+        "70095": {
+            "stop_desc": "JFK/UMass - Red Line - Braintree",
+            "stop_name": "JFK/UMass"
+        }
+    },
+    "trips": [
+        [
+            {
+                "arr_time": "Sun 11:27",
+                "dep_time": "Sun 11:27",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:27",
+                    "actual_departure": "Sun 11:28",
+                    "offset_seconds": 50,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1813"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599663",
+                "trip_terminates": false,
+                "wait_time_sec": 1520
+            },
+            {
+                "arr_time": "Sun 11:44",
+                "dep_time": "Sun 11:44",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:38",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": -323,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1813"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70095",
+                "trip_begins": false,
+                "trip_id": "57599663",
+                "trip_terminates": false,
+                "wait_time_sec": 2167
+            }
+        ]
+    ]
+}
+@End
+
+@Case:ETS with a current trip and 2 connections
+@Query:ETS 80 57223257|70020|3|70077|place-jfk|2|place-jfk|362
+@Expected
+{
+    "current_trip": {
+        "arr_time": "Sun 11:09",
+        "dep_time": "Sun 11:09",
+        "drop_off_type": 0,
+        "headsign": "Forest Hills",
+        "pickup_type": 0,
+        "realtime_data": {
+            "actual_arrival": "Sun 11:16",
+            "actual_departure": "Sun 11:17",
+            "offset_seconds": 477,
+            "status": "RNNG",
+            "stop_status": "FULL",
+            "vehicle": "1464"
+        },
+        "route_id": "Orange",
+        "short_name": "",
+        "stop_id": "70020",
+        "trip_begins": false,
+        "trip_id": "57223257",
+        "trip_terminates": false,
+        "wait_time_sec": 867
+    },
+    "error": 0,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "E2E",
+*   "proc_time_ms": 64,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stops": {
+        "121": {
+            "stop_desc": "JFK/UMass - Busway",
+            "stop_name": "JFK/UMass"
+        },
+        "362": {
+            "stop_desc": "",
+            "stop_name": "Columbia Rd @ Holden St"
+        },
+        "70020": {
+            "stop_desc": "Downtown Crossing - Orange Line - Forest Hills",
+            "stop_name": "Downtown Crossing"
+        },
+        "70077": {
+            "stop_desc": "Downtown Crossing - Red Line - Ashmont/Braintree",
+            "stop_name": "Downtown Crossing"
+        },
+        "70085": {
+            "stop_desc": "JFK/UMass - Red Line - Ashmont",
+            "stop_name": "JFK/UMass"
+        },
+        "70095": {
+            "stop_desc": "JFK/UMass - Red Line - Braintree",
+            "stop_name": "JFK/UMass"
+        }
+    },
+    "trips": [
+        [
+            {
+                "arr_time": "Sun 11:27",
+                "dep_time": "Sun 11:27",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:27",
+                    "actual_departure": "Sun 11:28",
+                    "offset_seconds": 50,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1813"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599663",
+                "trip_terminates": false,
+                "wait_time_sec": 1520
+            },
+            {
+                "arr_time": "Sun 11:44",
+                "dep_time": "Sun 11:44",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:38",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": -323,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1813"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70095",
+                "trip_begins": false,
+                "trip_id": "57599663",
+                "trip_terminates": false,
+                "wait_time_sec": 2167
+            },
+            {
+                "arr_time": "Sun 12:15",
+                "dep_time": "Sun 12:15",
+                "drop_off_type": 1,
+                "headsign": "Centre St & Eliot St",
+                "pickup_type": 0,
+                "route_id": "41",
+                "short_name": "",
+                "stop_id": "121",
+                "trip_begins": true,
+                "trip_id": "57520841",
+                "trip_terminates": false,
+                "wait_time_sec": 4350
+            },
+            {
+                "arr_time": "Sun 12:19",
+                "dep_time": "Sun 12:19",
+                "drop_off_type": 0,
+                "headsign": "Centre St & Eliot St",
+                "pickup_type": 0,
+                "route_id": "41",
+                "short_name": "",
+                "stop_id": "362",
+                "trip_begins": false,
+                "trip_id": "57520841",
+                "trip_terminates": false,
+                "wait_time_sec": 4590
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:38",
+                "dep_time": "Sun 11:38",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:39",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": 61,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1716"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599630",
+                "trip_terminates": false,
+                "wait_time_sec": 2191
+            },
+            {
+                "arr_time": "Sun 11:56",
+                "dep_time": "Sun 11:56",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:49",
+                    "actual_departure": "Sun 11:50",
+                    "offset_seconds": -377,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1716"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70085",
+                "trip_begins": false,
+                "trip_id": "57599630",
+                "trip_terminates": false,
+                "wait_time_sec": 2833
+            },
+            {
+                "arr_time": "Sun 12:15",
+                "dep_time": "Sun 12:15",
+                "drop_off_type": 1,
+                "headsign": "Centre St & Eliot St",
+                "pickup_type": 0,
+                "route_id": "41",
+                "short_name": "",
+                "stop_id": "121",
+                "trip_begins": true,
+                "trip_id": "57520841",
+                "trip_terminates": false,
+                "wait_time_sec": 4350
+            },
+            {
+                "arr_time": "Sun 12:19",
+                "dep_time": "Sun 12:19",
+                "drop_off_type": 0,
+                "headsign": "Centre St & Eliot St",
+                "pickup_type": 0,
+                "route_id": "41",
+                "short_name": "",
+                "stop_id": "362",
+                "trip_begins": false,
+                "trip_id": "57520841",
+                "trip_terminates": false,
+                "wait_time_sec": 4590
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:49",
+                "dep_time": "Sun 11:49",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:49",
+                    "actual_departure": "Sun 11:50",
+                    "offset_seconds": 48,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599697",
+                "trip_terminates": false,
+                "wait_time_sec": 2838
+            },
+            {
+                "arr_time": "Sun 12:06",
+                "dep_time": "Sun 12:06",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 12:00",
+                    "actual_departure": "Sun 12:01",
+                    "offset_seconds": -325,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70095",
+                "trip_begins": false,
+                "trip_id": "57599697",
+                "trip_terminates": false,
+                "wait_time_sec": 3485
+            },
+            {
+                "arr_time": "Sun 12:15",
+                "dep_time": "Sun 12:15",
+                "drop_off_type": 1,
+                "headsign": "Centre St & Eliot St",
+                "pickup_type": 0,
+                "route_id": "41",
+                "short_name": "",
+                "stop_id": "121",
+                "trip_begins": true,
+                "trip_id": "57520841",
+                "trip_terminates": false,
+                "wait_time_sec": 4350
+            },
+            {
+                "arr_time": "Sun 12:19",
+                "dep_time": "Sun 12:19",
+                "drop_off_type": 0,
+                "headsign": "Centre St & Eliot St",
+                "pickup_type": 0,
+                "route_id": "41",
+                "short_name": "",
+                "stop_id": "362",
+                "trip_begins": false,
+                "trip_id": "57520841",
+                "trip_terminates": false,
+                "wait_time_sec": 4590
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 12:00",
+                "dep_time": "Sun 12:00",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 12:00",
+                    "actual_departure": "Sun 12:01",
+                    "offset_seconds": 48,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599590",
+                "trip_terminates": false,
+                "wait_time_sec": 3498
+            },
+            {
+                "arr_time": "Sun 12:18",
+                "dep_time": "Sun 12:18",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 12:11",
+                    "actual_departure": "Sun 12:12",
+                    "offset_seconds": -390,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70085",
+                "trip_begins": false,
+                "trip_id": "57599590",
+                "trip_terminates": false,
+                "wait_time_sec": 4140
+            },
+            {
+                "arr_time": "Sun 12:15",
+                "dep_time": "Sun 12:15",
+                "drop_off_type": 1,
+                "headsign": "Centre St & Eliot St",
+                "pickup_type": 0,
+                "route_id": "41",
+                "short_name": "",
+                "stop_id": "121",
+                "trip_begins": true,
+                "trip_id": "57520841",
+                "trip_terminates": false,
+                "wait_time_sec": 4350
+            },
+            {
+                "arr_time": "Sun 12:19",
+                "dep_time": "Sun 12:19",
+                "drop_off_type": 0,
+                "headsign": "Centre St & Eliot St",
+                "pickup_type": 0,
+                "route_id": "41",
+                "short_name": "",
+                "stop_id": "362",
+                "trip_begins": false,
+                "trip_id": "57520841",
+                "trip_terminates": false,
+                "wait_time_sec": 4590
+            }
+        ]
+    ]
+}
+@End
+
+@Case:ETS with an alighted trip and a connection
+@Query:ETS 20 700395|place-state|5|place-state|70006
+@Expected
+{
+    "current_trip": null,
+    "error": 0,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "E2E",
+*   "proc_time_ms": 48,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stops": {
+        "70006": {
+            "stop_desc": "Jackson Square - Orange Line - Forest Hills",
+            "stop_name": "Jackson Square"
+        },
+        "70022": {
+            "stop_desc": "State - Orange Line - Forest Hills",
+            "stop_name": "State"
+        }
+    },
+    "trips": [
+        [
+            {
+                "arr_time": "Sun 10:58",
+                "dep_time": "Sun 10:58",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:03",
+                    "actual_departure": "Sun 11:04",
+                    "offset_seconds": 311,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1454"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223238",
+                "trip_terminates": false,
+                "wait_time_sec": 41
+            },
+            {
+                "arr_time": "Sun 11:15",
+                "dep_time": "Sun 11:15",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:16",
+                    "actual_departure": "Sun 11:16",
+                    "offset_seconds": 75,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1454"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70006",
+                "trip_begins": false,
+                "trip_id": "57223238",
+                "trip_terminates": false,
+                "wait_time_sec": 825
+            }
+        ]
+    ]
+}
+@End
