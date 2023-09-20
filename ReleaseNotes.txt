@@ -1,5 +1,15 @@
-THIS RELEASE: Version 2.2.0
+THIS RELEASE: Version 2.3.0
 ---------------------------
+- Extended EES/EER to ETS/ETR, respectively, allowing the requests to handle a current trip and
+  destination so it's easier to track the trip you are riding and the rest of your connections
+  in real-time!
+- Added parent station to SSR responses
+- Fixed a bug where boarding trips were disappearing from the arrival displays after 1 minute of
+  being stopped at a station (removed unnecessary invalidation logic)
+
+PREVIOUS RELEASES:
+Version 2.2.0
+-------------
 - Created EES and EER transactions to show arrival and departure times of entire trips with
   connecting routes and specified transfer fimes.
     - EES: End-to-End Service with scheduled and real-time data
@@ -9,8 +19,6 @@ THIS RELEASE: Version 2.2.0
 - Fixed real-time trip stop sequence matching to also take into effect the stop ID (not just the
   sequence number) because the "-q" option shuold have been evaluated first when doing comparisons.
 
-
-PREVIOUS RELEASES:
 Version 2.1.1
 -------------
 - Fixed a wrong order-of-arguments bug in constructing RealTimeTripUpdate objects (trace parameter

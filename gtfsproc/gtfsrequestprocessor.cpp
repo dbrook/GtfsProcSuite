@@ -170,7 +170,18 @@ void GtfsRequestProcessor::run()
             QString remainingReq;
             qint32 futureMinutes = determineMinuteRange(userReq, remainingReq);
             listifyIDs(remainingReq, args);
-            GTFS::EndToEndTrips E2E(futureMinutes, realtimeOnly, args);
+            GTFS::EndToEndTrips E2E(futureMinutes, realtimeOnly, false, args);
+            E2E.fillResponseData(respJson);
+        } else if (! userApp.compare("ETS", Qt::CaseInsensitive) || ! userApp.compare("ETR", Qt::CaseInsensitive)) {
+            bool realtimeOnly = false;
+            if (! userApp.compare("ETR", Qt::CaseInsensitive)) {
+                realtimeOnly = true;
+            }
+            QList<QString> args;
+            QString remainingReq;
+            qint32 futureMinutes = determineMinuteRange(userReq, remainingReq);
+            listifyIDs(remainingReq, args);
+            GTFS::EndToEndTrips E2E(futureMinutes, realtimeOnly, true, args);
             E2E.fillResponseData(respJson);
         } else if (! userApp.compare("DRT", Qt::CaseInsensitive)) {
             GTFS::RealtimeTripInformation DRT;
@@ -189,7 +200,7 @@ void GtfsRequestProcessor::run()
             respJson["error"] = 1;
             respJson["user_string"] = this->request;
         }
-    } catch (...) {
+    } catch (std::exception &e) {
         // Just catch anything and return an error to the client ... hopefully THIS does not cause an exception too!
         respJson["error"] = 2;
         respJson["user_string"] = this->request;

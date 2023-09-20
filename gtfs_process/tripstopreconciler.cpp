@@ -462,12 +462,10 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
             if (tripRecord.tripStatus == RUNNING || tripRecord.tripStatus == DEPART ||
                 tripRecord.tripStatus == BOARD   || tripRecord.tripStatus == ARRIVE) {
                 if (!tripRecord.realTimeArrival.isNull() &&
-                    ((_agencyTime.secsTo(tripRecord.realTimeArrival) < -60) ||
-                     (_lookaheadMins != 0 && tripRecord.realTimeArrival > _lookaheadTime))) {
+                    ((_lookaheadMins != 0 && tripRecord.realTimeArrival > _lookaheadTime))) {
                     tripRecord.tripStatus = IRRELEVANT;
                 } else if (!tripRecord.realTimeDeparture.isNull() &&
-                         ((_agencyTime.secsTo(tripRecord.realTimeDeparture) < -60) ||
-                          (_lookaheadMins != 0 && tripRecord.realTimeDeparture > _lookaheadTime))) {
+                         ((_lookaheadMins != 0 && tripRecord.realTimeDeparture > _lookaheadTime))) {
                     tripRecord.tripStatus = IRRELEVANT;
                 }
             } else if (tripRecord.tripStatus == CANCEL || tripRecord.tripStatus == SKIP) {

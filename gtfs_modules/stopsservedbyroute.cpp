@@ -62,6 +62,7 @@ void StopsServedByRoute::fillResponseData(QJsonObject &resp)
     for (const QString &stopID : (*_routes)[_routeID].stopService.keys()) {
         QJsonObject singleStopJSON;
         singleStopJSON["stop_id"]    = stopID;
+        singleStopJSON["parent_sta"] = (*_stops)[stopID].parent_station;
         singleStopJSON["stop_name"]  = (*_stops)[stopID].stop_name;
         singleStopJSON["stop_desc"]  = (*_stops)[stopID].stop_desc;
         singleStopJSON["stop_lat"]   = (*_stops)[stopID].stop_lat;
