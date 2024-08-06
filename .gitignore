@@ -11,3 +11,8 @@ GtfsProcSuite.pro.user
 gtfs_realtime/gtfs-realtime.pb.cc
 gtfs_realtime/gtfs-realtime.pb.h
 
+# Text interface Python stuff
+python_tui/.idea
+python_tui/venv
+python_tui/src/__pycache__
+
