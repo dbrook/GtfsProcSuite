@@ -1,10 +1,16 @@
 import json
 from datetime import timedelta
-from math import floor
+from math import ceil, floor
 
 from typing import List, Tuple
 
 from .GtfsProcSocket import GtfsProcSocket
+
+import sys
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 
 class GtfsProcDecoder:
@@ -25,6 +31,8 @@ class GtfsProcDecoder:
             return 'System and Data Status'
         elif code == 'NCF':
             return 'Upcoming Trips at Stop'
+        elif code == 'E2E':
+            return 'End-to-End Connections'
         else:
             return 'UNKNOWN RESPONSE'
 
@@ -71,6 +79,11 @@ Stop ID(s) . . . . . {data['stop_id']}
 Stop Name(s) . . . . {data['stop_name']}
 Stop Description . . {data['stop_desc']}
 '''
+        elif message_type == 'E2E':
+            if data['static_data_modif'] != self.rte_date:
+                # Update the route-cache if it's outdated
+                self.update_route_cache(data['static_data_modif'])
+            return ''
         else:
             return 'Response not yet formattable from GtfsProcDecoder'
 
@@ -125,29 +138,93 @@ Stop Description . . {data['stop_desc']}
             return (
                 '[ Trips ]',
                 ['ROUTE', 'TRIP-ID', 'NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP-TIME', 'MINS', 'STATUS'],
-                [6, 10, 4, 12, 1, 1, 1, 7, 4, 4],
+                [6, 10, 4, 12, 1, 1, 1, 7, 3, 4],
                 ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
                 ret_list,
+            )
+        elif message_type == 'E2E':
+            ret_list = []
+            stops = data['stops']
+            trips = data['trips']
+            for rc in range(len(trips)):
+                if rc == 4:
+                    break
+                if rc == 0:
+                    ret_list.append([' '])
+                    ret_list.append(['FIRST BOARD IN:'])
+                    ret_list.append([' '])
+                    for st in range(len(trips[rc])):
+                        if st % 2 == 0:
+                            stop_name = stops[trips[rc][st]['stop_id']]['stop_name']
+                            ret_list.append([stop_name])
+                            ret_list.append([' '])
+                            ret_list.append([' '])
+                        else:
+                            stop_name = stops[trips[rc][st]['stop_id']]['stop_name']
+                            ret_list.append([stop_name])
+                            ret_list.append([' '])
+                            if st == len(trips[rc]) - 1:
+                                ret_list.append(['TOTAL TRIP TIME:'])
+                            else:
+                                ret_list.append(['CONNECT TIME:'])
+                            ret_list.append([' '])
+                ret_list[1].append(f'{floor(trips[rc][0]["wait_time_sec"] / 60)} m')
+                for st in range(len(trips[rc])):
+                    if st % 2 == 0:
+                        row_start = floor((st / 2)) * 7 + 3
+                        if 'realtime_data' in trips[rc][st]:
+                            is_rt = '*'
+                        else:
+                            is_rt = ''
+                        ret_list[row_start].append(f'{is_rt}{self.get_stop_time(trips[rc][st])}')
+                        route_name_s = self.rte_cache[trips[rc][st]['route_id']]['short_name']
+                        route_name_l = self.rte_cache[trips[rc][st]['route_id']]['long_name']
+                        if route_name_s != '':
+                            route_name = route_name_s
+                        else:
+                            route_name = route_name_l
+                        ret_list[row_start + 1].append(route_name)
+                        ret_list[row_start + 2].append(trips[rc][st]['headsign'])
+                    else:
+                        row_start = floor((st / 2)) * 7 + 6
+                        if 'realtime_data' in trips[rc][st]:
+                            is_rt = '*'
+                        else:
+                            is_rt = ''
+                        ret_list[row_start].append(f'{is_rt}{self.get_stop_time(trips[rc][st])}')
+                        if st == len(trips[rc]) - 1:
+                            total_time = floor(
+                                (trips[rc][st]["wait_time_sec"] - trips[rc][0]["wait_time_sec"])
+                                / 60)
+                            ret_list[row_start + 2].append(f'{total_time} m')
+                        else:
+                            conn_time = trips[rc][st + 1]['wait_time_sec'] - trips[rc][st]['wait_time_sec']
+                            ret_list[row_start + 2].append(f'{floor(conn_time / 60)} m')
+            # eprint(json.dumps(ret_list))
+            return (
+                '[ Travel Options ]',
+                ['STOPS/CONNECTIONS'],
+                [2, 1, 1, 1, 1],
+                ['left', 'left', 'left', 'left', 'left'],
+                ret_list,
+                # [],
             )
         else:
             return '', [], [], [], json.dumps(data)
 
     def get_stop_time(self, trip: dict):
         # Prefer the departure time if present, otherwise the arrival
+        if trip['dep_time'] != '-':
+            stop_time = trip['dep_time']
+        elif trip['arr_time'] != '-':
+            stop_time = trip['arr_time']
+        else:
+            stop_time = 'SCH?'
         if 'realtime_data' in trip:
             if trip['realtime_data']['actual_departure'] != '':
                 stop_time = trip['realtime_data']['actual_departure']
             elif trip['realtime_data']['actual_arrival'] != '':
                 stop_time = trip['realtime_data']['actual_arrival']
-            else:
-                stop_time = 'RT ?'
-        else:
-            if trip['dep_time'] != '-':
-                stop_time = trip['dep_time']
-            elif trip['arr_time'] != '-':
-                stop_time = trip['arr_time']
-            else:
-                stop_time = 'SCH?'
         return stop_time
 
     def get_dropoff(self, dropoff_type: int) -> str:
