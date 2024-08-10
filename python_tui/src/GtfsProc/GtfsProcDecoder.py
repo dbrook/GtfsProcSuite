@@ -2,7 +2,7 @@ import json
 from datetime import timedelta
 from math import ceil, floor
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from .GtfsProcSocket import GtfsProcSocket
 
@@ -36,7 +36,7 @@ class GtfsProcDecoder:
         else:
             return 'UNKNOWN RESPONSE'
 
-    def get_fixed_portion(self, data: dict) -> str:
+    def get_fixed_portion(self, data: dict) -> Optional[str]:
         message_type = data['message_type']
         if message_type == 'SDS':
             if data['hide_terminating']:
@@ -83,7 +83,7 @@ Stop Description . . {data['stop_desc']}
             if data['static_data_modif'] != self.rte_date:
                 # Update the route-cache if it's outdated
                 self.update_route_cache(data['static_data_modif'])
-            return ''
+            return None
         else:
             return 'Response not yet formattable from GtfsProcDecoder'
 
@@ -202,7 +202,7 @@ Stop Description . . {data['stop_desc']}
                             ret_list[row_start + 2].append(f'{floor(conn_time / 60)} m')
             # eprint(json.dumps(ret_list))
             return (
-                '[ Travel Options ]',
+                '',
                 ['STOPS/CONNECTIONS'],
                 [2, 1, 1, 1, 1],
                 ['left', 'left', 'left', 'left', 'left'],

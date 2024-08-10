@@ -19,21 +19,12 @@ class DisplayDriver:
     def __init__(self, gtfs_handler: GtfsProcSocket, gtfs_decoder: GtfsProcDecoder):
         self.gtfs_proc_sock = gtfs_handler
         self.gtfs_proc_deco = gtfs_decoder
-        self.gtfs_rmsg = urwid.Text(u'', wrap='clip')
+        self.gtfs_rmsg = urwid.Text(u'Welcome to GtfsProc\'s Python Urwid UI!', wrap='clip')
         self.gtfs_rtag = urwid.Text(u'', wrap='clip')
         self.gtfs_proc = urwid.Text(u'', wrap='clip')
         self.gtfs_time = urwid.Text(u'', wrap='clip')
         self.gtfs_cmmd = urwid.Edit(multiline=False, align='left', wrap='clip')
-        self.gtfs_fixd = urwid.Text(u'Fixed Area Text Placeholder')
-        self.gtfs_scrh = urwid.Text(u'Scrollable Area Header')
-        self.gtfs_scri = urwid.Text(u'(Scroll --)')
-        self.gtfs_scra = urwid.Columns([self.gtfs_scrh, ('pack', self.gtfs_scri)])
-        self.gtfs_cols = urwid.Columns([urwid.Divider()], dividechars=1)
-        ### FIXME: the entire listview implem is kinda broken because it cannot be variable height!
-        self.gtfs_scrl = ListView()
-        col_rows = urwid.raw_display.Screen().get_cols_rows()
-        h = col_rows[1] - 7  # FIXME this is the wrong maths location!
-        self.gtfs_scrx = urwid.BoxAdapter(self.gtfs_scrl, height=h)
+        self.fill_zone = ListView()
         self.tmp_alarm = None
 
     def exit_on_f8(self, key: str | tuple[str, int, int, int]) -> None:
@@ -52,12 +43,8 @@ class DisplayDriver:
             self.gtfs_time.base_widget.set_text(u' ')
             self.gtfs_proc.base_widget.set_text(u' ')
             self.gtfs_rtag.base_widget.set_text(u' ')
-            self.gtfs_fixd.base_widget.set_text(
-                f'The GtfsProc server returned the following error: {resp["error"]}'
-            )
-            self.gtfs_scrh.base_widget.set_text(u' ')
-            self.gtfs_cols.contents = []
-            self.gtfs_scrl.set_data([])
+            error_text = urwid.Text(f'The GtfsProc server returned the following error: {resp["error"]}')
+            self.fill_zone.set_data([error_text])
             self.loop.draw_screen()
             return
 
@@ -77,33 +64,27 @@ class DisplayDriver:
             self.gtfs_rtag.base_widget.set_text(u' ')
 
         # Fixed portion of the output
-        self.gtfs_fixd.base_widget.set_text(self.gtfs_proc_deco.get_fixed_portion(resp))
+        fixed_area = self.gtfs_proc_deco.get_fixed_portion(resp)
+        output_zone = []
+        if fixed_area is not None:
+            output_zone.append(urwid.Text(fixed_area))
 
         # Scrollable portion of the output
-        self.gtfs_scrx.sizing()
         name, head_names, head_widths, align, scrollables = self.gtfs_proc_deco.get_scroll_portion(resp)
         if type(scrollables) is str:
             # When an unprocessed/unformatted response is received, just dump to scrollable area
-            self.gtfs_scrh.base_widget.set_text('Here is a JSON dump of the response:')
-            headers = [
-                (urwid.Text(''), urwid.Columns.options()),
-            ]
-            self.gtfs_cols.contents = headers
-            # self.gtfs_scrl.contents = urwid.SimpleListWalker(urwid.Text(json.dumps(resp, indent=2)))
+            output_zone.append(urwid.Text('Here is a JSON dump of the response:'))
             json_lines = json.dumps(resp, indent=2).split('\n')
-            urwid_line = [urwid.Text(w) for w in json_lines]
-            self.gtfs_scrl.set_data(urwid_line)
+            for json_line in json_lines:
+                output_zone.append(urwid.Text(json_line))
         else:
             # Processed / formattable responses can be dumped into the scrolling view as a table
-            self.gtfs_scrh.base_widget.set_text(name)
+            if name != '':
+                output_zone.append(urwid.Text(name))
             headers = []
             for i in range(len(head_names)):
-                headers.append((
-                    urwid.Text(head_names[i]),
-                    urwid.Columns.options('weight', head_widths[i])
-                ))
-            self.gtfs_cols.contents = headers
-            contents = []
+                headers.append(('weight', head_widths[i], urwid.Text(head_names[i])))
+            output_zone.append(urwid.Columns(headers, dividechars=1))
             for i in range(len(scrollables)):
                 sub_contents = []
                 for j in range(len(scrollables[i])):
@@ -112,11 +93,11 @@ class DisplayDriver:
                         'weight', head_widths[j],
                         urwid.Text(scrollables[i][j], wrap='ellipsis', align=align[j]),
                     ))
-                contents.append(urwid.Columns(sub_contents, dividechars=1))
-                # contents.append(sub_contents)
-            self.gtfs_scrl.set_data(contents)
+                output_zone.append(urwid.Columns(sub_contents, dividechars=1))
 
         # Final screen update after buffered changes
+        # self.fill_zone.set_data(output_zone)
+        self.fill_zone.set_data(urwid.SimpleFocusListWalker(output_zone))
         self.loop.draw_screen()
 
     def wrap_auto_update(self, foo, bar):
@@ -131,26 +112,21 @@ class DisplayDriver:
 
     def main_draw(self) -> None:
         # Header to show the message type and response + system times
-        gtfs_head = urwid.Columns([
-            self.gtfs_rmsg,
-            ('pack', self.gtfs_rtag),
-            ('pack', self.gtfs_proc),
-            ('pack', self.gtfs_time),
-        ], 3)
-        gtfs_divi = urwid.Divider(u'─')
-
-        mid_zone = urwid.Pile([
-            ('pack', self.gtfs_fixd),
-            self.gtfs_scra,
-            self.gtfs_cols,
-            self.gtfs_scrx,
+        gtfs_head = urwid.Pile([
+            urwid.Columns([
+                self.gtfs_rmsg,
+                ('pack', self.gtfs_rtag),
+                ('pack', self.gtfs_proc),
+                ('pack', self.gtfs_time),
+            ], 3),
+            urwid.Divider()
         ])
-        fill = urwid.Filler(mid_zone, 'top')
 
+        # Footer Generation
         gtfs_prmp = urwid.Text(u'Command:', 'left', 'clip')
         gtfs_sbmt = urwid.Button(u'Run')
         urwid.connect_signal(gtfs_sbmt, 'click', self.update_response)
-        gtfs_auto = urwid.CheckBox(u'Auto-Refresh')
+        gtfs_auto = urwid.CheckBox(u'Auto-Ref')
         urwid.connect_signal(gtfs_auto, 'change', self.auto_update)
         gtfs_quit = urwid.Text(u'│ F8 to Quit')
         gtfs_foot = urwid.Columns([
@@ -163,12 +139,7 @@ class DisplayDriver:
         ], 1)
 
         # Execute the main-loop until the F8 key is pressed
-        gtfs_view = urwid.Pile([
-            ('pack', gtfs_head),
-            ('pack', gtfs_divi),
-            fill,
-            ('pack', gtfs_divi),
-            ('pack', gtfs_foot),
-        ])
+        gtfs_view = urwid.Frame(self.fill_zone, header=gtfs_head, footer=gtfs_foot)
+        gtfs_view.focus_position = 'footer'
         self.loop = urwid.MainLoop(gtfs_view, unhandled_input=self.exit_on_f8)
         self.loop.run()
