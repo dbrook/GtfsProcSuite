@@ -4,14 +4,16 @@ import json
 from GtfsProc import GtfsProcSocket, GtfsProcDecoder
 
 
-class ListView(urwid.WidgetWrap):
-    def __init__(self):
-        self.walker = urwid.SimpleListWalker([])
-        list_box = urwid.ListBox(self.walker)
-        urwid.WidgetWrap.__init__(self, list_box)
+class ListBoxIndicatorCB(urwid.ListBox):
+    def __init__(self, body, on_focus_change=None):
+        super().__init__(body)
 
-    def set_data(self, response_array):
-        self.walker[:] = response_array
+        self.on_focus_change = on_focus_change
+
+    def change_focus(self, size, position, offset_inset=0, coming_from=None, cursor_coords=None, snap_rows=None):
+        super().change_focus(size, position, offset_inset, coming_from, cursor_coords, snap_rows)
+        if self.on_focus_change is not None:
+            self.on_focus_change(size, position, offset_inset, coming_from, cursor_coords, snap_rows)
 
 
 class DisplayDriver:
@@ -24,14 +26,24 @@ class DisplayDriver:
         self.gtfs_time = urwid.Text(u'', wrap='clip')
         self.gtfs_cmmd = urwid.Edit(multiline=False, align='left', wrap='clip')
         self.fill_zone = urwid.SimpleListWalker([urwid.Text('WE CAN HAZ TEST TEXT?', wrap='clip')])
-        self.scrl_zone = urwid.ListBox(self.fill_zone)
+        self.scrl_zone = ListBoxIndicatorCB(self.fill_zone, self.update_scroll_indicator)
+        self.scrl_indi = urwid.Text('--')
+        self.gtfs_view = None
         self.tmp_alarm = None
 
-    def exit_on_f8(self, key: str | tuple[str, int, int, int]) -> None:
+    def fkey_handler(self, key: str | tuple[str, int, int, int]) -> None:
         if key in {"f8"}:
             raise urwid.ExitMainLoop()
+        elif key in {"f5"}:
+            self.update_response(None)
+        elif key in {"f2"}:
+            if self.gtfs_view.focus_position == 'footer':
+                self.gtfs_view.focus_position = 'body'
+            else:
+                self.gtfs_view.focus_position = 'footer'
 
     def update_response(self, button) -> None:
+        self.gtfs_view.focus_position = 'body'
         self.gtfs_rmsg.base_widget.set_text(u'Working on it ...')
         self.loop.draw_screen()
 
@@ -76,7 +88,10 @@ class DisplayDriver:
         name, head_names, head_widths, align, scrollables = self.gtfs_proc_deco.get_scroll_portion(resp)
         if type(scrollables) is str:
             # When an unprocessed/unformatted response is received, just dump to scrollable area
-            output_zone.append(urwid.Text('Here is a JSON dump of the response:'))
+            output_zone.append(urwid.AttrMap(
+                urwid.Text('Here is a JSON dump of the response:'),
+                'error'
+            ))
             json_lines = json.dumps(resp, indent=2).split('\n')
             for json_line in json_lines:
                 output_zone.append(urwid.Text(json_line))
@@ -86,17 +101,29 @@ class DisplayDriver:
                 output_zone.append(urwid.Text(name))
             headers = []
             for i in range(len(head_names)):
-                headers.append(('weight', head_widths[i], urwid.Text(head_names[i])))
+                if head_widths[i] is not None:
+                    headers.append((
+                        'weight', head_widths[i],
+                        urwid.AttrMap(urwid.Text(head_names[i]), 'colheads')
+                    ))
+                else:
+                    headers.append((
+                        'pack', urwid.AttrMap(urwid.Text(head_names[i]), 'colheads')
+                    ))
             if len(headers) != 0:
                 output_zone.append(urwid.Columns(headers, dividechars=1))
             for i in range(len(scrollables)):
                 sub_contents = []
                 for j in range(len(scrollables[i])):
-                    # sub_contents.append(urwid.Text(scrollables[i][j], wrap='ellipsis'))
-                    sub_contents.append((
-                        'weight', head_widths[j],
-                        urwid.Text(scrollables[i][j], wrap='ellipsis', align=align[j]),
-                    ))
+                    if head_widths[j] is not None:
+                        sub_contents.append((
+                            'weight', head_widths[j],
+                            urwid.Text(scrollables[i][j], wrap='ellipsis', align=align[j]),
+                        ))
+                    else:
+                        sub_contents.append((
+                            'pack', urwid.Text(scrollables[i][j], wrap='ellipsis', align=align[j]),
+                        ))
                 output_zone.append(urwid.Columns(sub_contents, dividechars=1))
 
         # Final screen update after buffered changes
@@ -113,13 +140,28 @@ class DisplayDriver:
         else:
             self.loop.remove_alarm(self.tmp_alarm)
 
+    def update_scroll_indicator(self, size, position, offset_inset, coming_from, cursor_coords, snap_rows):
+        # FIXME: this doesn't seem to work all that great... (unreliable updates)
+        result = self.scrl_zone.ends_visible(size)
+        if "top" in result:
+            indic = '-'
+        else:
+            indic = '↑'
+        if "bottom" in result:
+            indic = indic + '-'
+        else:
+            indic = indic + '↓'
+        self.scrl_indi.set_text(indic)
+
+
     def main_draw(self) -> None:
         palette = [
-            ('footerbar', 'light gray', 'black'),
+            # ('footerbar', 'white', 'black'),
             ('command', 'black', 'light gray'),
             ('control', 'black', 'dark cyan'),
-            ('exit', 'black', 'brown'),
+            ('keys', 'light gray', 'dark blue'),
             ('error', 'white', 'dark red'),
+            ('colheads', 'black', 'light gray')
         ]
         # Header to show the message type and response + system times
         gtfs_head = urwid.Pile([
@@ -134,28 +176,26 @@ class DisplayDriver:
 
         # Footer Generation
         gtfs_prmp = urwid.Text(u'Command:', 'left', 'clip')
-        gtfs_sbmt = urwid.Button(u'Run')
-        urwid.connect_signal(gtfs_sbmt, 'click', self.update_response)
-        gtfs_auto = urwid.CheckBox(u'Auto-Ref')
+        # gtfs_sbmt = urwid.Button(u'Run')
+        # urwid.connect_signal(gtfs_sbmt, 'click', self.update_response)
+        gtfs_auto = urwid.CheckBox(u'Auto')
         urwid.connect_signal(gtfs_auto, 'change', self.auto_update)
-        gtfs_quit = urwid.Text(u'F8 to Quit')
         gtfs_foot = urwid.Pile([
             urwid.Divider(),
-            urwid.AttrMap(
-                urwid.Columns([
-                    ('pack', gtfs_prmp),
-                    urwid.AttrMap(self.gtfs_cmmd, 'command'),
-                    ('pack', urwid.AttrMap(gtfs_sbmt, 'control')),
-                    ('pack', urwid.AttrMap(gtfs_auto, 'control')),
-                    ('pack', urwid.AttrMap(gtfs_quit, 'exit')),
-                    # ('pack', self.gtfs_scri)
-                ], 1),
-                'footerbar'
-            )
+            urwid.Columns([
+                ('pack', gtfs_prmp),
+                urwid.AttrMap(self.gtfs_cmmd, 'command'),
+                # ('pack', urwid.AttrMap(gtfs_sbmt, 'control')),
+                ('pack', urwid.AttrMap(gtfs_auto, 'control')),
+                ('pack', urwid.AttrMap(urwid.Text(u'F2: Focus'), 'keys')),
+                ('pack', urwid.AttrMap(urwid.Text(u'F5: Run'), 'keys')),
+                ('pack', urwid.AttrMap(urwid.Text(u'F8: Quit'), 'keys')),
+                ('pack', urwid.AttrMap(self.scrl_indi, 'control')),
+            ], 1),
         ])
 
         # Execute the main-loop until the F8 key is pressed
-        gtfs_view = urwid.Frame(self.scrl_zone, header=gtfs_head, footer=gtfs_foot)
-        gtfs_view.focus_position = 'footer'
-        self.loop = urwid.MainLoop(gtfs_view, palette, unhandled_input=self.exit_on_f8)
+        self.gtfs_view = urwid.Frame(self.scrl_zone, header=gtfs_head, footer=gtfs_foot)
+        self.gtfs_view.focus_position = 'footer'
+        self.loop = urwid.MainLoop(self.gtfs_view, palette, unhandled_input=self.fkey_handler)
         self.loop.run()

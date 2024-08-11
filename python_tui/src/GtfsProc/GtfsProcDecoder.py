@@ -87,7 +87,7 @@ Stop Description . . {data['stop_desc']}
         else:
             return 'Response not yet formattable from GtfsProcDecoder'
 
-    def get_scroll_portion(self, data: dict) -> Tuple[str, List[str], List[int], List[str], List[List[str]] | str]:
+    def get_scroll_portion(self, data: dict) -> Tuple[str, List[str], List[int | None], List[str], List[List[str]] | str]:
         message_type = data['message_type']
         if message_type == 'SDS':
             ret_list = []
@@ -100,7 +100,7 @@ Stop Description . . {data['stop_desc']}
                 ])
             return (
                 '[ Agencies ]',
-                ['ID', 'NAME', 'TIME-ZONE', 'PHONE'],
+                ['ID', 'NAME', 'TIME ZONE', 'PHONE'],
                 [1, 6, 4, 3],
                 ['left', 'left', 'left', 'left'],
                 ret_list,
@@ -138,7 +138,7 @@ Stop Description . . {data['stop_desc']}
             return (
                 '[ Trips ]',
                 ['ROUTE', 'TRIP-ID', 'NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP-TIME', 'MINS', 'STATUS'],
-                [6, 10, 4, 12, 1, 1, 1, 7, 3, 4],
+                [6, 10, 4, 12, None, None, None, 7, 3, 4],
                 ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
                 ret_list,
             )
