@@ -14,7 +14,6 @@ class ListView(urwid.WidgetWrap):
         self.walker[:] = response_array
 
 
-
 class DisplayDriver:
     def __init__(self, gtfs_handler: GtfsProcSocket, gtfs_decoder: GtfsProcDecoder):
         self.gtfs_proc_sock = gtfs_handler
@@ -24,7 +23,8 @@ class DisplayDriver:
         self.gtfs_proc = urwid.Text(u'', wrap='clip')
         self.gtfs_time = urwid.Text(u'', wrap='clip')
         self.gtfs_cmmd = urwid.Edit(multiline=False, align='left', wrap='clip')
-        self.fill_zone = ListView()
+        self.fill_zone = urwid.SimpleListWalker([urwid.Text('WE CAN HAZ TEST TEXT?', wrap='clip')])
+        self.scrl_zone = urwid.ListBox(self.fill_zone)
         self.tmp_alarm = None
 
     def exit_on_f8(self, key: str | tuple[str, int, int, int]) -> None:
@@ -43,8 +43,11 @@ class DisplayDriver:
             self.gtfs_time.base_widget.set_text(u' ')
             self.gtfs_proc.base_widget.set_text(u' ')
             self.gtfs_rtag.base_widget.set_text(u' ')
-            error_text = urwid.Text(f'The GtfsProc server returned the following error: {resp["error"]}')
-            self.fill_zone.set_data([error_text])
+            error_text = urwid.AttrMap(
+                urwid.Text(f'The GtfsProc server returned the following error: {resp["error"]}'),
+                'error'
+            )
+            self.fill_zone.contents[:] = [error_text]
             self.loop.draw_screen()
             return
 
@@ -84,7 +87,8 @@ class DisplayDriver:
             headers = []
             for i in range(len(head_names)):
                 headers.append(('weight', head_widths[i], urwid.Text(head_names[i])))
-            output_zone.append(urwid.Columns(headers, dividechars=1))
+            if len(headers) != 0:
+                output_zone.append(urwid.Columns(headers, dividechars=1))
             for i in range(len(scrollables)):
                 sub_contents = []
                 for j in range(len(scrollables[i])):
@@ -96,8 +100,7 @@ class DisplayDriver:
                 output_zone.append(urwid.Columns(sub_contents, dividechars=1))
 
         # Final screen update after buffered changes
-        # self.fill_zone.set_data(output_zone)
-        self.fill_zone.set_data(urwid.SimpleFocusListWalker(output_zone))
+        self.fill_zone.contents[:] = output_zone
         self.loop.draw_screen()
 
     def wrap_auto_update(self, foo, bar):
@@ -111,6 +114,13 @@ class DisplayDriver:
             self.loop.remove_alarm(self.tmp_alarm)
 
     def main_draw(self) -> None:
+        palette = [
+            ('footerbar', 'light gray', 'black'),
+            ('command', 'black', 'light gray'),
+            ('control', 'black', 'dark cyan'),
+            ('exit', 'black', 'brown'),
+            ('error', 'white', 'dark red'),
+        ]
         # Header to show the message type and response + system times
         gtfs_head = urwid.Pile([
             urwid.Columns([
@@ -128,18 +138,24 @@ class DisplayDriver:
         urwid.connect_signal(gtfs_sbmt, 'click', self.update_response)
         gtfs_auto = urwid.CheckBox(u'Auto-Ref')
         urwid.connect_signal(gtfs_auto, 'change', self.auto_update)
-        gtfs_quit = urwid.Text(u'│ F8 to Quit')
-        gtfs_foot = urwid.Columns([
-            ('pack', gtfs_prmp),
-            self.gtfs_cmmd,
-            ('pack', gtfs_sbmt),
-            ('pack', gtfs_auto),
-            ('pack', gtfs_quit),
-            # ('pack', self.gtfs_scri)
-        ], 1)
+        gtfs_quit = urwid.Text(u'F8 to Quit')
+        gtfs_foot = urwid.Pile([
+            urwid.Divider(),
+            urwid.AttrMap(
+                urwid.Columns([
+                    ('pack', gtfs_prmp),
+                    urwid.AttrMap(self.gtfs_cmmd, 'command'),
+                    ('pack', urwid.AttrMap(gtfs_sbmt, 'control')),
+                    ('pack', urwid.AttrMap(gtfs_auto, 'control')),
+                    ('pack', urwid.AttrMap(gtfs_quit, 'exit')),
+                    # ('pack', self.gtfs_scri)
+                ], 1),
+                'footerbar'
+            )
+        ])
 
         # Execute the main-loop until the F8 key is pressed
-        gtfs_view = urwid.Frame(self.fill_zone, header=gtfs_head, footer=gtfs_foot)
+        gtfs_view = urwid.Frame(self.scrl_zone, header=gtfs_head, footer=gtfs_foot)
         gtfs_view.focus_position = 'footer'
-        self.loop = urwid.MainLoop(gtfs_view, unhandled_input=self.exit_on_f8)
+        self.loop = urwid.MainLoop(gtfs_view, palette, unhandled_input=self.exit_on_f8)
         self.loop.run()

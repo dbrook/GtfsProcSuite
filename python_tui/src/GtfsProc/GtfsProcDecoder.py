@@ -150,9 +150,10 @@ Stop Description . . {data['stop_desc']}
                 if rc == 4:
                     break
                 if rc == 0:
-                    ret_list.append([' '])
+                    # ret_list.append([' '])
+                    ret_list.append(['TOTAL TRIP TIME:'])
+                    ret_list.append([''])
                     ret_list.append(['FIRST BOARD IN:'])
-                    ret_list.append([' '])
                     for st in range(len(trips[rc])):
                         if st % 2 == 0:
                             stop_name = stops[trips[rc][st]['stop_id']]['stop_name']
@@ -163,15 +164,12 @@ Stop Description . . {data['stop_desc']}
                             stop_name = stops[trips[rc][st]['stop_id']]['stop_name']
                             ret_list.append([stop_name])
                             ret_list.append([' '])
-                            if st == len(trips[rc]) - 1:
-                                ret_list.append(['TOTAL TRIP TIME:'])
-                            else:
+                            if st != len(trips[rc]) - 1:
                                 ret_list.append(['CONNECT TIME:'])
-                            ret_list.append([' '])
-                ret_list[1].append(f'{floor(trips[rc][0]["wait_time_sec"] / 60)} m')
+                ret_list[2].append(f'{floor(trips[rc][0]["wait_time_sec"] / 60)} m')
                 for st in range(len(trips[rc])):
                     if st % 2 == 0:
-                        row_start = floor((st / 2)) * 7 + 3
+                        row_start = floor((st / 2)) * 6 + 3
                         if 'realtime_data' in trips[rc][st]:
                             is_rt = '*'
                         else:
@@ -186,7 +184,7 @@ Stop Description . . {data['stop_desc']}
                         ret_list[row_start + 1].append(route_name)
                         ret_list[row_start + 2].append(trips[rc][st]['headsign'])
                     else:
-                        row_start = floor((st / 2)) * 7 + 6
+                        row_start = floor((st / 2)) * 6 + 6
                         if 'realtime_data' in trips[rc][st]:
                             is_rt = '*'
                         else:
@@ -196,14 +194,14 @@ Stop Description . . {data['stop_desc']}
                             total_time = floor(
                                 (trips[rc][st]["wait_time_sec"] - trips[rc][0]["wait_time_sec"])
                                 / 60)
-                            ret_list[row_start + 2].append(f'{total_time} m')
+                            ret_list[0].append(f'{total_time} m')
                         else:
                             conn_time = trips[rc][st + 1]['wait_time_sec'] - trips[rc][st]['wait_time_sec']
                             ret_list[row_start + 2].append(f'{floor(conn_time / 60)} m')
             # eprint(json.dumps(ret_list))
             return (
                 '',
-                ['STOPS/CONNECTIONS'],
+                [],
                 [2, 1, 1, 1, 1],
                 ['left', 'left', 'left', 'left', 'left'],
                 ret_list,
