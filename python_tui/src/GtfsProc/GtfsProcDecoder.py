@@ -1,12 +1,11 @@
 import json
 from datetime import timedelta
 from math import ceil, floor
+import sys
 
 from typing import List, Tuple, Optional
 
 from .GtfsProcSocket import GtfsProcSocket
-
-import sys
 
 
 def eprint(*args, **kwargs):
@@ -134,11 +133,10 @@ Stop Description . . {data['stop_desc']}
                     route_name, trip_id, trip_name, headsign, start_term,
                     pickup, dropoff, stop_time, minutes, status
                 ))
-
             return (
                 '[ Trips ]',
-                ['ROUTE', 'TRIP-ID', 'NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP-TIME', 'MINS', 'STATUS'],
-                [6, 10, 4, 12, None, None, None, 7, 3, 4],
+                ['ROUTE', 'TRIP ID', 'NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP TIME  ', 'MINS', 'STATUS'],
+                [6, 10, 4, 12, None, None, None, None, None, None],
                 ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
                 ret_list,
             )
@@ -146,6 +144,11 @@ Stop Description . . {data['stop_desc']}
             ret_list = []
             stops = data['stops']
             trips = data['trips']
+            if len(trips) == 0:
+                return (
+                    'There are no trips that satisfy the request within the look-ahead time.',
+                    [], [], [], []
+                )
             for rc in range(len(trips)):
                 if rc == 4:
                     break
@@ -198,7 +201,6 @@ Stop Description . . {data['stop_desc']}
                         else:
                             conn_time = trips[rc][st + 1]['wait_time_sec'] - trips[rc][st]['wait_time_sec']
                             ret_list[row_start + 2].append(f'{floor(conn_time / 60)} m')
-            # eprint(json.dumps(ret_list))
             return (
                 '',
                 [],
@@ -213,16 +215,16 @@ Stop Description . . {data['stop_desc']}
     def get_stop_time(self, trip: dict):
         # Prefer the departure time if present, otherwise the arrival
         if trip['dep_time'] != '-':
-            stop_time = trip['dep_time']
+            stop_time = '{:11}'.format(trip['dep_time'])
         elif trip['arr_time'] != '-':
-            stop_time = trip['arr_time']
+            stop_time = '{:11}'.format(trip['arr_time'])
         else:
             stop_time = 'SCH?'
         if 'realtime_data' in trip:
             if trip['realtime_data']['actual_departure'] != '':
-                stop_time = trip['realtime_data']['actual_departure']
+                stop_time = '{:11}'.format(trip['realtime_data']['actual_departure'])
             elif trip['realtime_data']['actual_arrival'] != '':
-                stop_time = trip['realtime_data']['actual_arrival']
+                stop_time = '{:11}'.format(trip['realtime_data']['actual_arrival'])
         return stop_time
 
     def get_dropoff(self, dropoff_type: int) -> str:
@@ -247,19 +249,19 @@ Stop Description . . {data['stop_desc']}
 
     def get_countdown(self, trip: dict) -> str:
         if 'realtime_data' not in trip:
-            return f'{floor(trip["wait_time_sec"] / 60)}'
+            return '{:4}'.format(floor(trip["wait_time_sec"] / 60))
         if trip['realtime_data']['status'] in ['RNNG', 'CNCL', 'SKIP']:
-            return f'{floor(trip["wait_time_sec"] / 60)}'
+            return '{:4}'.format(floor(trip["wait_time_sec"] / 60))
         elif trip['realtime_data']['status'] in ['ARRV', 'BRDG', 'DPRT']:
             return trip['realtime_data']['status']
 
     def get_status(self, trip: dict) -> str:
         if 'realtime_data' not in trip:
-            return ''
+            return '      '
         stop_status = trip['realtime_data']['stop_status']
         if stop_status in ['SPLM', 'SCHD', 'PRED']:
             if stop_status == 'SPLM':
-                return 'Extra'
+                return 'Extra '
             elif stop_status == 'SCHD':
                 return 'NoData'
             elif stop_status == 'PRED':
@@ -271,17 +273,17 @@ Stop Description . . {data['stop_desc']}
             if status_code == 'CNCL':
                 abbr_status = 'Cancel'
             elif status_code == 'SKIP':
-                abbr_status = 'Skip'
+                abbr_status = 'Skip  '
             else:
                 abbr_status = status_code
             return abbr_status
 
         offset_sec = trip['realtime_data']['offset_seconds']
         if -60 < offset_sec < 60:
-            return 'OnTime'
+            return 'OT    '
         elif offset_sec <= -60:
             return 'E{:4}m'.format(floor(-1 * offset_sec / 60))
         elif offset_sec >= 60:
             return 'L{:4}m'.format(floor(offset_sec / 60))
         else:
-            return '??????'
+            return '?     '

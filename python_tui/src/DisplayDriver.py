@@ -157,7 +157,7 @@ class DisplayDriver:
     def main_draw(self) -> None:
         palette = [
             # ('footerbar', 'white', 'black'),
-            ('command', 'black', 'light gray'),
+            ('command', 'black', 'dark cyan'),
             ('control', 'black', 'dark cyan'),
             ('keys', 'light gray', 'dark blue'),
             ('error', 'white', 'dark red'),
@@ -176,8 +176,6 @@ class DisplayDriver:
 
         # Footer Generation
         gtfs_prmp = urwid.Text(u'Command:', 'left', 'clip')
-        # gtfs_sbmt = urwid.Button(u'Run')
-        # urwid.connect_signal(gtfs_sbmt, 'click', self.update_response)
         gtfs_auto = urwid.CheckBox(u'Auto')
         urwid.connect_signal(gtfs_auto, 'change', self.auto_update)
         gtfs_foot = urwid.Pile([
@@ -190,7 +188,7 @@ class DisplayDriver:
                 ('pack', urwid.AttrMap(urwid.Text(u'F2: Focus'), 'keys')),
                 ('pack', urwid.AttrMap(urwid.Text(u'F5: Run'), 'keys')),
                 ('pack', urwid.AttrMap(urwid.Text(u'F8: Quit'), 'keys')),
-                ('pack', urwid.AttrMap(self.scrl_indi, 'control')),
+                ('pack', urwid.AttrMap(self.scrl_indi, 'colheads')),
             ], 1),
         ])
 
