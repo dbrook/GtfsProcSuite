@@ -16,6 +16,34 @@ class ListBoxIndicatorCB(urwid.ListBox):
             self.on_focus_change(size, position, offset_inset, coming_from, cursor_coords, snap_rows)
 
 
+class SelectableText(urwid.SelectableIcon):
+    def __init__(self, text, sel_position, cback):
+        self.cback = cback
+        super().__init__(text, sel_position)
+
+    def keypress(self, size: tuple[int] | tuple[()], key: str) -> str:
+        if key in {"enter"}:
+            self.cback.base_widget.set_text('BOOPY')
+        return super().keypress(size, key)
+
+
+# Testing an idea
+class ListEntry(urwid.Text):
+    _selectable = True
+    signals = ["click"]
+
+    def keypress(self, size, key):
+        if self._command_map[key] != urwid.ACTIVATE:
+            return key
+        self._emit('click')
+
+    def mouse_event(self, size, event, button, x, y, focus):
+        if button != 1 or not urwid.util.is_mouse_press(event):
+            return False
+        self._emit('click')
+        return True
+
+
 class DisplayDriver:
     def __init__(self, gtfs_handler: GtfsProcSocket, gtfs_decoder: GtfsProcDecoder):
         self.gtfs_proc_sock = gtfs_handler
@@ -44,14 +72,14 @@ class DisplayDriver:
 
     def update_response(self, button) -> None:
         self.gtfs_view.focus_position = 'body'
-        self.gtfs_rmsg.base_widget.set_text(u'Working on it ...')
+        self.gtfs_rmsg.base_widget.set_text(('indicator', u'Data Acquisition ...'))
         self.loop.draw_screen()
 
         command = self.gtfs_cmmd.base_widget.get_edit_text()
         resp = self.gtfs_proc_sock.req_resp(command)
 
         if resp['error'] != 0:
-            self.gtfs_rmsg.base_widget.set_text(u'ERROR')
+            self.gtfs_rmsg.base_widget.set_text(('error', u'ERROR'))
             self.gtfs_time.base_widget.set_text(u' ')
             self.gtfs_proc.base_widget.set_text(u' ')
             self.gtfs_rtag.base_widget.set_text(u' ')
@@ -81,12 +109,12 @@ class DisplayDriver:
         # Fixed portion of the output
         fixed_area = self.gtfs_proc_deco.get_fixed_portion(resp)
         output_zone = []
-        if fixed_area is not None:
-            output_zone.append(urwid.Text(fixed_area))
+        for fix_text in fixed_area:
+            output_zone.append(urwid.Text(fix_text, wrap='ellipsis'))
 
         # Scrollable portion of the output
-        name, head_names, head_widths, align, scrollables = self.gtfs_proc_deco.get_scroll_portion(resp)
-        if type(scrollables) is str:
+        tables = self.gtfs_proc_deco.get_scroll_portion(resp)
+        if type(tables) is str:
             # When an unprocessed/unformatted response is received, just dump to scrollable area
             output_zone.append(urwid.AttrMap(
                 urwid.Text('Here is a JSON dump of the response:'),
@@ -96,35 +124,18 @@ class DisplayDriver:
             for json_line in json_lines:
                 output_zone.append(urwid.Text(json_line))
         else:
-            # Processed / formattable responses can be dumped into the scrolling view as a table
-            if name != '':
-                output_zone.append(urwid.Text(name))
-            headers = []
-            for i in range(len(head_names)):
-                if head_widths[i] is not None:
-                    headers.append((
-                        'weight', head_widths[i],
-                        urwid.AttrMap(urwid.Text(head_names[i]), 'colheads')
-                    ))
-                else:
-                    headers.append((
-                        'pack', urwid.AttrMap(urwid.Text(head_names[i]), 'colheads')
-                    ))
-            if len(headers) != 0:
-                output_zone.append(urwid.Columns(headers, dividechars=1))
-            for i in range(len(scrollables)):
-                sub_contents = []
-                for j in range(len(scrollables[i])):
-                    if head_widths[j] is not None:
-                        sub_contents.append((
-                            'weight', head_widths[j],
-                            urwid.Text(scrollables[i][j], wrap='ellipsis', align=align[j]),
-                        ))
-                    else:
-                        sub_contents.append((
-                            'pack', urwid.Text(scrollables[i][j], wrap='ellipsis', align=align[j]),
-                        ))
-                output_zone.append(urwid.Columns(sub_contents, dividechars=1))
+            for table in tables:
+                # Processed / formattable responses can be dumped into the scrolling view as a table
+                name = table.get_table_name()
+                if name != '':
+                    output_zone.append(urwid.Text(name))
+                col_heads = table.get_columns_formatted()
+                if len(col_heads) > 0:
+                    output_zone.append(urwid.Columns(col_heads, dividechars=1))
+                contents = table.get_table_content()
+                if len(contents) > 0:
+                    for row in contents:
+                        output_zone.append(urwid.Columns(row, dividechars=1))
 
         # Final screen update after buffered changes
         self.fill_zone.contents[:] = output_zone
@@ -161,7 +172,8 @@ class DisplayDriver:
             ('control', 'black', 'dark cyan'),
             ('keys', 'light gray', 'dark blue'),
             ('error', 'white', 'dark red'),
-            ('colheads', 'black', 'light gray')
+            ('colheads', 'black', 'light gray'),
+            ('indicator', 'brown', 'default'),
         ]
         # Header to show the message type and response + system times
         gtfs_head = urwid.Pile([

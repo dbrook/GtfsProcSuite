@@ -6,6 +6,7 @@ import sys
 from typing import List, Tuple, Optional
 
 from .GtfsProcSocket import GtfsProcSocket
+from .TabularData import TabularData
 
 
 def eprint(*args, **kwargs):
@@ -35,7 +36,7 @@ class GtfsProcDecoder:
         else:
             return 'UNKNOWN RESPONSE'
 
-    def get_fixed_portion(self, data: dict) -> Optional[str]:
+    def get_fixed_portion(self, data: dict) -> List[str]:
         message_type = data['message_type']
         if message_type == 'SDS':
             if data['hide_terminating']:
@@ -49,44 +50,48 @@ class GtfsProcDecoder:
             up_days = floor(data['appuptime_sec'] / 43200)
             up_time = str(timedelta(seconds=data['appuptime_sec'] % 43200))
 
-            return f'''[ Backend ]
-Processed Reqs . . . {data['processed_reqs']}
-Uptime . . . . . . . {up_days}d {up_time}
-Data Load Time . . . {data['dataloadtime_ms']} ms
-Threads  . . . . . . {data['threadpool_count']}
-Overrides  . . . . . {data['overrides']}
-Term Trips . . . . . {term_trips}
-NEX Trips/Rts  . . . {data['nb_nex_trips']}
-RT Date Match  . . . {data['rt_date_match']}
-RT Trip Match  . . . {trip_seq_match}
-System Version . . . {data['application']}
-
-[ Static Feed Information ]
-Publisher  . . . . . {data['feed_publisher']}
-URL  . . . . . . . . {data['feed_url']}
-Language . . . . . . {data['feed_lang']}
-Valid Time . . . . . {data['feed_valid_start']} - {data['feed_valid_end']}
-Version  . . . . . . {data['feed_version']}
-Records Loaded   . . {data['records']}
-'''
+            return [
+                "[ Backend ]",
+                f"Processed Reqs . . . {data['processed_reqs']}",
+                f"Uptime . . . . . . . {up_days}d {up_time}",
+                f"Data Load Time . . . {data['dataloadtime_ms']} ms",
+                f"Threads  . . . . . . {data['threadpool_count']}",
+                f"Overrides  . . . . . {data['overrides']}",
+                f"Term Trips . . . . . {term_trips}",
+                f"NEX Trips/Rts  . . . {data['nb_nex_trips']}",
+                f"RT Date Match  . . . {data['rt_date_match']}",
+                f"RT Trip Match  . . . {trip_seq_match}",
+                f"System Version . . . {data['application']}",
+                ""
+                "[ Static Feed Information ]",
+                f"Publisher  . . . . . {data['feed_publisher']}",
+                f"URL  . . . . . . . . {data['feed_url']}",
+                f"Language . . . . . . {data['feed_lang']}",
+                f"Valid Time . . . . . {data['feed_valid_start']} - {data['feed_valid_end']}",
+                f"Version  . . . . . . {data['feed_version']}",
+                f"Records Loaded   . . {data['records']}",
+                "",
+            ]
         elif message_type == 'NCF':
             if data['static_data_modif'] != self.rte_date:
                 # Update the route-cache if it's outdated
                 self.update_route_cache(data['static_data_modif'])
-            return f'''[ Stop Details ]
-Stop ID(s) . . . . . {data['stop_id']}
-Stop Name(s) . . . . {data['stop_name']}
-Stop Description . . {data['stop_desc']}
-'''
+            return [
+                "[ Stop Details ]",
+                f"Stop ID(s) . . . . . {data['stop_id']}",
+                f"Stop Name(s) . . . . {data['stop_name']}",
+                f"Stop Description . . {data['stop_desc']}",
+                "",
+            ]
         elif message_type == 'E2E':
             if data['static_data_modif'] != self.rte_date:
                 # Update the route-cache if it's outdated
                 self.update_route_cache(data['static_data_modif'])
-            return None
+            return []
         else:
-            return 'Response not yet formattable from GtfsProcDecoder'
+            return ['Response not yet formattable from GtfsProcDecoder']
 
-    def get_scroll_portion(self, data: dict) -> Tuple[str, List[str], List[int | None], List[str], List[List[str]] | str]:
+    def get_scroll_portion(self, data: dict) -> List[TabularData] | str:
         message_type = data['message_type']
         if message_type == 'SDS':
             ret_list = []
@@ -97,13 +102,14 @@ Stop Description . . {data['stop_desc']}
                     agency['tz'],
                     agency['phone'],
                 ])
-            return (
+            return [TabularData(
                 '[ Agencies ]',
-                ['ID', 'NAME', 'TIME ZONE', 'PHONE'],
                 [1, 6, 4, 3],
+                ['ID', 'NAME', 'TIME ZONE', 'PHONE'],
                 ['left', 'left', 'left', 'left'],
                 ret_list,
-            )
+                []
+            )]
         elif message_type == 'NCF':
             ret_list = []
 
@@ -115,8 +121,10 @@ Stop Description . . {data['stop_desc']}
                     route_name = route_name_s
                 else:
                     route_name = route_name_l
-                trip_id = trip['trip_id']
-                trip_name = trip['short_name']
+                if trip['short_name'] != '':
+                    trip_name = trip['short_name']
+                else:
+                    trip_name = trip['trip_id']
                 headsign = trip['headsign']
                 if trip['trip_terminates']:
                     start_term = 'T'
@@ -130,25 +138,26 @@ Stop Description . . {data['stop_desc']}
                 minutes = self.get_countdown(trip)
                 status = self.get_status(trip)
                 ret_list.append((
-                    route_name, trip_id, trip_name, headsign, start_term,
+                    route_name, trip_name, headsign, start_term,
                     pickup, dropoff, stop_time, minutes, status
                 ))
-            return (
+            return [TabularData(
                 '[ Trips ]',
-                ['ROUTE', 'TRIP ID', 'NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP TIME  ', 'MINS', 'STATUS'],
-                [6, 10, 4, 12, None, None, None, None, None, None],
-                ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
+                [1, 1, 1, None, None, None, None, None, None],
+                ['ROUTE', 'TRIP ID/NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP TIME  ', 'MINS', 'STATUS'],
+                ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
                 ret_list,
-            )
+                []
+            )]
         elif message_type == 'E2E':
             ret_list = []
             stops = data['stops']
             trips = data['trips']
             if len(trips) == 0:
-                return (
+                return [TabularData(
                     'There are no trips that satisfy the request within the look-ahead time.',
-                    [], [], [], []
-                )
+                    [], [], [], [], []
+                )]
             for rc in range(len(trips)):
                 if rc == 4:
                     break
@@ -201,16 +210,16 @@ Stop Description . . {data['stop_desc']}
                         else:
                             conn_time = trips[rc][st + 1]['wait_time_sec'] - trips[rc][st]['wait_time_sec']
                             ret_list[row_start + 2].append(f'{floor(conn_time / 60)} m')
-            return (
+            return [TabularData(
                 '',
-                [],
                 [2, 1, 1, 1, 1],
+                [],
                 ['left', 'left', 'left', 'left', 'left'],
                 ret_list,
-                # [],
-            )
+                [],
+            )]
         else:
-            return '', [], [], [], json.dumps(data)
+            return json.dumps(data)
 
     def get_stop_time(self, trip: dict):
         # Prefer the departure time if present, otherwise the arrival
