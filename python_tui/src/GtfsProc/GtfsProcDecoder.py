@@ -62,7 +62,7 @@ class GtfsProcDecoder:
                 f"RT Date Match  . . . {data['rt_date_match']}",
                 f"RT Trip Match  . . . {trip_seq_match}",
                 f"System Version . . . {data['application']}",
-                ""
+                "",
                 "[ Static Feed Information ]",
                 f"Publisher  . . . . . {data['feed_publisher']}",
                 f"URL  . . . . . . . . {data['feed_url']}",

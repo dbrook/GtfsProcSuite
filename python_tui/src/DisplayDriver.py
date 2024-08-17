@@ -17,31 +17,14 @@ class ListBoxIndicatorCB(urwid.ListBox):
 
 
 class SelectableText(urwid.SelectableIcon):
-    def __init__(self, text, sel_position, cback):
+    def __init__(self, text, cback):
         self.cback = cback
-        super().__init__(text, sel_position)
+        super().__init__(text, 0)
 
     def keypress(self, size: tuple[int] | tuple[()], key: str) -> str:
         if key in {"enter"}:
             self.cback.base_widget.set_text('BOOPY')
         return super().keypress(size, key)
-
-
-# Testing an idea
-class ListEntry(urwid.Text):
-    _selectable = True
-    signals = ["click"]
-
-    def keypress(self, size, key):
-        if self._command_map[key] != urwid.ACTIVATE:
-            return key
-        self._emit('click')
-
-    def mouse_event(self, size, event, button, x, y, focus):
-        if button != 1 or not urwid.util.is_mouse_press(event):
-            return False
-        self._emit('click')
-        return True
 
 
 class DisplayDriver:
@@ -53,7 +36,7 @@ class DisplayDriver:
         self.gtfs_proc = urwid.Text(u'', wrap='clip')
         self.gtfs_time = urwid.Text(u'', wrap='clip')
         self.gtfs_cmmd = urwid.Edit(multiline=False, align='left', wrap='clip')
-        self.fill_zone = urwid.SimpleListWalker([urwid.Text('WE CAN HAZ TEST TEXT?', wrap='clip')])
+        self.fill_zone = urwid.SimpleListWalker([urwid.Text('Enter a command, then press F5', wrap='clip')])
         self.scrl_zone = ListBoxIndicatorCB(self.fill_zone, self.update_scroll_indicator)
         self.scrl_indi = urwid.Text('--')
         self.gtfs_view = None
@@ -131,11 +114,11 @@ class DisplayDriver:
                     output_zone.append(urwid.Text(name))
                 col_heads = table.get_columns_formatted()
                 if len(col_heads) > 0:
-                    output_zone.append(urwid.Columns(col_heads, dividechars=1))
+                    output_zone.append(urwid.Columns([('pack', urwid.Text(' '))] + col_heads, dividechars=1))
                 contents = table.get_table_content()
                 if len(contents) > 0:
                     for row in contents:
-                        output_zone.append(urwid.Columns(row, dividechars=1))
+                        output_zone.append(urwid.Columns([('pack', SelectableText('>', self.gtfs_rmsg))] + row, dividechars=1))
 
         # Final screen update after buffered changes
         self.fill_zone.contents[:] = output_zone
