@@ -412,7 +412,7 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
             realArrTimeUTC = QDateTime::fromSecsSinceEpoch(stu.arrival().time(), QTimeZone::utc());
             realArrBased = 'P';
         } else {
-            realArrBased = '';
+            realArrBased = 'X';
         }
     }
 
@@ -424,7 +424,7 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
             realDepTimeUTC = QDateTime::fromSecsSinceEpoch(stu.departure().time(), QTimeZone::utc());
             realDepBased = 'P';
         } else {
-            realDepBased = '';
+            realDepBased = 'X';
         }
     }
 }
