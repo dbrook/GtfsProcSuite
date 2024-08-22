@@ -414,6 +414,8 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
         } else {
             realArrBased = 'X';
         }
+    } else {
+        realArrBased = 'X';
     }
 
     if (stu.has_departure()) {
@@ -426,6 +428,8 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
         } else {
             realDepBased = 'X';
         }
+    } else {
+        realDepBased = 'X';
     }
 }
 
