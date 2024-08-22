@@ -10,7 +10,8 @@ class TabularData:
             header_names: List[str],
             cell_align: List[Literal["left", "center", "right"]],
             table_content: List[List[str]],
-            commands: Optional[List[str]],
+            commands: Optional[List[List[str]]],
+            selectable_rows: bool,
     ):
         self.table_name = table_name
         self.col_widths = col_widths
@@ -18,12 +19,15 @@ class TabularData:
         self.cell_align = cell_align
         self.table_content = table_content
         self.commands = commands
+        self.selectable_rows = selectable_rows
 
     def get_table_name(self) -> str:
         return self.table_name
 
     def get_columns_formatted(self) -> List[Tuple[str, int, any] | Tuple[str, any]]:
         headers = []
+        if self.selectable_rows:
+            headers.append(('pack', urwid.AttrMap(urwid.Text('↓'), 'colheads')))
         for i in range(len(self.header_names)):
             if self.col_widths[i] is not None:
                 headers.append((
@@ -52,3 +56,9 @@ class TabularData:
                     ))
             contents.append(sub_contents)
         return contents
+
+    def get_commands(self, idx: int) -> List[str]:
+        if 0 <= idx < len(self.commands):
+            return self.commands[idx]
+        # Lazy crash-proofing attempt :)
+        return []

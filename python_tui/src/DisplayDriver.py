@@ -1,34 +1,18 @@
 import urwid
 import json
+from typing import List, Hashable, Callable, Any
 
-from GtfsProc import GtfsProcSocket, GtfsProcDecoder
-
-
-class ListBoxIndicatorCB(urwid.ListBox):
-    def __init__(self, body, on_focus_change=None):
-        super().__init__(body)
-
-        self.on_focus_change = on_focus_change
-
-    def change_focus(self, size, position, offset_inset=0, coming_from=None, cursor_coords=None, snap_rows=None):
-        super().change_focus(size, position, offset_inset, coming_from, cursor_coords, snap_rows)
-        if self.on_focus_change is not None:
-            self.on_focus_change(size, position, offset_inset, coming_from, cursor_coords, snap_rows)
-
-
-class SelectableText(urwid.SelectableIcon):
-    def __init__(self, text, cback):
-        self.cback = cback
-        super().__init__(text, 0)
-
-    def keypress(self, size: tuple[int] | tuple[()], key: str) -> str:
-        if key in {"enter"}:
-            self.cback.base_widget.set_text('BOOPY')
-        return super().keypress(size, key)
+from QuickBrowser import QuickBrowser
+from GtfsProc import GtfsProcSocket, GtfsProcDecoder, CommonOutputs
 
 
 class DisplayDriver:
-    def __init__(self, gtfs_handler: GtfsProcSocket, gtfs_decoder: GtfsProcDecoder):
+    def __init__(
+            self,
+            gtfs_handler: GtfsProcSocket,
+            gtfs_decoder: GtfsProcDecoder,
+            start_cmd: str,
+    ):
         self.gtfs_proc_sock = gtfs_handler
         self.gtfs_proc_deco = gtfs_decoder
         self.gtfs_rmsg = urwid.Text(u'Welcome to GtfsProc\'s Python Urwid UI!', wrap='clip')
@@ -37,10 +21,13 @@ class DisplayDriver:
         self.gtfs_time = urwid.Text(u'', wrap='clip')
         self.gtfs_cmmd = urwid.Edit(multiline=False, align='left', wrap='clip')
         self.fill_zone = urwid.SimpleListWalker([urwid.Text('Enter a command, then press F5', wrap='clip')])
-        self.scrl_zone = ListBoxIndicatorCB(self.fill_zone, self.update_scroll_indicator)
-        self.scrl_indi = urwid.Text('--')
+        self.scrl_zone = urwid.ListBox(self.fill_zone)
         self.gtfs_view = None
         self.tmp_alarm = None
+        # QuickBrowser variables
+        self.qb_select = None
+        self.quick_brw = None
+        self.start_cmd = start_cmd
 
     def fkey_handler(self, key: str | tuple[str, int, int, int]) -> None:
         if key in {"f8"}:
@@ -52,6 +39,8 @@ class DisplayDriver:
                 self.gtfs_view.focus_position = 'body'
             else:
                 self.gtfs_view.focus_position = 'footer'
+        elif key in {"esc"}:
+            self.loop.widget = self.gtfs_view
 
     def update_response(self, button) -> None:
         self.gtfs_view.focus_position = 'body'
@@ -89,38 +78,7 @@ class DisplayDriver:
         else:
             self.gtfs_rtag.base_widget.set_text(u' ')
 
-        # Fixed portion of the output
-        fixed_area = self.gtfs_proc_deco.get_fixed_portion(resp)
-        output_zone = []
-        for fix_text in fixed_area:
-            output_zone.append(urwid.Text(fix_text, wrap='ellipsis'))
-
-        # Scrollable portion of the output
-        tables = self.gtfs_proc_deco.get_scroll_portion(resp)
-        if type(tables) is str:
-            # When an unprocessed/unformatted response is received, just dump to scrollable area
-            output_zone.append(urwid.AttrMap(
-                urwid.Text('Here is a JSON dump of the response:'),
-                'error'
-            ))
-            json_lines = json.dumps(resp, indent=2).split('\n')
-            for json_line in json_lines:
-                output_zone.append(urwid.Text(json_line))
-        else:
-            for table in tables:
-                # Processed / formattable responses can be dumped into the scrolling view as a table
-                name = table.get_table_name()
-                if name != '':
-                    output_zone.append(urwid.Text(name))
-                col_heads = table.get_columns_formatted()
-                if len(col_heads) > 0:
-                    output_zone.append(urwid.Columns([('pack', urwid.Text(' '))] + col_heads, dividechars=1))
-                contents = table.get_table_content()
-                if len(contents) > 0:
-                    for row in contents:
-                        output_zone.append(urwid.Columns([('pack', SelectableText('>', self.gtfs_rmsg))] + row, dividechars=1))
-
-        # Final screen update after buffered changes
+        output_zone = CommonOutputs.decode(self.gtfs_proc_deco, self, resp)
         self.fill_zone.contents[:] = output_zone
         self.loop.draw_screen()
 
@@ -134,19 +92,49 @@ class DisplayDriver:
         else:
             self.loop.remove_alarm(self.tmp_alarm)
 
-    def update_scroll_indicator(self, size, position, offset_inset, coming_from, cursor_coords, snap_rows):
-        # FIXME: this doesn't seem to work all that great... (unreliable updates)
-        result = self.scrl_zone.ends_visible(size)
-        if "top" in result:
-            indic = '-'
-        else:
-            indic = '↑'
-        if "bottom" in result:
-            indic = indic + '-'
-        else:
-            indic = indic + '↓'
-        self.scrl_indi.set_text(indic)
+    def draw_qb_select(self, commands: List[str]) -> None:
+        menu_items = []
+        for cmd in commands:
+            menu_items.append(
+                urwid.AttrMap(urwid.Button(cmd, on_press=self.tmp_overwrite), None, focus_map="reversed")
+            )
+        tmp_list_box = urwid.ListBox(urwid.SimpleListWalker(menu_items))
+        list_layout = (urwid.Frame(
+            tmp_list_box,
+            header=urwid.AttrMap(urwid.Text('QuickBrowser Option'), 'colheads'),
+            footer=urwid.Columns(
+                [
+                    ('weight', 1, urwid.Text(' ')),
+                    ('pack', urwid.AttrMap(urwid.Text('↑↓: Select'), 'keys')),
+                    ('pack', urwid.AttrMap(urwid.Text('ENT: Run'), 'keys')),
+                    ('pack', urwid.AttrMap(urwid.Text('ESC: Close'), 'keys')),
+                ],
+                dividechars=1,
+            ),
+            focus_part='body'
+        ))
+        self.qb_select = urwid.Overlay(
+            urwid.LineBox(list_layout),
+            self.gtfs_view,
+            align=urwid.CENTER,
+            width=(urwid.RELATIVE, 75),
+            valign=urwid.MIDDLE,
+            height=(urwid.RELATIVE, 50),
+            min_width=20,
+            min_height=8,
+        )
+        self.loop.widget = self.qb_select
 
+    def tmp_overwrite(self, button) -> None:
+        # Temporary just rewrite the command test
+        # self.gtfs_cmmd.set_edit_text(button.get_label())
+        # self.loop.widget = self.gtfs_view
+        # self.qb_select = None
+        # self.update_response(None)
+        GtfsProcDecoder.eprint(button.get_label())
+        qb = QuickBrowser(self.gtfs_proc_sock, self.gtfs_proc_deco)
+        self.quick_brw = qb.get_panel(button.get_label(), self.gtfs_view, self)
+        self.loop.widget = self.quick_brw
 
     def main_draw(self) -> None:
         palette = [
@@ -157,6 +145,7 @@ class DisplayDriver:
             ('error', 'white', 'dark red'),
             ('colheads', 'black', 'light gray'),
             ('indicator', 'brown', 'default'),
+            ('selection', 'light red', 'dark blue'),
         ]
         # Header to show the message type and response + system times
         gtfs_head = urwid.Pile([
@@ -183,7 +172,6 @@ class DisplayDriver:
                 ('pack', urwid.AttrMap(urwid.Text(u'F2: Focus'), 'keys')),
                 ('pack', urwid.AttrMap(urwid.Text(u'F5: Run'), 'keys')),
                 ('pack', urwid.AttrMap(urwid.Text(u'F8: Quit'), 'keys')),
-                ('pack', urwid.AttrMap(self.scrl_indi, 'colheads')),
             ], 1),
         ])
 
@@ -191,4 +179,9 @@ class DisplayDriver:
         self.gtfs_view = urwid.Frame(self.scrl_zone, header=gtfs_head, footer=gtfs_foot)
         self.gtfs_view.focus_position = 'footer'
         self.loop = urwid.MainLoop(self.gtfs_view, palette, unhandled_input=self.fkey_handler)
+
+        if self.start_cmd:
+            self.gtfs_cmmd.set_edit_text(self.start_cmd)
+            # self.update_response(None)
+
         self.loop.run()

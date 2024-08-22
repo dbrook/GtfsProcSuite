@@ -1,9 +1,9 @@
 import json
 from datetime import timedelta
-from math import ceil, floor
+from math import floor
 import sys
 
-from typing import List, Tuple, Optional
+from typing import List
 
 from .GtfsProcSocket import GtfsProcSocket
 from .TabularData import TabularData
@@ -72,6 +72,27 @@ class GtfsProcDecoder:
                 f"Records Loaded   . . {data['records']}",
                 "",
             ]
+        elif message_type == 'TRI':
+            ret_list = [
+                "[ Trip Information ]",
+                f"Trip ID  . . . . . . {data['trip_id']}",
+                f"Trip Name  . . . . . {data['short_name']}",
+                f"Route Name (S) . . . {data['route_short_name']}",
+                f"Route Name (L) . . . {data['route_long_name']}",
+            ]
+            is_rt = data['real_time']
+            if is_rt:
+                ret_list.append(f"Vehicle  . . . . . . {data['vehicle']}")
+                ret_list.append(f"Start Date&Time  . . {data['start_date']} / {data['start_time']}")
+            else:
+                ret_list.append(f"Service ID . . . . . {data['service_id']}")
+                ret_list.append(f"Validity . . . . . . {data['svc_start_date']} - {data['svc_end_date']}")
+                ret_list.append(f"Operating Days . . . {data['operate_days']}")
+                ret_list.append(f"Additions  . . . . . {data['added_dates']}")
+                ret_list.append(f"Exceptions . . . . . {data['exception_dates']}")
+                ret_list.append(f"Headsign . . . . . . {data['headsign']}")
+            ret_list.append("")
+            return ret_list
         elif message_type == 'NCF':
             if data['static_data_modif'] != self.rte_date:
                 # Update the route-cache if it's outdated
@@ -91,7 +112,7 @@ class GtfsProcDecoder:
         else:
             return ['Response not yet formattable from GtfsProcDecoder']
 
-    def get_scroll_portion(self, data: dict) -> List[TabularData] | str:
+    def get_tabular_portion(self, data: dict) -> List[TabularData] | str:
         message_type = data['message_type']
         if message_type == 'SDS':
             ret_list = []
@@ -108,11 +129,62 @@ class GtfsProcDecoder:
                 ['ID', 'NAME', 'TIME ZONE', 'PHONE'],
                 ['left', 'left', 'left', 'left'],
                 ret_list,
-                []
+                [],
+                False,
             )]
+        elif message_type == 'TRI':
+            ret_list = []
+            commands = []
+            is_rt = data['real_time']
+            for stop in data['stops']:
+                if is_rt:
+                    if stop['skipped']:
+                        skip = 'SKIP'
+                    else:
+                        skip = '    '
+                    if stop['arr_based']:
+                        a_base = stop['arr_based']
+                    else:
+                        a_base = ' '
+                    if stop['dep_based']:
+                        d_base = stop['dep_based']
+                    else:
+                        d_base = ' '
+                    ret_list.append([
+                        f"{stop['sequence']}",
+                        f"{stop['stop_id']}",
+                        stop['stop_name'],
+                        stop['arr_time'].ljust(7),
+                        a_base,
+                        stop['dep_time'].ljust(7),
+                        d_base,
+                        skip,
+                    ])
+                else:
+                    ret_list.append([
+                        f"{stop['sequence']}",
+                        f"{stop['stop_id']}",
+                        stop['stop_name'],
+                        self.get_pickup(stop['pickup_type']),
+                        self.get_dropoff(stop['drop_off_type']),
+                        "{:7}".format(stop['arr_time']),
+                        "{:7}".format(stop['dep_time']),
+                    ])
+                commands.append([f'STA {stop["stop_id"]}'])
+            if is_rt:
+                name = '[ Real-Time Predictions ]'
+                cols = [1, 1, 3, None, None, None, None, None]
+                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE ', 'A', 'DEPART ', 'D', 'SKIP']
+                aligns = ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left']
+            else:
+                name = '[ Trip Schedule (Static Dataset) ]'
+                cols = [1, 1, 3, None, None, None, None]
+                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'P', 'D', 'ARRIVE ', 'DEPART ']
+                aligns = ['left', 'left', 'left', 'left', 'left', 'left', 'left']
+            return [TabularData(name, cols, headers, aligns, ret_list, commands, True)]
         elif message_type == 'NCF':
             ret_list = []
-
+            cmd_list = []
             # Construct trip listing
             for trip in data['trips']:
                 route_name_s = self.rte_cache[trip['route_id']]['short_name']
@@ -141,13 +213,22 @@ class GtfsProcDecoder:
                     route_name, trip_name, headsign, start_term,
                     pickup, dropoff, stop_time, minutes, status
                 ))
+                if 'realtime_data' in trip:
+                    cmd_list.append([
+                        f'TRI {trip["trip_id"]}',
+                        f'RTS {trip["trip_id"]}',
+                        f'RTF {trip["trip_id"]}',
+                    ])
+                else:
+                    cmd_list.append([f'TRI {trip["trip_id"]}'])
             return [TabularData(
                 '[ Trips ]',
                 [1, 1, 1, None, None, None, None, None, None],
                 ['ROUTE', 'TRIP ID/NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP TIME  ', 'MINS', 'STATUS'],
                 ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
                 ret_list,
-                []
+                cmd_list,
+                True,
             )]
         elif message_type == 'E2E':
             ret_list = []
@@ -156,67 +237,59 @@ class GtfsProcDecoder:
             if len(trips) == 0:
                 return [TabularData(
                     'There are no trips that satisfy the request within the look-ahead time.',
-                    [], [], [], [], []
+                    [], [], [], [], [], False
                 )]
             for rc in range(len(trips)):
-                if rc == 4:
-                    break
-                if rc == 0:
-                    # ret_list.append([' '])
-                    ret_list.append(['TOTAL TRIP TIME:'])
-                    ret_list.append([''])
-                    ret_list.append(['FIRST BOARD IN:'])
-                    for st in range(len(trips[rc])):
-                        if st % 2 == 0:
-                            stop_name = stops[trips[rc][st]['stop_id']]['stop_name']
-                            ret_list.append([stop_name])
-                            ret_list.append([' '])
-                            ret_list.append([' '])
-                        else:
-                            stop_name = stops[trips[rc][st]['stop_id']]['stop_name']
-                            ret_list.append([stop_name])
-                            ret_list.append([' '])
-                            if st != len(trips[rc]) - 1:
-                                ret_list.append(['CONNECT TIME:'])
-                ret_list[2].append(f'{floor(trips[rc][0]["wait_time_sec"] / 60)} m')
+                total_time = floor(
+                    (trips[rc][len(trips[rc]) - 1]["wait_time_sec"] - trips[rc][0]["wait_time_sec"]) / 60
+                )
+                ret_list.append([f'Journey {rc + 1}:  Travel Time: {total_time}m'])
                 for st in range(len(trips[rc])):
+                    has_rt = 'realtime_data' in trips[rc][st]
                     if st % 2 == 0:
-                        row_start = floor((st / 2)) * 6 + 3
-                        if 'realtime_data' in trips[rc][st]:
-                            is_rt = '*'
-                        else:
-                            is_rt = ''
-                        ret_list[row_start].append(f'{is_rt}{self.get_stop_time(trips[rc][st])}')
+                        # Print the trip's route details first ...
                         route_name_s = self.rte_cache[trips[rc][st]['route_id']]['short_name']
                         route_name_l = self.rte_cache[trips[rc][st]['route_id']]['long_name']
                         if route_name_s != '':
                             route_name = route_name_s
                         else:
                             route_name = route_name_l
-                        ret_list[row_start + 1].append(route_name)
-                        ret_list[row_start + 2].append(trips[rc][st]['headsign'])
+                        vehicle = ''
+                        if has_rt:
+                            vehicle = trips[rc][st]['realtime_data']['vehicle']
+                        if vehicle != '':
+                            ret_list.append([f'<{route_name}> → {trips[rc][st]["headsign"]} <Vehicle # {vehicle}>'])
+                        else:
+                            ret_list.append([f'<{route_name}> → {trips[rc][st]["headsign"]}'])
+
+                    stop = stops[trips[rc][st]['stop_id']]
+                    if 'stop_desc' in stop and stop['stop_desc'] != '':
+                        stop_detail = stop['stop_desc']
                     else:
-                        row_start = floor((st / 2)) * 6 + 6
-                        if 'realtime_data' in trips[rc][st]:
-                            is_rt = '*'
-                        else:
-                            is_rt = ''
-                        ret_list[row_start].append(f'{is_rt}{self.get_stop_time(trips[rc][st])}')
-                        if st == len(trips[rc]) - 1:
-                            total_time = floor(
-                                (trips[rc][st]["wait_time_sec"] - trips[rc][0]["wait_time_sec"])
-                                / 60)
-                            ret_list[0].append(f'{total_time} m')
-                        else:
-                            conn_time = trips[rc][st + 1]['wait_time_sec'] - trips[rc][st]['wait_time_sec']
-                            ret_list[row_start + 2].append(f'{floor(conn_time / 60)} m')
+                        stop_detail = stop['stop_name']
+                    # Then the origin stop details
+                    wait_time = floor(trips[rc][st]["wait_time_sec"] / 60)
+                    status = self.get_status(trips[rc][st])
+                    if has_rt:
+                        arrival = trips[rc][st]['realtime_data']['actual_arrival']
+                        departure = trips[rc][st]['realtime_data']['actual_departure']
+                    else:
+                        arrival = trips[rc][st]['arr_time']
+                        departure = trips[rc][st]['dep_time']
+                    ret_list.append([
+                        '    [{:4}] [{:6}] {:11} {:11} {}'.format(
+                            wait_time, status, arrival, departure, stop_detail
+                        )
+                    ])
+                ret_list.append([''])
             return [TabularData(
                 '',
-                [2, 1, 1, 1, 1],
+                [1],
                 [],
-                ['left', 'left', 'left', 'left', 'left'],
+                ['left'],
                 ret_list,
                 [],
+                False,
             )]
         else:
             return json.dumps(data)
