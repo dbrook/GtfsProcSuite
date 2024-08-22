@@ -32,11 +32,11 @@ class TabularData:
             if self.col_widths[i] is not None:
                 headers.append((
                     'weight', self.col_widths[i],
-                    urwid.AttrMap(urwid.Text(self.header_names[i]), 'colheads')
+                    urwid.AttrMap(urwid.Text(self.header_names[i], wrap='ellipsis'), 'colheads')
                 ))
             else:
                 headers.append((
-                    'pack', urwid.AttrMap(urwid.Text(self.header_names[i]), 'colheads')
+                    'pack', urwid.AttrMap(urwid.Text(self.header_names[i], wrap='ellipsis'), 'colheads')
                 ))
         return headers
 

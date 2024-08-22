@@ -22,27 +22,33 @@ class DisplayDriver:
         self.gtfs_cmmd = urwid.Edit(multiline=False, align='left', wrap='clip')
         self.fill_zone = urwid.SimpleListWalker([urwid.Text('Enter a command, then press F5', wrap='clip')])
         self.scrl_zone = urwid.ListBox(self.fill_zone)
+        self.gtfs_auto = None
         self.gtfs_view = None
         self.tmp_alarm = None
         # QuickBrowser variables
         self.qb_select = None
         self.quick_brw = None
         self.start_cmd = start_cmd
+        self.qb_command = ''
 
     def fkey_handler(self, key: str | tuple[str, int, int, int]) -> None:
         if key in {"f8"}:
             raise urwid.ExitMainLoop()
         elif key in {"f5"}:
-            self.update_response(None)
+            self.update_response()
         elif key in {"f2"}:
             if self.gtfs_view.focus_position == 'footer':
                 self.gtfs_view.focus_position = 'body'
             else:
                 self.gtfs_view.focus_position = 'footer'
+        elif key in {"f7"}:
+            self.gtfs_cmmd.set_edit_text(self.qb_command)
+            self.loop.widget = self.gtfs_view
+            self.update_response()
         elif key in {"esc"}:
             self.loop.widget = self.gtfs_view
 
-    def update_response(self, button) -> None:
+    def update_response(self) -> None:
         self.gtfs_view.focus_position = 'body'
         self.gtfs_rmsg.base_widget.set_text(('indicator', u'Data Acquisition ...'))
         self.loop.draw_screen()
@@ -83,7 +89,7 @@ class DisplayDriver:
         self.loop.draw_screen()
 
     def wrap_auto_update(self, foo, bar):
-        self.update_response(None)
+        self.update_response()
         self.tmp_alarm = self.loop.set_alarm_in(20, self.wrap_auto_update)
 
     def auto_update(self, checkbox, checked: bool) -> None:
@@ -93,10 +99,11 @@ class DisplayDriver:
             self.loop.remove_alarm(self.tmp_alarm)
 
     def draw_qb_select(self, commands: List[str]) -> None:
+        self.gtfs_auto.set_state(False)
         menu_items = []
         for cmd in commands:
             menu_items.append(
-                urwid.AttrMap(urwid.Button(cmd, on_press=self.tmp_overwrite), None, focus_map="reversed")
+                urwid.AttrMap(urwid.Button(cmd, on_press=self.draw_qb), None, focus_map="selection")
             )
         tmp_list_box = urwid.ListBox(urwid.SimpleListWalker(menu_items))
         list_layout = (urwid.Frame(
@@ -125,15 +132,10 @@ class DisplayDriver:
         )
         self.loop.widget = self.qb_select
 
-    def tmp_overwrite(self, button) -> None:
-        # Temporary just rewrite the command test
-        # self.gtfs_cmmd.set_edit_text(button.get_label())
-        # self.loop.widget = self.gtfs_view
-        # self.qb_select = None
-        # self.update_response(None)
-        GtfsProcDecoder.eprint(button.get_label())
-        qb = QuickBrowser(self.gtfs_proc_sock, self.gtfs_proc_deco)
-        self.quick_brw = qb.get_panel(button.get_label(), self.gtfs_view, self)
+    def draw_qb(self, button) -> None:
+        self.qb_command = button.get_label()
+        qb = QuickBrowser(self.gtfs_proc_sock, self.gtfs_proc_deco, self.qb_command)
+        self.quick_brw = qb.get_panel(self.gtfs_view, self)
         self.loop.widget = self.quick_brw
 
     def main_draw(self) -> None:
@@ -160,15 +162,15 @@ class DisplayDriver:
 
         # Footer Generation
         gtfs_prmp = urwid.Text(u'Command:', 'left', 'clip')
-        gtfs_auto = urwid.CheckBox(u'Auto')
-        urwid.connect_signal(gtfs_auto, 'change', self.auto_update)
+        self.gtfs_auto = urwid.CheckBox(u'Auto')
+        urwid.connect_signal(self.gtfs_auto, 'change', self.auto_update)
         gtfs_foot = urwid.Pile([
             urwid.Divider(),
             urwid.Columns([
                 ('pack', gtfs_prmp),
                 urwid.AttrMap(self.gtfs_cmmd, 'command'),
                 # ('pack', urwid.AttrMap(gtfs_sbmt, 'control')),
-                ('pack', urwid.AttrMap(gtfs_auto, 'control')),
+                ('pack', urwid.AttrMap(self.gtfs_auto, 'control')),
                 ('pack', urwid.AttrMap(urwid.Text(u'F2: Focus'), 'keys')),
                 ('pack', urwid.AttrMap(urwid.Text(u'F5: Run'), 'keys')),
                 ('pack', urwid.AttrMap(urwid.Text(u'F8: Quit'), 'keys')),

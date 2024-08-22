@@ -47,7 +47,7 @@ def decode(gtfs_proc_deco, dd, resp):
                 commands = table.get_commands(row)
                 if len(commands) > 0:
                     output_zone.append(urwid.Columns([('pack', urwid.AttrMap(
-                                                         SelectableText('>', commands, dd),
+                                                         SelectableText(' ', commands, dd),
                                                          None,
                                                          focus_map='selection'
                                                      ))] + contents[row], dividechars=1))

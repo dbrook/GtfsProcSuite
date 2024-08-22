@@ -170,7 +170,7 @@ class GtfsProcDecoder:
                         "{:7}".format(stop['arr_time']),
                         "{:7}".format(stop['dep_time']),
                     ])
-                commands.append([f'STA {stop["stop_id"]}'])
+                commands.append([f'STA {stop["stop_id"]}', f'NCF 60 {stop["stop_id"]}', f'NEX 60 {stop["stop_id"]}'])
             if is_rt:
                 name = '[ Real-Time Predictions ]'
                 cols = [1, 1, 3, None, None, None, None, None]
