@@ -45,6 +45,8 @@ class GtfsProcDecoder:
             return 'Trips Servicing a Stop'
         elif code == 'SSR':
             return 'All Stops on Route'
+        elif code == 'TRR':
+            return 'Trips with Real-Time Info'
         else:
             return 'UNKNOWN RESPONSE'
 
@@ -161,6 +163,8 @@ class GtfsProcDecoder:
                 f"Route Type - Descr . {data['route_type']} - {data['route_desc']}",
                 "",
             ]
+        elif message_type == 'TRR':
+            return []
         else:
             return ['Response not yet formattable from GtfsProcDecoder']
 
@@ -442,12 +446,13 @@ class GtfsProcDecoder:
                     f"TRD Y {route['id']}",
                     f"TRD D {route['id']}",
                     f"TRD T {route['id']}",
+                    f"TRR {route['id']}"
                 ])
             return [TabularData(
                 '',
                 [1, 1, 3, 2, 1],
                 ['ID', 'SHORT NAME', 'LONG NAME', 'TYPE-DESC', '#TRIPS'],
-                ['left', 'left', 'left', 'left', 'left'],
+                ['left', 'left', 'left', 'left', 'right'],
                 route_list,
                 route_cmds,
                 True,
@@ -473,15 +478,30 @@ class GtfsProcDecoder:
                     "{:7} - {:7}".format(trip['first_stop_departure'], trip['last_stop_arrival']),
                 ])
                 trip_cmds.append([f"TRI {trip['trip_id']}"])
-            return [TabularData(
-                '',
-                [2, 3, None, None, None, None],
-                ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'START-END        '],
-                ['left', 'left', 'left', 'left', 'left', 'left'],
-                trip_list,
-                trip_cmds,
-                True,
-            )]
+            return [
+                TabularData(
+                    '', [1], ['Shortcuts'], ['left'],
+                    [['Stops Served by Route'], ['Real-Time Trips on Route']],
+                    [
+                        [
+                            f'SSR {data["route_id"]}',
+                        ],
+                        [
+                            f'TRR {data["route_id"]}',
+                        ],
+                    ],
+                    True,
+                ),
+                TabularData(
+                    '',
+                    [2, 3, None, None, None, None],
+                    ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'START-END        '],
+                    ['left', 'left', 'left', 'left', 'left', 'left'],
+                    trip_list,
+                    trip_cmds,
+                    True,
+                )
+            ]
         elif message_type == 'SSR':
             stop_list = []
             stop_cmds = []
@@ -501,15 +521,33 @@ class GtfsProcDecoder:
                     f"NEX 120 {stop['stop_id']}",
                     f"NEX 240 {stop['stop_id']}",
                 ])
-            return [TabularData(
-                "[ Stops Served by Route ]",
-                [2, 3, 4, 1],
-                ['STOP ID', 'NAME', 'DESCRIPTION', '#TRIPS'],
-                ['left', 'left', 'left', 'left'],
-                stop_list,
-                stop_cmds,
-                True,
-            )]
+            return [
+                TabularData(
+                    '', [1], ['Shortcuts'], ['left'],
+                    [['Trips Serving Route'], ['Real-Time Trips on Route']],
+                    [
+                        [
+                            f'TSR {data["route_id"]}',
+                            f'TRD Y {data["route_id"]}',
+                            f'TRD D {data["route_id"]}',
+                            f'TRD T {data["route_id"]}',
+                        ],
+                        [
+                            f'TRR {data["route_id"]}',
+                        ],
+                    ],
+                    True,
+                ),
+                TabularData(
+                    "[ Stops Served by Route ]",
+                    [2, 3, 4, 1],
+                    ['STOP ID', 'NAME', 'DESCRIPTION', '#TRIPS'],
+                    ['left', 'left', 'left', 'right'],
+                    stop_list,
+                    stop_cmds,
+                    True,
+                )
+            ]
         elif message_type == 'TSS':
             route_list = []
             for route in data['routes']:
@@ -552,6 +590,60 @@ class GtfsProcDecoder:
                     [2, 3, None, None, None, None, None, None, None, None],
                     ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'T', 'P', 'D', 'ARRIVES', 'DEPARTS'],
                     ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
+                    trip_list,
+                    trip_cmds,
+                    True,
+                ))
+            return route_list
+        elif message_type == 'TRR':
+            route_list = []
+            for route in data['routes']:
+                if route['route_short_name']:
+                    route_name = route['route_short_name']
+                else:
+                    route_name = route['route_long_name']
+                trip_list = []
+                trip_cmds = []
+                for trip in route['trips']:
+                    if trip['skipped']:
+                        skip = 'SKIP'
+                    else:
+                        skip = '    '
+                    if 'pickup_type' in trip:
+                        pickup = self.get_pickup(trip['pickup_type'])
+                    else:
+                        pickup = '-'
+                    if 'drop_off_type' in trip:
+                        dropoff = self.get_dropoff(trip['drop_off_type'])
+                    else:
+                        dropoff = '-'
+                    trip_list.append([
+                        f"{trip['trip_id']}",
+                        f"{trip['headsign']}",
+                        f"{trip['next_stop_name']}",
+                        f"{trip['vehicle']}",
+                        pickup,
+                        dropoff,
+                        "{:11}".format(trip['arrive']),
+                        "{:11}".format(trip['depart']),
+                        skip,
+                    ])
+                    trip_cmds.append([
+                        f"STA {trip['next_stop_id']}",
+                        f"RTS {trip['trip_id']}",
+                        f"RTF {trip['trip_id']}",
+                        f"NCF 60 {trip['next_stop_id']}",
+                        f"NCF 120 {trip['next_stop_id']}",
+                        f"NCF 240 {trip['next_stop_id']}",
+                        f"NEX 60 {trip['next_stop_id']}",
+                        f"NEX 120 {trip['next_stop_id']}",
+                        f"NEX 240 {trip['next_stop_id']}",
+                    ])
+                route_list.append(TabularData(
+                    f"[ Route: {route_name} ]",
+                    [3, 3, 2, 1, None, None, None, None, None],
+                    ['TRIP ID', 'HEADSIGN', 'NEXT STOP', 'VEHICLE', 'D', 'P', 'ARRIVE     ', 'DEPART     ', 'SKIP'],
+                    ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
                     trip_list,
                     trip_cmds,
                     True,

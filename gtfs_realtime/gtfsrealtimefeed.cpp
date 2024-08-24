@@ -859,18 +859,22 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
         // If any sequences or stops in the real-time buffer are not in the static, flag this trip as mismatching
         const transit_realtime::TripUpdate &tri = entity.trip_update();
         for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
+            bool foundMismatch = false;
             if (tri.stop_time_update(stopTimeIdx).has_stop_sequence()) {
                 if (!staticSequnces.contains(tri.stop_time_update(stopTimeIdx).stop_sequence())) {
-                    // Save the real-time trip-update's index, then move to the next
-                    _stopsMismatchTrips[routeID].push_back(tripID);
+                    foundMismatch = true;
                     break;
                 }
-            } else if (tri.stop_time_update(stopTimeIdx).has_stop_id()) {
+            }
+            if (tri.stop_time_update(stopTimeIdx).has_stop_id()) {
                 if (!staticStopIDs.contains(QString::fromStdString(tri.stop_time_update(stopTimeIdx).stop_id()))) {
-                    // Save the real-time trip-update's index, then move to the next
-                    _stopsMismatchTrips[routeID].push_back(tripID);
+                    foundMismatch = false;
                     break;
                 }
+            }
+            if (foundMismatch) {
+                // Save the real-time trip-update's index, then move to the next
+                _stopsMismatchTrips[routeID].push_back(tripID);
             }
         }
     }
