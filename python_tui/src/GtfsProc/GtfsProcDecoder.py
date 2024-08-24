@@ -33,6 +33,18 @@ class GtfsProcDecoder:
             return 'Upcoming Trips at Stop'
         elif code == 'E2E':
             return 'End-to-End Connections'
+        elif code == 'TRI':
+            return 'Trip Information'
+        elif code == 'STA':
+            return 'Station Information'
+        elif code == 'RTE':
+            return 'Route List (Static Feed)'
+        elif code == 'TSR':
+            return 'Trips Operating on Route'
+        elif code == 'TSS':
+            return 'Trips Servicing a Stop'
+        elif code == 'SSR':
+            return 'All Stops on Route'
         else:
             return 'UNKNOWN RESPONSE'
 
@@ -83,7 +95,7 @@ class GtfsProcDecoder:
             is_rt = data['real_time']
             if is_rt:
                 ret_list.append(f"Vehicle  . . . . . . {data['vehicle']}")
-                ret_list.append(f"Start Date&Time  . . {data['start_date']} / {data['start_time']}")
+                ret_list.append(f"Start DateTime . . . {data['start_date']} / {data['start_time']}")
             else:
                 ret_list.append(f"Service ID . . . . . {data['service_id']}")
                 ret_list.append(f"Validity . . . . . . {data['svc_start_date']} - {data['svc_end_date']}")
@@ -93,6 +105,16 @@ class GtfsProcDecoder:
                 ret_list.append(f"Headsign . . . . . . {data['headsign']}")
             ret_list.append("")
             return ret_list
+        elif message_type == 'STA':
+            return [
+                "[ Stop Information ]",
+                f"Stop ID  . . . . . . {data['stop_id']}",
+                f"Stop Name  . . . . . {data['stop_name']}",
+                f"Parent Station . . . {data['parent_sta']}",
+                f"Stop Description . . {data['stop_desc']}",
+                f"Stop Location  . . . {data['loc_lat']}, {data['loc_lon']}",
+                f"",
+            ]
         elif message_type == 'NCF':
             if data['static_data_modif'] != self.rte_date:
                 # Update the route-cache if it's outdated
@@ -109,6 +131,36 @@ class GtfsProcDecoder:
                 # Update the route-cache if it's outdated
                 self.update_route_cache(data['static_data_modif'])
             return []
+        elif message_type == 'RTE':
+            return []
+        elif message_type == 'TSR':
+            return [
+                "[ Route Details ]",
+                f"Route ID . . . . . . {data['route_id']}",
+                f"Short Name . . . . . {data['route_short_name']}",
+                f"Long Name  . . . . . {data['route_long_name']}",
+                f"Service Date . . . . {data['service_date']}",
+                "",
+            ]
+        elif message_type == 'TSS':
+            return [
+                "[ Stop Details ]",
+                f"Stop ID  . . . . . . {data['stop_id']}",
+                f"Stop Name  . . . . . {data['stop_name']}",
+                f"Stop Description . . {data['stop_desc']}",
+                f"Parent Station . . . {data['parent_sta']}",
+                f"Service Date . . . . {data['service_date']}",
+                f"",
+            ]
+        elif message_type == 'SSR':
+            return [
+                "[ Route Details ]",
+                f"Route ID . . . . . . {data['route_id']}",
+                f"Short Name . . . . . {data['route_short_name']}",
+                f"Long Name  . . . . . {data['route_long_name']}",
+                f"Route Type - Descr . {data['route_type']} - {data['route_desc']}",
+                "",
+            ]
         else:
             return ['Response not yet formattable from GtfsProcDecoder']
 
@@ -182,6 +234,88 @@ class GtfsProcDecoder:
                 headers = ['SEQ', 'STOP ID', 'STOP NAME', 'P', 'D', 'ARRIVE ', 'DEPART ']
                 aligns = ['left', 'left', 'left', 'left', 'left', 'left', 'left']
             return [TabularData(name, cols, headers, aligns, ret_list, commands, True)]
+        elif message_type == 'STA':
+            routes_list = []
+            routes_cmds = []
+            for route in data['routes']:
+                routes_list.append([
+                    f"{route['route_id']}",
+                    f"{route['route_short_name']}",
+                    f"{route['route_long_name']}",
+                ])
+                routes_cmds.append([
+                    f"SSR {route['route_id']}",
+                    f"TSR {route['route_id']}",
+                    f"TRD Y {route['route_id']}",
+                    f"TRD D {route['route_id']}",
+                    f"TRD T {route['route_id']}",
+                ])
+
+            shared_list = []
+            shared_cmds = []
+            for stops in data['stops_sharing_parent']:
+                shared_list.append([
+                    f"{stops['stop_id']}",
+                    f"{stops['stop_name']}",
+                    f"{stops['stop_desc']}",
+                ])
+                shared_cmds.append([
+                    f"STA {stops['stop_id']}",
+                    f"TSS {stops['stop_id']}",
+                    f"TSD Y {stops['stop_id']}",
+                    f"TSD D {stops['stop_id']}",
+                    f"TSD T {stops['stop_id']}",
+                ])
+
+            return [
+                TabularData('', [1], ['Shortcuts'], ['left'],
+                            [['Parent Station'], ['Upcoming Service'], ['Trips Serving Stop']],
+                            [
+                                [
+                                    f'STA {data["parent_sta"]}',
+                                    f'NCF 60 {data["parent_sta"]}',
+                                    f'NCF 120 {data["parent_sta"]}',
+                                    f'NCF 240 {data["parent_sta"]}',
+                                    f'NEX 60 {data["parent_sta"]}',
+                                    f'NEX 120 {data["parent_sta"]}',
+                                    f'NEX 240 {data["parent_sta"]}',
+                                ],
+                                [
+                                    f'NCF 60 {data["stop_id"]}',
+                                    f'NCF 120 {data["stop_id"]}',
+                                    f'NCF 240 {data["stop_id"]}',
+                                    f'NEX 60 {data["stop_id"]}',
+                                    f'NEX 120 {data["stop_id"]}',
+                                    f'NEX 240 {data["stop_id"]}',
+                                ],
+                                [
+                                    f'TSS {data["stop_id"]}',
+                                    f'TSD Y {data["stop_id"]}',
+                                    f'TSD D {data["stop_id"]}',
+                                    f'TSD T {data["stop_id"]}',
+                                ],
+                            ],
+                            True,
+                            ),
+                TabularData(
+                    '[ Routes Serving Stop ]',
+                    [1, 1, 2],
+                    ['ROUTE ID', 'SHORT NAME', 'LONG NAME'],
+                    ['left', 'left', 'left'],
+                    routes_list,
+                    routes_cmds,
+                    True,
+                ),
+                TabularData(
+                    '[ Stops Sharing Parent Station ]',
+                    [1, 1, 2],
+                    ['STOP ID', 'SHORT NAME', 'DESCRIPTION'],
+                    ['left', 'left', 'left'],
+                    shared_list,
+                    shared_cmds,
+                    True,
+                ),
+            ]
         elif message_type == 'NCF':
             ret_list = []
             cmd_list = []
@@ -223,7 +357,7 @@ class GtfsProcDecoder:
                     cmd_list.append([f'TRI {trip["trip_id"]}'])
             return [TabularData(
                 '[ Trips ]',
-                [1, 1, 1, None, None, None, None, None, None],
+                [2, 1, 2, None, None, None, None, None, None],
                 ['ROUTE', 'TRIP ID/NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP TIME  ', 'MINS', 'STATUS'],
                 ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
                 ret_list,
@@ -291,6 +425,138 @@ class GtfsProcDecoder:
                 [],
                 False,
             )]
+        elif message_type == 'RTE':
+            route_list = []
+            route_cmds = []
+            for route in data['routes']:
+                route_list.append([
+                    f"{route['id']}",
+                    f"{route['short_name']}",
+                    f"{route['long_name']}",
+                    f"{route['type']} - {route['desc']}",
+                    f"{route['nb_trips']}",
+                ])
+                route_cmds.append([
+                    f"SSR {route['id']}",
+                    f"TSR {route['id']}",
+                    f"TRD Y {route['id']}",
+                    f"TRD D {route['id']}",
+                    f"TRD T {route['id']}",
+                ])
+            return [TabularData(
+                '',
+                [1, 1, 3, 2, 1],
+                ['ID', 'SHORT NAME', 'LONG NAME', 'TYPE-DESC', '#TRIPS'],
+                ['left', 'left', 'left', 'left', 'left'],
+                route_list,
+                route_cmds,
+                True,
+            )]
+        elif message_type == 'TSR':
+            trip_list = []
+            trip_cmds = []
+            for trip in data['trips']:
+                if trip['exceptions_present']:
+                    exc = 'E'
+                else:
+                    exc = ' '
+                if trip['supplements_other_days']:
+                    sup = 'S'
+                else:
+                    sup = ' '
+                trip_list.append([
+                    f"{trip['trip_id']}",
+                    f"{trip['headsign']}",
+                    f"{trip['operate_days_condensed']}",
+                    exc,
+                    sup,
+                    "{:7} - {:7}".format(trip['first_stop_departure'], trip['last_stop_arrival']),
+                ])
+                trip_cmds.append([f"TRI {trip['trip_id']}"])
+            return [TabularData(
+                '',
+                [2, 3, None, None, None, None],
+                ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'START-END        '],
+                ['left', 'left', 'left', 'left', 'left', 'left'],
+                trip_list,
+                trip_cmds,
+                True,
+            )]
+        elif message_type == 'SSR':
+            stop_list = []
+            stop_cmds = []
+            for stop in data['stops']:
+                stop_list.append([
+                    f"{stop['stop_id']}",
+                    f"{stop['stop_name']}",
+                    f"{stop['stop_desc']}",
+                    f"{stop['trip_count']}",
+                ])
+                stop_cmds.append([
+                    f"STA {stop['stop_id']}",
+                    f"NCF 60 {stop['stop_id']}",
+                    f"NCF 120 {stop['stop_id']}",
+                    f"NCF 240 {stop['stop_id']}",
+                    f"NEX 60 {stop['stop_id']}",
+                    f"NEX 120 {stop['stop_id']}",
+                    f"NEX 240 {stop['stop_id']}",
+                ])
+            return [TabularData(
+                "[ Stops Served by Route ]",
+                [2, 3, 4, 1],
+                ['STOP ID', 'NAME', 'DESCRIPTION', '#TRIPS'],
+                ['left', 'left', 'left', 'left'],
+                stop_list,
+                stop_cmds,
+                True,
+            )]
+        elif message_type == 'TSS':
+            route_list = []
+            for route in data['routes']:
+                if route['route_short_name']:
+                    route_name = route['route_short_name']
+                else:
+                    route_name = route['route_long_name']
+                trip_list = []
+                trip_cmds = []
+                for trip in route['trips']:
+                    if trip['exceptions_present']:
+                        exc = 'E'
+                    else:
+                        exc = ' '
+                    if trip['supplements_other_days']:
+                        sup = 'S'
+                    else:
+                        sup = ' '
+                    if trip['trip_terminates']:
+                        start_term = 'T'
+                    elif trip['trip_begins']:
+                        start_term = 'S'
+                    else:
+                        start_term = ' '
+                    trip_list.append([
+                        f"{trip['trip_id']}",
+                        f"{trip['headsign']}",
+                        f"{trip['operate_days_condensed']}",
+                        exc,
+                        sup,
+                        start_term,
+                        self.get_pickup(trip['pickup_type']),
+                        self.get_dropoff(trip['drop_off_type']),
+                        "{:7}".format(trip['arr_time']),
+                        "{:7}".format(trip['dep_time']),
+                    ])
+                    trip_cmds.append([f"TRI {trip['trip_id']}"])
+                route_list.append(TabularData(
+                    f"[ Route: {route_name} ]",
+                    [2, 3, None, None, None, None, None, None, None, None],
+                    ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'T', 'P', 'D', 'ARRIVES', 'DEPARTS'],
+                    ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
+                    trip_list,
+                    trip_cmds,
+                    True,
+                ))
+            return route_list
         else:
             return json.dumps(data)
 

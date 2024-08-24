@@ -53,5 +53,7 @@ def decode(gtfs_proc_deco, dd, resp):
                                                      ))] + contents[row], dividechars=1))
                 else:
                     output_zone.append(urwid.Columns(contents[row], dividechars=1))
+            if len(tables) > 1:
+                output_zone.append(urwid.Text(u''))
 
     return output_zone
