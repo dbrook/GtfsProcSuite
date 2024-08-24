@@ -868,7 +868,7 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
             }
             if (tri.stop_time_update(stopTimeIdx).has_stop_id()) {
                 if (!staticStopIDs.contains(QString::fromStdString(tri.stop_time_update(stopTimeIdx).stop_id()))) {
-                    foundMismatch = false;
+                    foundMismatch = true;
                     break;
                 }
             }
