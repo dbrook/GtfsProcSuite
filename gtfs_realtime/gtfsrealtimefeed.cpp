@@ -863,18 +863,17 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
             if (tri.stop_time_update(stopTimeIdx).has_stop_sequence()) {
                 if (!staticSequnces.contains(tri.stop_time_update(stopTimeIdx).stop_sequence())) {
                     foundMismatch = true;
-                    break;
                 }
             }
             if (tri.stop_time_update(stopTimeIdx).has_stop_id()) {
                 if (!staticStopIDs.contains(QString::fromStdString(tri.stop_time_update(stopTimeIdx).stop_id()))) {
                     foundMismatch = true;
-                    break;
                 }
             }
             if (foundMismatch) {
                 // Save the real-time trip-update's index, then move to the next
                 _stopsMismatchTrips[routeID].push_back(tripID);
+                break;
             }
         }
     }
