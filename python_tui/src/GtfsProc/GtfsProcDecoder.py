@@ -1,16 +1,12 @@
 import json
 from datetime import timedelta
 from math import floor
-import sys
 
-from typing import List
+from typing import List, Tuple
 
 from .GtfsProcSocket import GtfsProcSocket
 from .TabularData import TabularData
-
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+from .CommonOutputs import get_pickup, get_dropoff, get_status, get_countdown, get_stop_time
 
 
 class GtfsProcDecoder:
@@ -29,7 +25,9 @@ class GtfsProcDecoder:
     def get_module_code(self, code: str):
         if code == 'SDS':
             return 'System and Data Status'
-        elif code == 'NCF':
+        elif code == 'RDS':
+            return 'Real-Time Data Status'
+        elif code in ['NCF', 'NEX']:
             return 'Upcoming Trips at Stop'
         elif code == 'E2E':
             return 'End-to-End Connections'
@@ -86,13 +84,23 @@ class GtfsProcDecoder:
                 f"Records Loaded   . . {data['records']}",
                 "",
             ]
+        elif message_type == 'RDS':
+            return [
+                f"Mutex Side . . . . . {data['active_side']}",
+                f"Data Generation  . . {data['active_feed_time']}",
+                f"GTFS-Realtime Ver  . {data['active_rt_version']}",
+                f"Fetch Time . . . . . {data['active_download_ms']} ms",
+                f"Integration Time . . {data['active_integration_ms']} ms",
+                f"Feed Age . . . . . . {data['active_age_sec']} s",
+                f"Next Fetch In  . . . {data['seconds_to_next_fetch']} s",
+                f"Latest RT Txn  . . . {data['last_realtime_query']}",
+            ]
         elif message_type == 'TRI':
             ret_list = [
-                "[ Trip Information ]",
                 f"Trip ID  . . . . . . {data['trip_id']}",
                 f"Trip Name  . . . . . {data['short_name']}",
-                f"Route Name (S) . . . {data['route_short_name']}",
-                f"Route Name (L) . . . {data['route_long_name']}",
+                f"Route Name Short . . {data['route_short_name']}",
+                f"Route Name Long  . . {data['route_long_name']}",
             ]
             is_rt = data['real_time']
             if is_rt:
@@ -117,7 +125,7 @@ class GtfsProcDecoder:
                 f"Stop Location  . . . {data['loc_lat']}, {data['loc_lon']}",
                 f"",
             ]
-        elif message_type == 'NCF':
+        elif message_type in ['NCF', 'NEX']:
             if data['static_data_modif'] != self.rte_date:
                 # Update the route-cache if it's outdated
                 self.update_route_cache(data['static_data_modif'])
@@ -188,6 +196,8 @@ class GtfsProcDecoder:
                 [],
                 False,
             )]
+        elif message_type == 'RDS':
+            return []
         elif message_type == 'TRI':
             ret_list = []
             commands = []
@@ -221,12 +231,20 @@ class GtfsProcDecoder:
                         f"{stop['sequence']}",
                         f"{stop['stop_id']}",
                         stop['stop_name'],
-                        self.get_pickup(stop['pickup_type']),
-                        self.get_dropoff(stop['drop_off_type']),
+                        get_pickup(stop['pickup_type']),
+                        get_dropoff(stop['drop_off_type']),
                         "{:7}".format(stop['arr_time']),
                         "{:7}".format(stop['dep_time']),
                     ])
-                commands.append([f'STA {stop["stop_id"]}', f'NCF 60 {stop["stop_id"]}', f'NEX 60 {stop["stop_id"]}'])
+                commands.append([
+                    f'STA {stop["stop_id"]}',
+                    f'NCF 60 {stop["stop_id"]}',
+                    f'NCF 120 {stop["stop_id"]}',
+                    f'NCF 240 {stop["stop_id"]}',
+                    f'NEX 60 {stop["stop_id"]}',
+                    f'NEX 120 {stop["stop_id"]}',
+                    f'NEX 240 {stop["stop_id"]}',
+                ])
             if is_rt:
                 name = '[ Real-Time Predictions ]'
                 cols = [1, 1, 3, None, None, None, None, None]
@@ -321,44 +339,7 @@ class GtfsProcDecoder:
                 ),
             ]
         elif message_type == 'NCF':
-            ret_list = []
-            cmd_list = []
-            # Construct trip listing
-            for trip in data['trips']:
-                route_name_s = self.rte_cache[trip['route_id']]['short_name']
-                route_name_l = self.rte_cache[trip['route_id']]['long_name']
-                if route_name_s != '':
-                    route_name = route_name_s
-                else:
-                    route_name = route_name_l
-                if trip['short_name'] != '':
-                    trip_name = trip['short_name']
-                else:
-                    trip_name = trip['trip_id']
-                headsign = trip['headsign']
-                if trip['trip_terminates']:
-                    start_term = 'T'
-                elif trip['trip_begins']:
-                    start_term = 'S'
-                else:
-                    start_term = ' '
-                pickup = self.get_pickup(trip['pickup_type'])
-                dropoff = self.get_dropoff(trip['drop_off_type'])
-                stop_time = self.get_stop_time(trip)
-                minutes = self.get_countdown(trip)
-                status = self.get_status(trip)
-                ret_list.append((
-                    route_name, trip_name, headsign, start_term,
-                    pickup, dropoff, stop_time, minutes, status
-                ))
-                if 'realtime_data' in trip:
-                    cmd_list.append([
-                        f'TRI {trip["trip_id"]}',
-                        f'RTS {trip["trip_id"]}',
-                        f'RTF {trip["trip_id"]}',
-                    ])
-                else:
-                    cmd_list.append([f'TRI {trip["trip_id"]}'])
+            ret_list, cmd_list = self.get_arriving_trips(data['trips'], False)
             return [TabularData(
                 '[ Trips ]',
                 [2, 1, 2, None, None, None, None, None, None],
@@ -368,6 +349,26 @@ class GtfsProcDecoder:
                 cmd_list,
                 True,
             )]
+        elif message_type == 'NEX':
+            route_list = []
+            for route in data['routes']:
+                route_name_s = self.rte_cache[route['route_id']]['short_name']
+                route_name_l = self.rte_cache[route['route_id']]['long_name']
+                if route_name_s != '':
+                    route_name = route_name_s
+                else:
+                    route_name = route_name_l
+                ret_list, cmd_list = self.get_arriving_trips(route['trips'], True)
+                route_list.append(TabularData(
+                    f"[ {route_name} ]",
+                    [1, 2, None, None, None, None, None, None],
+                    ['TRIP ID/NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP TIME  ', 'MINS', 'STATUS'],
+                    ['left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
+                    ret_list,
+                    cmd_list,
+                    True,
+                ))
+            return route_list
         elif message_type == 'E2E':
             ret_list = []
             stops = data['stops']
@@ -407,7 +408,7 @@ class GtfsProcDecoder:
                         stop_detail = stop['stop_name']
                     # Then the origin stop details
                     wait_time = floor(trips[rc][st]["wait_time_sec"] / 60)
-                    status = self.get_status(trips[rc][st])
+                    status = get_status(trips[rc][st])
                     if has_rt:
                         arrival = trips[rc][st]['realtime_data']['actual_arrival']
                         departure = trips[rc][st]['realtime_data']['actual_departure']
@@ -579,8 +580,8 @@ class GtfsProcDecoder:
                         exc,
                         sup,
                         start_term,
-                        self.get_pickup(trip['pickup_type']),
-                        self.get_dropoff(trip['drop_off_type']),
+                        get_pickup(trip['pickup_type']),
+                        get_dropoff(trip['drop_off_type']),
                         "{:7}".format(trip['arr_time']),
                         "{:7}".format(trip['dep_time']),
                     ])
@@ -610,11 +611,11 @@ class GtfsProcDecoder:
                     else:
                         skip = '    '
                     if 'pickup_type' in trip:
-                        pickup = self.get_pickup(trip['pickup_type'])
+                        pickup = get_pickup(trip['pickup_type'])
                     else:
                         pickup = '-'
                     if 'drop_off_type' in trip:
-                        dropoff = self.get_dropoff(trip['drop_off_type'])
+                        dropoff = get_dropoff(trip['drop_off_type'])
                     else:
                         dropoff = '-'
                     trip_list.append([
@@ -630,6 +631,7 @@ class GtfsProcDecoder:
                     ])
                     trip_cmds.append([
                         f"STA {trip['next_stop_id']}",
+                        f"TRI {trip['trip_id']}",
                         f"RTS {trip['trip_id']}",
                         f"RTF {trip['trip_id']}",
                         f"NCF 60 {trip['next_stop_id']}",
@@ -642,7 +644,7 @@ class GtfsProcDecoder:
                 route_list.append(TabularData(
                     f"[ Route: {route_name} ]",
                     [3, 3, 2, 1, None, None, None, None, None],
-                    ['TRIP ID', 'HEADSIGN', 'NEXT STOP', 'VEHICLE', 'D', 'P', 'ARRIVE     ', 'DEPART     ', 'SKIP'],
+                    ['TRIP ID', 'HEADSIGN', 'NEXT STOP', 'VEHICLE', 'P', 'D', 'ARRIVE     ', 'DEPART     ', 'SKIP'],
                     ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
                     trip_list,
                     trip_cmds,
@@ -652,78 +654,47 @@ class GtfsProcDecoder:
         else:
             return json.dumps(data)
 
-    def get_stop_time(self, trip: dict):
-        # Prefer the departure time if present, otherwise the arrival
-        if trip['dep_time'] != '-':
-            stop_time = '{:11}'.format(trip['dep_time'])
-        elif trip['arr_time'] != '-':
-            stop_time = '{:11}'.format(trip['arr_time'])
-        else:
-            stop_time = 'SCH?'
-        if 'realtime_data' in trip:
-            if trip['realtime_data']['actual_departure'] != '':
-                stop_time = '{:11}'.format(trip['realtime_data']['actual_departure'])
-            elif trip['realtime_data']['actual_arrival'] != '':
-                stop_time = '{:11}'.format(trip['realtime_data']['actual_arrival'])
-        return stop_time
-
-    def get_dropoff(self, dropoff_type: int) -> str:
-        if dropoff_type == 1:
-            return 'D'
-        elif dropoff_type == 2:
-            return 'A'
-        elif dropoff_type == 3:
-            return 'R'
-        else:
-            return ' '
-
-    def get_pickup(self, pickup_type: int) -> str:
-        if pickup_type == 1:
-            return 'P'
-        elif pickup_type == 2:
-            return 'C'
-        elif pickup_type == 3:
-            return 'F'
-        else:
-            return ' '
-
-    def get_countdown(self, trip: dict) -> str:
-        if 'realtime_data' not in trip:
-            return '{:4}'.format(floor(trip["wait_time_sec"] / 60))
-        if trip['realtime_data']['status'] in ['RNNG', 'CNCL', 'SKIP']:
-            return '{:4}'.format(floor(trip["wait_time_sec"] / 60))
-        elif trip['realtime_data']['status'] in ['ARRV', 'BRDG', 'DPRT']:
-            return trip['realtime_data']['status']
-
-    def get_status(self, trip: dict) -> str:
-        if 'realtime_data' not in trip:
-            return '      '
-        stop_status = trip['realtime_data']['stop_status']
-        if stop_status in ['SPLM', 'SCHD', 'PRED']:
-            if stop_status == 'SPLM':
-                return 'Extra '
-            elif stop_status == 'SCHD':
-                return 'NoData'
-            elif stop_status == 'PRED':
-                return 'Predic'
+    def get_arriving_trips(self, trips, skip_route) -> Tuple[List, List]:
+        ret_list = []
+        cmd_list = []
+        # Construct trip listing
+        for trip in trips:
+            route_name_s = self.rte_cache[trip['route_id']]['short_name']
+            route_name_l = self.rte_cache[trip['route_id']]['long_name']
+            if route_name_s != '':
+                route_name = route_name_s
             else:
-                return stop_status
-        status_code = trip['realtime_data']['status']
-        if status_code in ['CNCL', 'SKIP']:
-            if status_code == 'CNCL':
-                abbr_status = 'Cancel'
-            elif status_code == 'SKIP':
-                abbr_status = 'Skip  '
+                route_name = route_name_l
+            if trip['short_name'] != '':
+                trip_name = trip['short_name']
             else:
-                abbr_status = status_code
-            return abbr_status
-
-        offset_sec = trip['realtime_data']['offset_seconds']
-        if -60 < offset_sec < 60:
-            return 'OT    '
-        elif offset_sec <= -60:
-            return 'E{:4}m'.format(floor(-1 * offset_sec / 60))
-        elif offset_sec >= 60:
-            return 'L{:4}m'.format(floor(offset_sec / 60))
-        else:
-            return '?     '
+                trip_name = trip['trip_id']
+            headsign = trip['headsign']
+            if trip['trip_terminates']:
+                start_term = 'T'
+            elif trip['trip_begins']:
+                start_term = 'S'
+            else:
+                start_term = ' '
+            pickup = get_pickup(trip['pickup_type'])
+            dropoff = get_dropoff(trip['drop_off_type'])
+            stop_time = get_stop_time(trip)
+            minutes = get_countdown(trip)
+            status = get_status(trip)
+            if skip_route:
+                ret_list.append([
+                    trip_name, headsign, start_term, pickup, dropoff, stop_time, minutes, status
+                ])
+            else:
+                ret_list.append([
+                    route_name, trip_name, headsign, start_term, pickup, dropoff, stop_time, minutes, status
+                ])
+            if 'realtime_data' in trip:
+                cmd_list.append([
+                    f'TRI {trip["trip_id"]}',
+                    f'RTS {trip["trip_id"]}',
+                    f'RTF {trip["trip_id"]}',
+                ])
+            else:
+                cmd_list.append([f'TRI {trip["trip_id"]}'])
+        return ret_list, cmd_list

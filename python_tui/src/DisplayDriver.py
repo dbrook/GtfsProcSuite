@@ -1,6 +1,5 @@
 import urwid
-import json
-from typing import List, Hashable, Callable, Any
+from typing import List
 
 from QuickBrowser import QuickBrowser
 from GtfsProc import GtfsProcSocket, GtfsProcDecoder, CommonOutputs

@@ -1,5 +1,6 @@
 import json
 import urwid
+from math import floor
 from typing import List
 
 
@@ -57,3 +58,84 @@ def decode(gtfs_proc_deco, dd, resp):
                 output_zone.append(urwid.Text(u''))
 
     return output_zone
+
+
+def get_stop_time(trip: dict):
+    # Prefer the departure time if present, otherwise the arrival
+    if trip['dep_time'] != '-':
+        stop_time = '{:11}'.format(trip['dep_time'])
+    elif trip['arr_time'] != '-':
+        stop_time = '{:11}'.format(trip['arr_time'])
+    else:
+        stop_time = 'SCH?'
+    if 'realtime_data' in trip:
+        if trip['realtime_data']['actual_departure'] != '':
+            stop_time = '{:11}'.format(trip['realtime_data']['actual_departure'])
+        elif trip['realtime_data']['actual_arrival'] != '':
+            stop_time = '{:11}'.format(trip['realtime_data']['actual_arrival'])
+    return stop_time
+
+
+def get_dropoff(dropoff_type: int) -> str:
+    if dropoff_type == 1:
+        return 'D'
+    elif dropoff_type == 2:
+        return 'A'
+    elif dropoff_type == 3:
+        return 'R'
+    else:
+        return ' '
+
+
+def get_pickup(pickup_type: int) -> str:
+    if pickup_type == 1:
+        return 'P'
+    elif pickup_type == 2:
+        return 'C'
+    elif pickup_type == 3:
+        return 'F'
+    else:
+        return ' '
+
+
+def get_countdown(trip: dict) -> str:
+    if 'realtime_data' not in trip:
+        return '{:4}'.format(floor(trip["wait_time_sec"] / 60))
+    if trip['realtime_data']['status'] in ['RNNG', 'CNCL', 'SKIP']:
+        return '{:4}'.format(floor(trip["wait_time_sec"] / 60))
+    elif trip['realtime_data']['status'] in ['ARRV', 'BRDG', 'DPRT']:
+        return trip['realtime_data']['status']
+
+
+def get_status(trip: dict) -> str:
+    if 'realtime_data' not in trip:
+        return '      '
+    stop_status = trip['realtime_data']['stop_status']
+    if stop_status in ['SPLM', 'SCHD', 'PRED']:
+        if stop_status == 'SPLM':
+            return 'Extra '
+        elif stop_status == 'SCHD':
+            return 'NoData'
+        elif stop_status == 'PRED':
+            return 'Predic'
+        else:
+            return stop_status
+    status_code = trip['realtime_data']['status']
+    if status_code in ['CNCL', 'SKIP']:
+        if status_code == 'CNCL':
+            abbr_status = 'Cancel'
+        elif status_code == 'SKIP':
+            abbr_status = 'Skip  '
+        else:
+            abbr_status = status_code
+        return abbr_status
+
+    offset_sec = trip['realtime_data']['offset_seconds']
+    if -60 < offset_sec < 60:
+        return 'OT    '
+    elif offset_sec <= -60:
+        return 'E{:4}m'.format(floor(-1 * offset_sec / 60))
+    elif offset_sec >= 60:
+        return 'L{:4}m'.format(floor(offset_sec / 60))
+    else:
+        return '?     '
