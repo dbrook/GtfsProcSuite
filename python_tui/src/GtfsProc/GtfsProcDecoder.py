@@ -85,16 +85,19 @@ class GtfsProcDecoder:
                 "",
             ]
         elif message_type == 'RDS':
-            return [
-                f"Mutex Side . . . . . {data['active_side']}",
-                f"Data Generation  . . {data['active_feed_time']}",
-                f"GTFS-Realtime Ver  . {data['active_rt_version']}",
-                f"Fetch Time . . . . . {data['active_download_ms']} ms",
-                f"Integration Time . . {data['active_integration_ms']} ms",
-                f"Feed Age . . . . . . {data['active_age_sec']} s",
-                f"Next Fetch In  . . . {data['seconds_to_next_fetch']} s",
-                f"Latest RT Txn  . . . {data['last_realtime_query']}",
-            ]
+            if data['active_side'] in ['A', 'B']:
+                return [
+                    f"Mutex Side . . . . . {data['active_side']}",
+                    f"Data Generation  . . {data['active_feed_time']}",
+                    f"GTFS-Realtime Ver  . {data['active_rt_version']}",
+                    f"Fetch Time . . . . . {data['active_download_ms']} ms",
+                    f"Integration Time . . {data['active_integration_ms']} ms",
+                    f"Feed Age . . . . . . {data['active_age_sec']} s",
+                    f"Next Fetch In  . . . {data['seconds_to_next_fetch']} s",
+                    f"Latest RT Txn  . . . {data['last_realtime_query']}",
+                ]
+            else:
+                return ["Real-Time Data Collection is disabled or idle."]
         elif message_type == 'TRI':
             ret_list = [
                 f"Trip ID  . . . . . . {data['trip_id']}",
