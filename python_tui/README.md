@@ -9,7 +9,7 @@ interactive fashion.
 
 # First-Time Setup
 
-## You'll need some python
+## You'll need some python + virtual environment
 `sudo apt install python3-pip python3-venv`
 
 ## Create and activate the virtual environment
@@ -21,8 +21,13 @@ interactive fashion.
 
 ## Run it!
 
-Note: your mileage may vary based on your GtfsProc server, but it'll likely be:
+After installing the virtual environment, running the UI is as simple as the
+following. Note: your mileage may vary based on your GtfsProc server:
 
 `./bin/gtfsproc_tui.sh -n localhost -p 5000`
+
+Start with a command pre-filled:
+
+`./bin/gtfsproc_tui.sh -n localhost -p 5000 -c "RTE"`
 
 To quit, use the `F8` key on your keyboard.

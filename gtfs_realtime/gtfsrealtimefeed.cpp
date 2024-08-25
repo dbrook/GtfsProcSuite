@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -344,12 +344,12 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
         // Discovered with CTTransit data, but Google Maps rendering seems to figure it out whereas GtfsProc didn't.
         // (for quality assurance, these kinds of trips will still be considered mimatches as they violate spec)
         QString stopIdRT = QString::fromStdString(tri.stop_time_update(rtSTUpd).stop_id());
-        if (tri.stop_time_update(rtSTUpd).has_stop_sequence() &&
-            stopSeq == tri.stop_time_update(rtSTUpd).stop_sequence() && stopIdRT == stop_id) {
-            // Match Stop ID and Stop Sequence when both are provided
-            break;
-        } else if ((!tri.stop_time_update(rtSTUpd).has_stop_sequence() || _loosenStopSeqEnf) && stop_id == stopIdRT) {
+        if ((!tri.stop_time_update(rtSTUpd).has_stop_sequence() || _loosenStopSeqEnf) && stop_id == stopIdRT) {
             // Trip Update has no stop sequence information, just match the stop ID
+            break;
+        } else if (tri.stop_time_update(rtSTUpd).has_stop_sequence() &&
+                   stopSeq == tri.stop_time_update(rtSTUpd).stop_sequence()) {
+            // Match Stop ID and Stop Sequence when both are provided
             break;
         }
     }
@@ -480,15 +480,14 @@ void RealTimeTripUpdate::fillStopTimesForTrip(rtUpdateMatch               realTi
                 // Stop-Sequences are preferred per the GTFS-Realtime specification, even if a stop_id is also present
                 // (should also enforce that the stop id matches the trip update contents)
                 QString stopIdRT = QString::fromStdString(tri.stop_time_update(stUpdIdx).stop_id());
-                if (tri.stop_time_update(stUpdIdx).has_stop_sequence() &&
-                    static_cast<quint32>(stopRec.stop_sequence) == tri.stop_time_update(stUpdIdx).stop_sequence() &&
-                    stopRec.stop_id == stopIdRT) {
-                    stu.stopSequence = stopRec.stop_sequence;
-                    break;
-                } else if ((!tri.stop_time_update(stUpdIdx).has_stop_sequence() || _loosenStopSeqEnf) &&
-                           (stopRec.stop_id == stopIdRT)) {
+                if ((!tri.stop_time_update(stUpdIdx).has_stop_sequence() || _loosenStopSeqEnf) &&
+                    (stopRec.stop_id == stopIdRT)) {
                     // Fill stop sequence from static feed, this could help clients debug in case wrong sequence/id
                     // matched when using the _loosenStopSeqEnf option has been requested.
+                    stu.stopSequence = stopRec.stop_sequence;
+                    break;
+                } else if (tri.stop_time_update(stUpdIdx).has_stop_sequence() &&
+                    static_cast<quint32>(stopRec.stop_sequence) == tri.stop_time_update(stUpdIdx).stop_sequence()) {
                     stu.stopSequence = stopRec.stop_sequence;
                     break;
                 }

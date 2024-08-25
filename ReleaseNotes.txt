@@ -1,5 +1,19 @@
-THIS RELEASE: Version 2.3.0
+THIS RELEASE: Version 2.3.1
 ---------------------------
+* Added a Python+Urwid Text-User-Interface to explore data in a console easier!
+  - Head into the python_tui directory and follow setup instructions there.
+- Uninitialized fields have been initialized to aid the front-end processing.
+- The bug (real-time trip stop sequence matching) mentioned in 2.2.0 should have probably
+  been left as-is, due to the problem really being with mismatched agency schedule and
+  real-time trip indexes. The "fix" was reverted here so now (-q) is purely stop ID based,
+  and when (-q) is not used, it's purely sequence matched, to allow for alternate stops.
+! A future release (2.4.x) will have to rethink how real-time trips may keep a sequence,
+  but technically service different stops (i.e. a different platform than in the schedule
+  data). But the requirements for this are being analyzed further.
+
+PREVIOUS RELEASES:
+Version 2.3.0
+-------------
 - Extended EES/EER to ETS/ETR, respectively, allowing the requests to handle a current trip and
   destination so it's easier to track the trip you are riding and the rest of your connections
   in real-time!
@@ -7,7 +21,6 @@ THIS RELEASE: Version 2.3.0
 - Fixed a bug where boarding trips were disappearing from the arrival displays after 1 minute of
   being stopped at a station (removed unnecessary invalidation logic)
 
-PREVIOUS RELEASES:
 Version 2.2.0
 -------------
 - Created EES and EER transactions to show arrival and departure times of entire trips with
