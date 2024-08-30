@@ -208,9 +208,9 @@ class GtfsProcDecoder:
             for stop in data['stops']:
                 if is_rt:
                     if stop['skipped']:
-                        skip = 'SKIP'
+                        skip = 'S'
                     else:
-                        skip = '    '
+                        skip = ' '
                     if stop['arr_based']:
                         a_base = stop['arr_based']
                     else:
@@ -251,7 +251,7 @@ class GtfsProcDecoder:
             if is_rt:
                 name = '[ Real-Time Predictions ]'
                 cols = [1, 1, 3, None, None, None, None, None]
-                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE ', 'A', 'DEPART ', 'D', 'SKIP']
+                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE ', 'A', 'DEPART ', 'D', 'S']
                 aligns = ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left']
             else:
                 name = '[ Trip Schedule (Static Dataset) ]'
@@ -290,6 +290,12 @@ class GtfsProcDecoder:
                     f"TSD Y {stops['stop_id']}",
                     f"TSD D {stops['stop_id']}",
                     f"TSD T {stops['stop_id']}",
+                    f"NCF 60 {stops['stop_id']}",
+                    f"NCF 120 {stops['stop_id']}",
+                    f"NCF 240 {stops['stop_id']}",
+                    f"NEX 60 {stops['stop_id']}",
+                    f"NEX 120 {stops['stop_id']}",
+                    f"NEX 240 {stops['stop_id']}",
                 ])
 
             return [
@@ -610,9 +616,9 @@ class GtfsProcDecoder:
                 trip_cmds = []
                 for trip in route['trips']:
                     if trip['skipped']:
-                        skip = 'SKIP'
+                        skip = 'S'
                     else:
-                        skip = '    '
+                        skip = ' '
                     if 'pickup_type' in trip:
                         pickup = get_pickup(trip['pickup_type'])
                     else:
@@ -647,7 +653,7 @@ class GtfsProcDecoder:
                 route_list.append(TabularData(
                     f"[ Route: {route_name} ]",
                     [3, 3, 2, 1, None, None, None, None, None],
-                    ['TRIP ID', 'HEADSIGN', 'NEXT STOP', 'VEHICLE', 'P', 'D', 'ARRIVE     ', 'DEPART     ', 'SKIP'],
+                    ['TRIP ID', 'HEADSIGN', 'NEXT STOP', 'VEHICLE', 'P', 'D', 'ARRIVE     ', 'DEPART     ', 'S'],
                     ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
                     trip_list,
                     trip_cmds,

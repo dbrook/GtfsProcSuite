@@ -41,19 +41,44 @@ class DisplayDriver:
             else:
                 self.gtfs_view.focus_position = 'footer'
         elif key in {"f7"}:
-            self.gtfs_cmmd.set_edit_text(self.qb_command)
-            self.loop.widget = self.gtfs_view
-            self.update_response()
+            if self.qb_select is None and self.quick_brw is None:
+                self.draw_qb_select(['SDS', 'RDS', 'RTE', 'RTI'])
+            else:
+                self.gtfs_cmmd.set_edit_text(self.qb_command)
+                self.loop.widget = self.gtfs_view
+                self.quick_brw = None
+                self.qb_select = None
+                self.update_response()
         elif key in {"esc"}:
+            self.quick_brw = None
+            self.qb_select = None
             self.loop.widget = self.gtfs_view
 
     def update_response(self) -> None:
-        self.gtfs_view.focus_position = 'body'
+        # self.gtfs_view.focus_position = 'body'
         self.gtfs_rmsg.base_widget.set_text(('indicator', u'Data Acquisition ...'))
         self.loop.draw_screen()
 
         command = self.gtfs_cmmd.base_widget.get_edit_text()
-        resp = self.gtfs_proc_sock.req_resp(command)
+        if command:
+            try:
+                resp = self.gtfs_proc_sock.req_resp(command)
+            except Exception as ex:
+                self.gtfs_rmsg.base_widget.set_text(('error', u'EXCEPTION ENCOUNTERED'))
+                self.gtfs_time.base_widget.set_text(u' ')
+                self.gtfs_proc.base_widget.set_text(u' ')
+                self.gtfs_rtag.base_widget.set_text(u' ')
+                self.fill_zone.contents[:] = [urwid.Text(f"Unexpected {ex=}, {type(ex)=})]")]
+                self.loop.draw_screen()
+                return
+        else:
+            self.gtfs_rmsg.base_widget.set_text(('error', u'NO COMMAND GIVEN'))
+            self.gtfs_time.base_widget.set_text(u' ')
+            self.gtfs_proc.base_widget.set_text(u' ')
+            self.gtfs_rtag.base_widget.set_text(u' ')
+            self.fill_zone.contents[:] = []
+            self.loop.draw_screen()
+            return
 
         if resp['error'] != 0:
             self.gtfs_rmsg.base_widget.set_text(('error', u'ERROR'))
@@ -130,12 +155,14 @@ class DisplayDriver:
             min_height=8,
         )
         self.loop.widget = self.qb_select
+        self.quick_brw = None
 
     def draw_qb(self, button) -> None:
         self.qb_command = button.get_label()
         qb = QuickBrowser(self.gtfs_proc_sock, self.gtfs_proc_deco, self.qb_command)
         self.quick_brw = qb.get_panel(self.gtfs_view, self)
         self.loop.widget = self.quick_brw
+        self.qb_select = None
 
     def main_draw(self) -> None:
         palette = [
@@ -172,6 +199,7 @@ class DisplayDriver:
                 ('pack', urwid.AttrMap(self.gtfs_auto, 'control')),
                 ('pack', urwid.AttrMap(urwid.Text(u'F2: Focus'), 'keys')),
                 ('pack', urwid.AttrMap(urwid.Text(u'F5: Run'), 'keys')),
+                ('pack', urwid.AttrMap(urwid.Text(u'F7: QB'), 'keys')),
                 ('pack', urwid.AttrMap(urwid.Text(u'F8: Quit'), 'keys')),
             ], 1),
         ])
