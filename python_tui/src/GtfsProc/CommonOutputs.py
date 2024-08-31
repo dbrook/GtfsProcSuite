@@ -139,3 +139,32 @@ def get_status(trip: dict) -> str:
         return 'L{:4}m'.format(floor(offset_sec / 60))
     else:
         return '?     '
+
+
+def decode_error_number(ec: int) -> str:
+    error_map = {
+        0: 'NONE',
+        101: 'The requested trip ID does not exist in the static data set',
+        102: 'Real-time predictions were requested for a trip ID not in the real-time data set',
+        103: 'Real-time predictions were requested but no real-time data was in the back end',
+        104: 'The requested real-time trip update entity index was out of bounds',
+        201: 'The requested Route ID does not exist in the static data set',
+        301: 'The Stop ID does not exist in the static data set',
+        401: 'The Stop ID does not exist in the static data set',
+        501: 'The Route ID requested does not exist in the static data set',
+        601: 'A requested stop ID does not exist',
+        701: 'Origin Stop ID does not exist',
+        702: 'Destination Stop ID does not exist',
+        703: 'No date was provided, or a date could not be created from the input',
+        704: 'The wrong number of stops were requested (must be 2: an origin and a destination)',
+        801: 'No Real-Time Data/Predictions are available - (backend idle or not available on server)',
+        802: 'Route ID (or one of the list of Route IDs provided) are not in the data feed (see RTE)',
+        803: 'The Real-Time data buffer is present/allocated but is empty',
+        901: 'Incorrect number of arguments',
+        902: 'Non-numeric or negative value requested in a connection time field',
+        903: 'One of the stop IDs requested does not exist in the dataset',
+    }
+    if ec in error_map:
+        return error_map[ec]
+    else:
+        return 'Unknown error. Are the backend and frontend versions compatible?'

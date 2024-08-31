@@ -29,6 +29,8 @@ class DisplayDriver:
             urwid.Text(''),
             urwid.Text('Documentation is available on GitHub: http://www.github.com/dbrook/GtfsProcSuite'),
             urwid.Text(''),
+            urwid.Text('This Data Browser version is compatible with GtfsProc backend 2.3.1'),
+            urwid.Text(''),
             urwid.Text(f'Host: {gtfs_handler.host_name}:{gtfs_handler.host_port}'),
         ])
         self.scrl_zone = urwid.ListBox(self.fill_zone)
@@ -96,11 +98,9 @@ class DisplayDriver:
             self.gtfs_time.base_widget.set_text(u' ')
             self.gtfs_proc.base_widget.set_text(u' ')
             self.gtfs_rtag.base_widget.set_text(u' ')
-            error_text = urwid.AttrMap(
-                urwid.Text(f'The GtfsProc server returned the following error: {resp["error"]}'),
-                'error'
-            )
-            self.fill_zone.contents[:] = [error_text]
+            error_text = urwid.AttrMap(urwid.Text(f'GtfsProc error code: {resp["error"]}'), 'error')
+            error_explanation = urwid.Text(CommonOutputs.decode_error_number(resp['error']))
+            self.fill_zone.contents[:] = [error_text, error_explanation]
             self.loop.draw_screen()
             return
 

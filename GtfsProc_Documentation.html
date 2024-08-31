@@ -684,10 +684,10 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
             <b>active_trips</b>
         </td>
         <td class="fixed">
-            array
+            object
         </td>
         <td>
-            List of all routes with scheduled trips with real-time predictions.
+            List of scheduled trips organized by Route IDs that have real-time predictions.
         </td>
     </tr>
     <tr>
@@ -695,10 +695,10 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
             <b>canceled_trips</b>
         </td>
         <td class="fixed">
-            array
+            object
         </td>
         <td>
-            List of all routes with at least one canceled trip.
+            List of scheduled trips organized by Route IDs that are detected or marked as canceled.
         </td>
     </tr>
     <tr>
@@ -709,7 +709,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
             array
         </td>
         <td>
-            List of all routes with at least one added / supplemental trip.
+            List of supplemental trips organized by Route ID.
         </td>
     </tr>
     <tr>
@@ -720,7 +720,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
             array
         </td>
         <td>
-            List of all trip IDs which could not be associated with a route. For example: "orphaned_trips":["2135845","2135849"]
+            List of all trip IDs which could not be associated with a route. For example: "orphaned_trips":["2135845","2135849"].
         </td>
     </tr>
     <tr>
@@ -731,7 +731,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
             object
         </td>
         <td>
-            List of all routes with at least one real-time trip that matches a scheduled trip but contains unexpected sequences or stop ids.
+            List of all trips with real-time updates organized by Route ID that contains unexpected stop sequences or Stop IDs.
         </td>
     </tr>
     <tr>
@@ -749,7 +749,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
 <p>
     The “active_trips”, “cancelled_trips”, “added_trips”, and "mismatch_trips" contain named objects (one for each route ID) with an array of Trip IDs, for example:<br>
     {"active_trips":{"Green-C":["43832582","43832587"]}}<br><br>
-    The "duplicate_trips" set contains route IDs with an inner group of trip IDs with ye another inner group of real-time trip update indexes which are duplicates (of the same trip ID), for example:<br>
+    The "duplicate_trips" set contains route IDs with an inner group of trip IDs with yet another inner group of real-time trip update indexes which are duplicates (of the same trip ID), for example:<br>
     "duplicate_trips":{"4150":{"357786731":[20,29]}}
 </p>
 
@@ -2340,7 +2340,7 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
     The ‘message_type’ is “STA”.<br>
     Possible error values:
     <ul>
-        <li>0: Success</ul>
+        <li>0: Success</li>
         <li>401: The Stop ID does not exist in the static data set</ul>
     </ul>
 </p>

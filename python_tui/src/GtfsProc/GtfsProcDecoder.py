@@ -47,6 +47,8 @@ class GtfsProcDecoder:
             return 'Trips with Real-Time Info'
         elif code == 'RTI':
             return 'Real-Time Data Analysis'
+        elif code == 'SBS':
+            return 'Scheduled Service Between Stops'
         else:
             return 'UNKNOWN RESPONSE'
 
@@ -179,10 +181,18 @@ class GtfsProcDecoder:
         elif message_type == 'TRR':
             return []
         elif message_type == 'RTI':
-            # if data['static_data_modif'] != self.rte_date:
-            #     # Update the route-cache if it's outdated
-            #     self.update_route_cache(data['static_data_modif'])
+            if data['static_data_modif'] != self.rte_date:
+                # Update the route-cache if it's outdated
+                self.update_route_cache(data['static_data_modif'])
             return []
+        elif message_type == 'SBS':
+            return [
+                f"Origin Stop  . . . . {data['ori_stop_name']}",
+                f"Origin Stop Desc . . {data['ori_stop_desc']}",
+                f"Destin Stop .... . . {data['des_stop_name']}",
+                f"Destin Stop Desc . . {data['des_stop_desc']}",
+                f"Service Date . . . . {data['service_date']}",
+            ]
         else:
             return ['Response not yet formattable from GtfsProcDecoder']
 
@@ -241,10 +251,10 @@ class GtfsProcDecoder:
                         f"{stop['sequence']}",
                         f"{stop['stop_id']}",
                         stop['stop_name'],
-                        get_pickup(stop['pickup_type']),
-                        get_dropoff(stop['drop_off_type']),
                         "{:7}".format(stop['arr_time']),
                         "{:7}".format(stop['dep_time']),
+                        get_pickup(stop['pickup_type']),
+                        get_dropoff(stop['drop_off_type']),
                     ])
                 commands.append([
                     f'STA {stop["stop_id"]}',
@@ -263,7 +273,7 @@ class GtfsProcDecoder:
             else:
                 name = '[ Trip Schedule (Static Dataset) ]'
                 cols = [1, 1, 3, None, None, None, None]
-                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'P', 'D', 'ARRIVE ', 'DEPART ']
+                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE ', 'DEPART ', 'P', 'D']
                 aligns = ['left', 'left', 'left', 'left', 'left', 'left', 'left']
             return [TabularData(name, cols, headers, aligns, ret_list, commands, True)]
         elif message_type == 'STA':
@@ -358,9 +368,6 @@ class GtfsProcDecoder:
             ret_list, cmd_list = self.get_arriving_trips(data['trips'], False)
             return [TabularData(
                 '[ Trips ]',
-                # [2, 1, 2, None, None, None, None, None, None],
-                # ['ROUTE', 'TRIP ID/NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP TIME  ', 'MINS', 'STATUS'],
-                # ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
                 [2, 1, 2, None, None, None, None, None, None],
                 ['ROUTE', 'TRIP ID/NAME', 'HEADSIGN', 'MINS', 'STATUS', 'STOP TIME  ', 'T', 'P', 'D'],
                 ['left', 'left', 'left', 'right', 'right', 'left', 'left', 'left', 'left'],
@@ -371,13 +378,8 @@ class GtfsProcDecoder:
         elif message_type == 'NEX':
             route_list = []
             for route in data['routes']:
-                route_name_s = self.rte_cache[route['route_id']]['short_name']
-                route_name_l = self.rte_cache[route['route_id']]['long_name']
-                if route_name_s != '':
-                    route_name = route_name_s
-                else:
-                    route_name = route_name_l
                 ret_list, cmd_list = self.get_arriving_trips(route['trips'], True)
+                route_name = self.route_name_from_id_cache(route['route_id'])
                 route_list.append(TabularData(
                     f"[ {route_name} ]",
                     [1, 2, None, None, None, None, None, None],
@@ -406,12 +408,7 @@ class GtfsProcDecoder:
                     has_rt = 'realtime_data' in trips[rc][st]
                     if st % 2 == 0:
                         # Print the trip's route details first ...
-                        route_name_s = self.rte_cache[trips[rc][st]['route_id']]['short_name']
-                        route_name_l = self.rte_cache[trips[rc][st]['route_id']]['long_name']
-                        if route_name_s != '':
-                            route_name = route_name_s
-                        else:
-                            route_name = route_name_l
+                        route_name = self.route_name_from_id_cache(trips[rc][st]['route_id'])
                         vehicle = ''
                         if has_rt:
                             vehicle = trips[rc][st]['realtime_data']['vehicle']
@@ -502,14 +499,7 @@ class GtfsProcDecoder:
                 TabularData(
                     '', [1], ['Shortcuts'], ['left'],
                     [['Stops Served by Route'], ['Real-Time Trips on Route']],
-                    [
-                        [
-                            f'SSR {data["route_id"]}',
-                        ],
-                        [
-                            f'TRR {data["route_id"]}',
-                        ],
-                    ],
+                    [[f'SSR {data["route_id"]}'], [f'TRR {data["route_id"]}']],
                     True,
                 ),
                 TabularData(
@@ -671,127 +661,90 @@ class GtfsProcDecoder:
                 ))
             return route_list
         elif message_type == 'RTI':
-            mismatch_list = []
-            mismatch_cmds = []
-            for mis in data['mismatch_trips'].keys():
-                mismatch_list.append([f"{mis}"])
-                mismatch_cmds.append([f"TRR {mis}", f"SSR {mis}", f"TSR {mis}"])
-                for trip in data['mismatch_trips'][mis]:
-                    mismatch_list.append([f"   {trip}"])
-                    mismatch_cmds.append([f"TRI {trip}", f"RTS {trip}", f"RTF {trip}"])
-
+            mismatch_list, mismatch_cmds = self.get_tri_nest(data, 'mismatch_trips')
+            canceled_list, canceled_cmds = self.get_tri_nest(data, 'canceled_trips')
+            added_list, added_cmds = self.get_tri_nest(data, 'added_trips')
+            running_list, running_cmds = self.get_tri_nest(data, 'active_trips')
             orphan_list = []
             orphan_cmds = []
             for orphan in data['orphaned_trips']:
                 orphan_list.append([f"{orphan}"])
                 orphan_cmds.append([f"RTF {orphan}"])
-
             duplicate_list = []
             duplicate_cmds = []
             for dupe in data['duplicate_trips']:
-                duplicate_list.append([f"{dupe}"])
+                route = self.route_name_from_id_cache(dupe)
+                duplicate_list.append([f"{route}"])
                 duplicate_cmds.append([f"TRR {dupe}", f"SSR {dupe}", f"TSR {dupe}"])
                 for trip in data['duplicate_trips'][dupe]:
                     duplicate_list.append([f"   {trip}"])
-                    duplicate_cmds.append([f"RTT {trip}"])
-
-            canceled_list = []
-            canceled_cmds = []
-            for can in data['canceled_trips'].keys():
-                canceled_list.append([f"{can}"])
-                canceled_cmds.append([f"SSR {can}", f"TRR {can}", f"TSR {can}"])
-                for trip in data['canceled_trips'][can]:
-                    canceled_list.append([f"   {trip}"])
-                    canceled_cmds.append([f"TRI {trip}", f"RTS {trip}", f"RTF {trip}"])
-
-            added_list = []
-            added_cmds = []
-            for add in data['added_trips']:
-                added_list.append([f"{add}"])
-                added_cmds.append([f"TRR {add}", f"SSR {add}", f"TSR {add}"])
-                for trip in data['added_trips'][add]:
-                    added_list.append([f"   {trip}"])
-                    added_cmds.append([f"TRI {trip}", f"RTS {trip}", f"RTF {trip}"])
-
-            running_list = []
-            running_cmds = []
-            for run in data['active_trips']:
-                running_list.append([f"{run}"])
-                running_cmds.append([f"TRR {add}", f"SSR {add}", f"TSR {add}"])
-                for trip in data['active_trips'][run]:
-                    running_list.append([f"   {trip}"])
-                    running_cmds.append([f"TRI {trip}", f"RTS {trip}", f"RTF {trip}"])
-
+                    inner_cmds = []
+                    for rtIdx in trip:
+                        inner_cmds.append(f"RTT {rtIdx}")
+                    duplicate_cmds.append(inner_cmds)
             return [
-                TabularData(
-                    "",
-                    [1],
-                    ['MISMATCHED REAL-TIME STOPS/SEQS'],
-                    ['left'],
-                    mismatch_list,
-                    mismatch_cmds,
-                    True,
-                ),
-                TabularData(
-                    "",
-                    [1],
-                    ['ORPHANED TRIPS'],
-                    ['left'],
-                    orphan_list,
-                    orphan_cmds,
-                    True,
-                ),
-                TabularData(
-                    "",
-                    [1],
-                    ['DUPLICATE TRIPS'],
-                    ['left'],
-                    duplicate_list,
-                    duplicate_cmds,
-                    True,
-                ),
-                TabularData(
-                    "",
-                    [1],
-                    ['CANCELED TRIPS'],
-                    ['left'],
-                    canceled_list,
-                    canceled_cmds,
-                    True,
-                ),
-                TabularData(
-                    "",
-                    [1],
-                    ['ADDED TRIPS'],
-                    ['left'],
-                    added_list,
-                    added_cmds,
-                    True,
-                ),
-                TabularData(
-                    "",
-                    [1],
-                    ['ACTIVE SCHEDULED TRIPS'],
-                    ['left'],
-                    running_list,
-                    running_cmds,
-                    True,
-                ),
+                TabularData("", [1], ['MISMATCHED REAL-TIME STOPS/SEQS'],
+                            ['left'], mismatch_list, mismatch_cmds, True),
+                TabularData("", [1], ['ORPHANED TRIPS'],
+                            ['left'], orphan_list, orphan_cmds, True),
+                TabularData("", [1], ['DUPLICATE TRIPS'],
+                            ['left'], duplicate_list, duplicate_cmds, True),
+                TabularData("", [1], ['CANCELED TRIPS'],
+                            ['left'], canceled_list, canceled_cmds, True),
+                TabularData("", [1], ['SUPPLEMENTAL TRIPS'],
+                            ['left'], added_list, added_cmds, True),
+                TabularData("", [1], ['ACTIVE SCHEDULED TRIPS'],
+                            ['left'], running_list, running_cmds, True),
             ]
+        elif message_type == 'SBS':
+            trip_list = []
+            trip_cmds = []
+            for trip in data['trips']:
+                if trip['route_short_name']:
+                    route_name = trip['route_short_name']
+                else:
+                    route_name = trip['route_long_name']
+                if trip['trip_short_name']:
+                    trip_name = trip['trip_short_name']
+                else:
+                    trip_name = trip['trip_id']
+                trip_list.append([
+                    f"{route_name}",
+                    f"{trip_name}",
+                    f"{trip['headsign']}",
+                    "{:11}".format(trip['ori_depature']),
+                    get_pickup(trip['ori_pick_up']),
+                    "{:11}".format(trip['des_arrival']),
+                    get_dropoff(trip['des_drop_off']),
+                    trip['duration'],
+                ])
+                trip_cmds.append([f"TRI {trip['trip_id']}"])
+            return [TabularData(
+                "",
+                [1, 1, 2, None, None, None, None, None],
+                ['ROUTE', 'TRIP', 'HEADSIGN', 'DEP TIME   ', 'P', 'ARR TIME   ', 'D', 'DUR  '],
+                ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
+                trip_list,
+                trip_cmds,
+                True,
+            )]
         else:
             return json.dumps(data)
+
+    def route_name_from_id_cache(self, route_id) -> str:
+        route_name_s = self.rte_cache[route_id]['short_name']
+        route_name_l = self.rte_cache[route_id]['long_name']
+        if route_name_s != '':
+            return route_name_s
+        else:
+            return route_name_l
 
     def get_arriving_trips(self, trips, skip_route) -> Tuple[List, List]:
         ret_list = []
         cmd_list = []
         # Construct trip listing
         for trip in trips:
-            route_name_s = self.rte_cache[trip['route_id']]['short_name']
-            route_name_l = self.rte_cache[trip['route_id']]['long_name']
-            if route_name_s != '':
-                route_name = route_name_s
-            else:
-                route_name = route_name_l
+            route_name = self.route_name_from_id_cache(trip['route_id'])
             if trip['short_name'] != '':
                 trip_name = trip['short_name']
             else:
@@ -825,3 +778,15 @@ class GtfsProcDecoder:
             else:
                 cmd_list.append([f'TRI {trip["trip_id"]}'])
         return ret_list, cmd_list
+
+    def get_tri_nest(self, data: dict, key: str) -> Tuple[List[List[str]], List[List[str]]]:
+        list_items = []
+        commands = []
+        for route_id in data[key].keys():
+            route = self.route_name_from_id_cache(route_id)
+            list_items.append([f"{route}"])
+            commands.append([f"TRR {route_id}", f"SSR {route_id}", f"TSR {route_id}"])
+            for trip in data[key][route_id]:
+                list_items.append([f"   {trip}"])
+                commands.append([f"TRI {trip}", f"RTS {trip}", f"RTF {trip}"])
+        return list_items, commands

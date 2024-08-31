@@ -56,6 +56,7 @@ public:
 private:
     // Realtime Gateway
     GTFS::RealTimeTripUpdate *_rTrips;
+    GTFS::Status const *_status;
 };
 
 }  // Namespace GTFS

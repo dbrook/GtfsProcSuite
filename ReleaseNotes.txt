@@ -7,6 +7,7 @@ THIS RELEASE: Version 2.3.1
   been left as-is, due to the problem really being with mismatched agency schedule and
   real-time trip indexes. The "fix" was reverted here so now (-q) is purely stop ID based,
   and when (-q) is not used, it's purely sequence matched, to allow for alternate stops.
+- Added the static dataset update time to the RTI response to allow client caching.
 ! A future release (2.4.x) will have to rethink how real-time trips may keep a sequence,
   but technically service different stops (i.e. a different platform than in the schedule
   data). But the requirements for this are being analyzed further.
