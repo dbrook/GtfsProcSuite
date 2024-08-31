@@ -14,12 +14,23 @@ class DisplayDriver:
     ):
         self.gtfs_proc_sock = gtfs_handler
         self.gtfs_proc_deco = gtfs_decoder
-        self.gtfs_rmsg = urwid.Text(u'Welcome to GtfsProc\'s Python Urwid UI!', wrap='clip')
+        self.gtfs_rmsg = urwid.Text(u"GtfsProc Data Browser (v 1.0.0)", wrap='clip')
         self.gtfs_rtag = urwid.Text(u'', wrap='clip')
         self.gtfs_proc = urwid.Text(u'', wrap='clip')
         self.gtfs_time = urwid.Text(u'', wrap='clip')
         self.gtfs_cmmd = urwid.Edit(multiline=False, align='left', wrap='clip')
-        self.fill_zone = urwid.SimpleListWalker([urwid.Text('Enter a command, then press F5', wrap='clip')])
+        self.fill_zone = urwid.SimpleListWalker([
+            urwid.Text('If you know the GtfsProc command syntax: enter a command, then press F5.'),
+            urwid.Text(''),
+            urwid.Text('Toggle between the command line and the output window to interact using F2.'),
+            urwid.Text(''),
+            urwid.Text('New to GtfsProc? Start exploring with the QuickBrowser (F7)!'),
+            urwid.Text('You can send QuickBrowser windows to the main screen by pressing F7.'),
+            urwid.Text(''),
+            urwid.Text('Documentation is available on GitHub: http://www.github.com/dbrook/GtfsProcSuite'),
+            urwid.Text(''),
+            urwid.Text(f'Host: {gtfs_handler.host_name}:{gtfs_handler.host_port}'),
+        ])
         self.scrl_zone = urwid.ListBox(self.fill_zone)
         self.gtfs_auto = None
         self.gtfs_view = None

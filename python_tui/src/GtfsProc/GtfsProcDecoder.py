@@ -45,6 +45,8 @@ class GtfsProcDecoder:
             return 'All Stops on Route'
         elif code == 'TRR':
             return 'Trips with Real-Time Info'
+        elif code == 'RTI':
+            return 'Real-Time Data Analysis'
         else:
             return 'UNKNOWN RESPONSE'
 
@@ -175,6 +177,11 @@ class GtfsProcDecoder:
                 "",
             ]
         elif message_type == 'TRR':
+            return []
+        elif message_type == 'RTI':
+            # if data['static_data_modif'] != self.rte_date:
+            #     # Update the route-cache if it's outdated
+            #     self.update_route_cache(data['static_data_modif'])
             return []
         else:
             return ['Response not yet formattable from GtfsProcDecoder']
@@ -351,9 +358,12 @@ class GtfsProcDecoder:
             ret_list, cmd_list = self.get_arriving_trips(data['trips'], False)
             return [TabularData(
                 '[ Trips ]',
+                # [2, 1, 2, None, None, None, None, None, None],
+                # ['ROUTE', 'TRIP ID/NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP TIME  ', 'MINS', 'STATUS'],
+                # ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
                 [2, 1, 2, None, None, None, None, None, None],
-                ['ROUTE', 'TRIP ID/NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP TIME  ', 'MINS', 'STATUS'],
-                ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
+                ['ROUTE', 'TRIP ID/NAME', 'HEADSIGN', 'MINS', 'STATUS', 'STOP TIME  ', 'T', 'P', 'D'],
+                ['left', 'left', 'left', 'right', 'right', 'left', 'left', 'left', 'left'],
                 ret_list,
                 cmd_list,
                 True,
@@ -371,7 +381,7 @@ class GtfsProcDecoder:
                 route_list.append(TabularData(
                     f"[ {route_name} ]",
                     [1, 2, None, None, None, None, None, None],
-                    ['TRIP ID/NAME', 'HEADSIGN', 'T', 'P', 'D', 'STOP TIME  ', 'MINS', 'STATUS'],
+                    ['TRIP ID/NAME', 'HEADSIGN', 'MINS', 'STATUS', 'STOP TIME  ', 'T', 'P', 'D'],
                     ['left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
                     ret_list,
                     cmd_list,
@@ -406,9 +416,9 @@ class GtfsProcDecoder:
                         if has_rt:
                             vehicle = trips[rc][st]['realtime_data']['vehicle']
                         if vehicle != '':
-                            ret_list.append([f'<{route_name}> → {trips[rc][st]["headsign"]} <Vehicle # {vehicle}>'])
+                            ret_list.append([f'{route_name} → {trips[rc][st]["headsign"]} <Vehicle # {vehicle}>'])
                         else:
-                            ret_list.append([f'<{route_name}> → {trips[rc][st]["headsign"]}'])
+                            ret_list.append([f'{route_name} → {trips[rc][st]["headsign"]}'])
 
                     stop = stops[trips[rc][st]['stop_id']]
                     if 'stop_desc' in stop and stop['stop_desc'] != '':
@@ -588,17 +598,17 @@ class GtfsProcDecoder:
                         f"{trip['operate_days_condensed']}",
                         exc,
                         sup,
+                        "{:7}".format(trip['arr_time']),
+                        "{:7}".format(trip['dep_time']),
                         start_term,
                         get_pickup(trip['pickup_type']),
                         get_dropoff(trip['drop_off_type']),
-                        "{:7}".format(trip['arr_time']),
-                        "{:7}".format(trip['dep_time']),
                     ])
                     trip_cmds.append([f"TRI {trip['trip_id']}"])
                 route_list.append(TabularData(
                     f"[ Route: {route_name} ]",
                     [2, 3, None, None, None, None, None, None, None, None],
-                    ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'T', 'P', 'D', 'ARRIVES', 'DEPARTS'],
+                    ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'ARRIVES', 'DEPARTS', 'T', 'P', 'D'],
                     ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
                     trip_list,
                     trip_cmds,
@@ -632,10 +642,10 @@ class GtfsProcDecoder:
                         f"{trip['headsign']}",
                         f"{trip['next_stop_name']}",
                         f"{trip['vehicle']}",
-                        pickup,
-                        dropoff,
                         "{:11}".format(trip['arrive']),
                         "{:11}".format(trip['depart']),
+                        pickup,
+                        dropoff,
                         skip,
                     ])
                     trip_cmds.append([
@@ -653,13 +663,121 @@ class GtfsProcDecoder:
                 route_list.append(TabularData(
                     f"[ Route: {route_name} ]",
                     [3, 3, 2, 1, None, None, None, None, None],
-                    ['TRIP ID', 'HEADSIGN', 'NEXT STOP', 'VEHICLE', 'P', 'D', 'ARRIVE     ', 'DEPART     ', 'S'],
+                    ['TRIP ID', 'HEADSIGN', 'NEXT STOP', 'VEHICLE', 'ARRIVE     ', 'DEPART     ', 'P', 'D', 'S'],
                     ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
                     trip_list,
                     trip_cmds,
                     True,
                 ))
             return route_list
+        elif message_type == 'RTI':
+            mismatch_list = []
+            mismatch_cmds = []
+            for mis in data['mismatch_trips'].keys():
+                mismatch_list.append([f"{mis}"])
+                mismatch_cmds.append([f"TRR {mis}", f"SSR {mis}", f"TSR {mis}"])
+                for trip in data['mismatch_trips'][mis]:
+                    mismatch_list.append([f"   {trip}"])
+                    mismatch_cmds.append([f"TRI {trip}", f"RTS {trip}", f"RTF {trip}"])
+
+            orphan_list = []
+            orphan_cmds = []
+            for orphan in data['orphaned_trips']:
+                orphan_list.append([f"{orphan}"])
+                orphan_cmds.append([f"RTF {orphan}"])
+
+            duplicate_list = []
+            duplicate_cmds = []
+            for dupe in data['duplicate_trips']:
+                duplicate_list.append([f"{dupe}"])
+                duplicate_cmds.append([f"TRR {dupe}", f"SSR {dupe}", f"TSR {dupe}"])
+                for trip in data['duplicate_trips'][dupe]:
+                    duplicate_list.append([f"   {trip}"])
+                    duplicate_cmds.append([f"RTT {trip}"])
+
+            canceled_list = []
+            canceled_cmds = []
+            for can in data['canceled_trips'].keys():
+                canceled_list.append([f"{can}"])
+                canceled_cmds.append([f"SSR {can}", f"TRR {can}", f"TSR {can}"])
+                for trip in data['canceled_trips'][can]:
+                    canceled_list.append([f"   {trip}"])
+                    canceled_cmds.append([f"TRI {trip}", f"RTS {trip}", f"RTF {trip}"])
+
+            added_list = []
+            added_cmds = []
+            for add in data['added_trips']:
+                added_list.append([f"{add}"])
+                added_cmds.append([f"TRR {add}", f"SSR {add}", f"TSR {add}"])
+                for trip in data['added_trips'][add]:
+                    added_list.append([f"   {trip}"])
+                    added_cmds.append([f"TRI {trip}", f"RTS {trip}", f"RTF {trip}"])
+
+            running_list = []
+            running_cmds = []
+            for run in data['active_trips']:
+                running_list.append([f"{run}"])
+                running_cmds.append([f"TRR {add}", f"SSR {add}", f"TSR {add}"])
+                for trip in data['active_trips'][run]:
+                    running_list.append([f"   {trip}"])
+                    running_cmds.append([f"TRI {trip}", f"RTS {trip}", f"RTF {trip}"])
+
+            return [
+                TabularData(
+                    "",
+                    [1],
+                    ['MISMATCHED REAL-TIME STOPS/SEQS'],
+                    ['left'],
+                    mismatch_list,
+                    mismatch_cmds,
+                    True,
+                ),
+                TabularData(
+                    "",
+                    [1],
+                    ['ORPHANED TRIPS'],
+                    ['left'],
+                    orphan_list,
+                    orphan_cmds,
+                    True,
+                ),
+                TabularData(
+                    "",
+                    [1],
+                    ['DUPLICATE TRIPS'],
+                    ['left'],
+                    duplicate_list,
+                    duplicate_cmds,
+                    True,
+                ),
+                TabularData(
+                    "",
+                    [1],
+                    ['CANCELED TRIPS'],
+                    ['left'],
+                    canceled_list,
+                    canceled_cmds,
+                    True,
+                ),
+                TabularData(
+                    "",
+                    [1],
+                    ['ADDED TRIPS'],
+                    ['left'],
+                    added_list,
+                    added_cmds,
+                    True,
+                ),
+                TabularData(
+                    "",
+                    [1],
+                    ['ACTIVE SCHEDULED TRIPS'],
+                    ['left'],
+                    running_list,
+                    running_cmds,
+                    True,
+                ),
+            ]
         else:
             return json.dumps(data)
 
@@ -692,11 +810,11 @@ class GtfsProcDecoder:
             status = get_status(trip)
             if skip_route:
                 ret_list.append([
-                    trip_name, headsign, start_term, pickup, dropoff, stop_time, minutes, status
+                    trip_name, headsign, minutes, status, stop_time, start_term, pickup, dropoff
                 ])
             else:
                 ret_list.append([
-                    route_name, trip_name, headsign, start_term, pickup, dropoff, stop_time, minutes, status
+                    route_name, trip_name, headsign, minutes, status, stop_time, start_term, pickup, dropoff
                 ])
             if 'realtime_data' in trip:
                 cmd_list.append([
