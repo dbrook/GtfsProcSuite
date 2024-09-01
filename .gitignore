@@ -1,5 +1,6 @@
 # Do not control any user-level IDE configuration files
-GtfsProcSuite.pro.user
+GtfsProcSuite.pro.user*
+/.qtcreator
 
 # Do not control any QMake local configs
 .qmake.stash
@@ -10,4 +11,9 @@ GtfsProcSuite.pro.user
 # GTFS Real-Time Protoc'd Files
 gtfs_realtime/gtfs-realtime.pb.cc
 gtfs_realtime/gtfs-realtime.pb.h
+
+# Text interface Python stuff
+python_tui/.idea
+python_tui/venv
+*__pycache__
 

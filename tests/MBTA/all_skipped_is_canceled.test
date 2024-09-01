@@ -39,7 +39,7 @@ and canceled).
             "url": "http://www.mbta.com"
         }
     ],
-    "application": "GtfsProc 2.3.0",
+    "application": "GtfsProc 2.3.1",
 *   "appuptime_sec": 375,
 *   "dataloadtime_ms": 5728,
     "error": 0,
@@ -277,7 +277,7 @@ and canceled).
 }
 @End
 
-@Case:EES with 1 connection
+@Case:EES with 1 connection showing bad stop-sequence RT matches
 @Query:EES 40 70028|70020|3|70077|place-jfk
 @Expected
 {
@@ -299,6 +299,10 @@ and canceled).
         "70077": {
             "stop_desc": "Downtown Crossing - Red Line - Ashmont/Braintree",
             "stop_name": "Downtown Crossing"
+        },
+        "70085": {
+            "stop_desc": "JFK/UMass - Red Line - Ashmont",
+            "stop_name": "JFK/UMass"
         },
         "70095": {
             "stop_desc": "JFK/UMass - Red Line - Braintree",
@@ -426,9 +430,9 @@ and canceled).
                 "headsign": "Forest Hills",
                 "pickup_type": 0,
                 "realtime_data": {
-                    "actual_arrival": "Sun 11:25",
-                    "actual_departure": "Sun 11:26",
-                    "offset_seconds": 330,
+                    "actual_arrival": "Sun 11:03",
+                    "actual_departure": "Sun 11:04",
+                    "offset_seconds": -967,
                     "status": "RNNG",
                     "stop_status": "FULL",
                     "vehicle": "1466"
@@ -439,7 +443,187 @@ and canceled).
                 "trip_begins": false,
                 "trip_id": "57223301",
                 "trip_terminates": false,
-                "wait_time_sec": 1380
+                "wait_time_sec": 83
+            },
+            {
+                "arr_time": "Sun 11:05",
+                "dep_time": "Sun 11:05",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:07",
+                    "actual_departure": "Sun 11:08",
+                    "offset_seconds": 163,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1807"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599662",
+                "trip_terminates": false,
+                "wait_time_sec": 313
+            },
+            {
+                "arr_time": "Sun 11:22",
+                "dep_time": "Sun 11:22",
+                "drop_off_type": 0,
+                "headsign": "Braintree",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:18",
+                    "actual_departure": "Sun 11:19",
+                    "offset_seconds": -210,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1807"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70095",
+                "trip_begins": false,
+                "trip_id": "57599662",
+                "trip_terminates": false,
+                "wait_time_sec": 960
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:24",
+                "dep_time": "Sun 11:24",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:27",
+                    "actual_departure": "Sun 11:28",
+                    "offset_seconds": 227,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70028",
+                "trip_begins": false,
+                "trip_id": "57223336",
+                "trip_terminates": false,
+                "wait_time_sec": 1517
+            },
+            {
+                "arr_time": "Sun 11:30",
+                "dep_time": "Sun 11:30",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:13",
+                    "actual_departure": "Sun 11:14",
+                    "offset_seconds": -966,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70020",
+                "trip_begins": false,
+                "trip_id": "57223336",
+                "trip_terminates": false,
+                "wait_time_sec": 684
+            },
+            {
+                "arr_time": "Sun 11:16",
+                "dep_time": "Sun 11:16",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:16",
+                    "actual_departure": "Sun 11:17",
+                    "offset_seconds": 7,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1642"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599588",
+                "trip_terminates": false,
+                "wait_time_sec": 817
+            },
+            {
+                "arr_time": "Sun 11:34",
+                "dep_time": "Sun 11:34",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:26",
+                    "actual_departure": "Sun 11:27",
+                    "offset_seconds": -431,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1642"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70085",
+                "trip_begins": false,
+                "trip_id": "57599588",
+                "trip_terminates": false,
+                "wait_time_sec": 1459
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:35",
+                "dep_time": "Sun 11:35",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:38",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": 227,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70028",
+                "trip_begins": false,
+                "trip_id": "57223179",
+                "trip_terminates": false,
+                "wait_time_sec": 2177
+            },
+            {
+                "arr_time": "Sun 11:41",
+                "dep_time": "Sun 11:41",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:24",
+                    "actual_departure": "Sun 11:25",
+                    "offset_seconds": -966,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70020",
+                "trip_begins": false,
+                "trip_id": "57223179",
+                "trip_terminates": false,
+                "wait_time_sec": 1344
             },
             {
                 "arr_time": "Sun 11:27",
@@ -490,7 +674,7 @@ and canceled).
 }
 @End
 
-@Case:EER with 1 connection (only real-time trips)
+@Case:EER with 1 connection (only real-time trips) showing bad stop-sequence RT matches
 @Query:EER 120 70059|place-state|5|place-state|70006
 @Expected
 {
@@ -549,9 +733,9 @@ and canceled).
                 "headsign": "Bowdoin",
                 "pickup_type": 0,
                 "realtime_data": {
-                    "actual_arrival": "Sun 11:23",
-                    "actual_departure": "Sun 11:24",
-                    "offset_seconds": -124,
+                    "actual_arrival": "Sun 11:06",
+                    "actual_departure": "Sun 11:07",
+                    "offset_seconds": -1164,
                     "status": "RNNG",
                     "stop_status": "FULL",
                     "vehicle": "0751"
@@ -562,7 +746,187 @@ and canceled).
                 "trip_begins": false,
                 "trip_id": "57626910",
                 "trip_terminates": false,
-                "wait_time_sec": 1286
+                "wait_time_sec": 246
+            },
+            {
+                "arr_time": "Sun 11:08",
+                "dep_time": "Sun 11:08",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:15",
+                    "actual_departure": "Sun 11:16",
+                    "offset_seconds": 462,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1464"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223257",
+                "trip_terminates": false,
+                "wait_time_sec": 792
+            },
+            {
+                "arr_time": "Sun 11:25",
+                "dep_time": "Sun 11:25",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:28",
+                    "actual_departure": "Sun 11:29",
+                    "offset_seconds": 226,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1464"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70006",
+                "trip_begins": false,
+                "trip_id": "57223257",
+                "trip_terminates": false,
+                "wait_time_sec": 1576
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:16",
+                "dep_time": "Sun 11:16",
+                "drop_off_type": 1,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "",
+                    "actual_departure": "Sun 11:17",
+                    "offset_seconds": 60,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70059",
+                "trip_begins": true,
+                "trip_id": "57626911",
+                "trip_terminates": false,
+                "wait_time_sec": 870
+            },
+            {
+                "arr_time": "Sun 11:37",
+                "dep_time": "Sun 11:37",
+                "drop_off_type": 0,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:17",
+                    "actual_departure": "Sun 11:18",
+                    "offset_seconds": -1164,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70041",
+                "trip_begins": false,
+                "trip_id": "57626911",
+                "trip_terminates": false,
+                "wait_time_sec": 906
+            },
+            {
+                "arr_time": "Sun 11:19",
+                "dep_time": "Sun 11:19",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:24",
+                    "actual_departure": "Sun 11:25",
+                    "offset_seconds": 315,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1466"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223301",
+                "trip_terminates": false,
+                "wait_time_sec": 1305
+            },
+            {
+                "arr_time": "Sun 11:36",
+                "dep_time": "Sun 11:36",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:37",
+                    "actual_departure": "Sun 11:37",
+                    "offset_seconds": 79,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1466"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70006",
+                "trip_begins": false,
+                "trip_id": "57223301",
+                "trip_terminates": false,
+                "wait_time_sec": 2089
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:27",
+                "dep_time": "Sun 11:27",
+                "drop_off_type": 1,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "",
+                    "actual_departure": "Sun 11:28",
+                    "offset_seconds": 60,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70059",
+                "trip_begins": true,
+                "trip_id": "57626912",
+                "trip_terminates": false,
+                "wait_time_sec": 1530
+            },
+            {
+                "arr_time": "Sun 11:48",
+                "dep_time": "Sun 11:48",
+                "drop_off_type": 0,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:28",
+                    "actual_departure": "Sun 11:29",
+                    "offset_seconds": -1164,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70041",
+                "trip_begins": false,
+                "trip_id": "57626912",
+                "trip_terminates": false,
+                "wait_time_sec": 1566
             },
             {
                 "arr_time": "Sun 11:29",
@@ -611,14 +975,14 @@ and canceled).
         ],
         [
             {
-                "arr_time": "Sun 11:16",
-                "dep_time": "Sun 11:16",
+                "arr_time": "Sun 11:38",
+                "dep_time": "Sun 11:38",
                 "drop_off_type": 1,
                 "headsign": "Bowdoin",
                 "pickup_type": 0,
                 "realtime_data": {
                     "actual_arrival": "",
-                    "actual_departure": "Sun 11:17",
+                    "actual_departure": "Sun 11:39",
                     "offset_seconds": 60,
                     "status": "RNNG",
                     "stop_status": "FULL",
@@ -628,20 +992,20 @@ and canceled).
                 "short_name": "",
                 "stop_id": "70059",
                 "trip_begins": true,
-                "trip_id": "57626911",
+                "trip_id": "57626913",
                 "trip_terminates": false,
-                "wait_time_sec": 870
+                "wait_time_sec": 2190
             },
             {
-                "arr_time": "Sun 11:37",
-                "dep_time": "Sun 11:37",
+                "arr_time": "Sun 11:59",
+                "dep_time": "Sun 11:59",
                 "drop_off_type": 0,
                 "headsign": "Bowdoin",
                 "pickup_type": 0,
                 "realtime_data": {
-                    "actual_arrival": "Sun 11:34",
-                    "actual_departure": "Sun 11:35",
-                    "offset_seconds": -124,
+                    "actual_arrival": "Sun 11:39",
+                    "actual_departure": "Sun 11:40",
+                    "offset_seconds": -1164,
                     "status": "RNNG",
                     "stop_status": "FULL",
                     "vehicle": ""
@@ -650,9 +1014,9 @@ and canceled).
                 "short_name": "",
                 "stop_id": "70041",
                 "trip_begins": false,
-                "trip_id": "57626911",
+                "trip_id": "57626913",
                 "trip_terminates": false,
-                "wait_time_sec": 1946
+                "wait_time_sec": 2226
             },
             {
                 "arr_time": "Sun 11:40",
@@ -698,192 +1062,12 @@ and canceled).
                 "trip_terminates": false,
                 "wait_time_sec": 3350
             }
-        ],
-        [
-            {
-                "arr_time": "Sun 11:27",
-                "dep_time": "Sun 11:27",
-                "drop_off_type": 1,
-                "headsign": "Bowdoin",
-                "pickup_type": 0,
-                "realtime_data": {
-                    "actual_arrival": "",
-                    "actual_departure": "Sun 11:28",
-                    "offset_seconds": 60,
-                    "status": "RNNG",
-                    "stop_status": "FULL",
-                    "vehicle": ""
-                },
-                "route_id": "Blue",
-                "short_name": "",
-                "stop_id": "70059",
-                "trip_begins": true,
-                "trip_id": "57626912",
-                "trip_terminates": false,
-                "wait_time_sec": 1530
-            },
-            {
-                "arr_time": "Sun 11:48",
-                "dep_time": "Sun 11:48",
-                "drop_off_type": 0,
-                "headsign": "Bowdoin",
-                "pickup_type": 0,
-                "realtime_data": {
-                    "actual_arrival": "Sun 11:45",
-                    "actual_departure": "Sun 11:46",
-                    "offset_seconds": -124,
-                    "status": "RNNG",
-                    "stop_status": "FULL",
-                    "vehicle": ""
-                },
-                "route_id": "Blue",
-                "short_name": "",
-                "stop_id": "70041",
-                "trip_begins": false,
-                "trip_id": "57626912",
-                "trip_terminates": false,
-                "wait_time_sec": 2606
-            },
-            {
-                "arr_time": "Sun 11:50",
-                "dep_time": "Sun 11:50",
-                "drop_off_type": 0,
-                "headsign": "Forest Hills",
-                "pickup_type": 0,
-                "realtime_data": {
-                    "actual_arrival": "Sun 11:55",
-                    "actual_departure": "Sun 11:56",
-                    "offset_seconds": 316,
-                    "status": "RNNG",
-                    "stop_status": "FULL",
-                    "vehicle": ""
-                },
-                "route_id": "Orange",
-                "short_name": "",
-                "stop_id": "70022",
-                "trip_begins": false,
-                "trip_id": "57223180",
-                "trip_terminates": false,
-                "wait_time_sec": 3166
-            },
-            {
-                "arr_time": "Sun 12:07",
-                "dep_time": "Sun 12:07",
-                "drop_off_type": 0,
-                "headsign": "Forest Hills",
-                "pickup_type": 0,
-                "realtime_data": {
-                    "actual_arrival": "Sun 12:08",
-                    "actual_departure": "Sun 12:09",
-                    "offset_seconds": 80,
-                    "status": "RNNG",
-                    "stop_status": "FULL",
-                    "vehicle": ""
-                },
-                "route_id": "Orange",
-                "short_name": "",
-                "stop_id": "70006",
-                "trip_begins": false,
-                "trip_id": "57223180",
-                "trip_terminates": false,
-                "wait_time_sec": 3950
-            }
-        ],
-        [
-            {
-                "arr_time": "Sun 11:38",
-                "dep_time": "Sun 11:38",
-                "drop_off_type": 1,
-                "headsign": "Bowdoin",
-                "pickup_type": 0,
-                "realtime_data": {
-                    "actual_arrival": "",
-                    "actual_departure": "Sun 11:39",
-                    "offset_seconds": 60,
-                    "status": "RNNG",
-                    "stop_status": "FULL",
-                    "vehicle": ""
-                },
-                "route_id": "Blue",
-                "short_name": "",
-                "stop_id": "70059",
-                "trip_begins": true,
-                "trip_id": "57626913",
-                "trip_terminates": false,
-                "wait_time_sec": 2190
-            },
-            {
-                "arr_time": "Sun 11:59",
-                "dep_time": "Sun 11:59",
-                "drop_off_type": 0,
-                "headsign": "Bowdoin",
-                "pickup_type": 0,
-                "realtime_data": {
-                    "actual_arrival": "Sun 11:56",
-                    "actual_departure": "Sun 11:57",
-                    "offset_seconds": -124,
-                    "status": "RNNG",
-                    "stop_status": "FULL",
-                    "vehicle": ""
-                },
-                "route_id": "Blue",
-                "short_name": "",
-                "stop_id": "70041",
-                "trip_begins": false,
-                "trip_id": "57626913",
-                "trip_terminates": false,
-                "wait_time_sec": 3266
-            },
-            {
-                "arr_time": "Sun 12:01",
-                "dep_time": "Sun 12:01",
-                "drop_off_type": 0,
-                "headsign": "Forest Hills",
-                "pickup_type": 0,
-                "realtime_data": {
-                    "actual_arrival": "Sun 12:06",
-                    "actual_departure": "Sun 12:07",
-                    "offset_seconds": 316,
-                    "status": "RNNG",
-                    "stop_status": "FULL",
-                    "vehicle": ""
-                },
-                "route_id": "Orange",
-                "short_name": "",
-                "stop_id": "70022",
-                "trip_begins": false,
-                "trip_id": "57223183",
-                "trip_terminates": false,
-                "wait_time_sec": 3826
-            },
-            {
-                "arr_time": "Sun 12:18",
-                "dep_time": "Sun 12:18",
-                "drop_off_type": 0,
-                "headsign": "Forest Hills",
-                "pickup_type": 0,
-                "realtime_data": {
-                    "actual_arrival": "Sun 12:19",
-                    "actual_departure": "Sun 12:20",
-                    "offset_seconds": 80,
-                    "status": "RNNG",
-                    "stop_status": "FULL",
-                    "vehicle": ""
-                },
-                "route_id": "Orange",
-                "short_name": "",
-                "stop_id": "70006",
-                "trip_begins": false,
-                "trip_id": "57223183",
-                "trip_terminates": false,
-                "wait_time_sec": 4610
-            }
         ]
     ]
 }
 @End
 
-@Case:EES with 2 connections
+@Case:EES with 2 connections with stop time / stop sequence mismatch bug
 @Query:EES 70 70059|place-state|5|place-state|place-dwnxg|4|place-dwnxg|70093
 @Expected
 {
@@ -950,9 +1134,9 @@ and canceled).
                 "headsign": "Bowdoin",
                 "pickup_type": 0,
                 "realtime_data": {
-                    "actual_arrival": "Sun 11:23",
-                    "actual_departure": "Sun 11:24",
-                    "offset_seconds": -124,
+                    "actual_arrival": "Sun 11:06",
+                    "actual_departure": "Sun 11:07",
+                    "offset_seconds": -1164,
                     "status": "RNNG",
                     "stop_status": "FULL",
                     "vehicle": "0751"
@@ -963,7 +1147,275 @@ and canceled).
                 "trip_begins": false,
                 "trip_id": "57626910",
                 "trip_terminates": false,
-                "wait_time_sec": 1286
+                "wait_time_sec": 246
+            },
+            {
+                "arr_time": "Sun 11:08",
+                "dep_time": "Sun 11:08",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:15",
+                    "actual_departure": "Sun 11:16",
+                    "offset_seconds": 462,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1464"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223257",
+                "trip_terminates": false,
+                "wait_time_sec": 792
+            },
+            {
+                "arr_time": "Sun 11:09",
+                "dep_time": "Sun 11:09",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:16",
+                    "actual_departure": "Sun 11:17",
+                    "offset_seconds": 477,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1464"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70020",
+                "trip_begins": false,
+                "trip_id": "57223257",
+                "trip_terminates": false,
+                "wait_time_sec": 867
+            },
+            {
+                "arr_time": "Sun 11:38",
+                "dep_time": "Sun 11:38",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:39",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": 61,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1716"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599630",
+                "trip_terminates": false,
+                "wait_time_sec": 2191
+            },
+            {
+                "arr_time": "Sun 12:13",
+                "dep_time": "Sun 12:13",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 1,
+                "realtime_data": {
+                    "actual_arrival": "Sun 12:05",
+                    "actual_departure": "",
+                    "offset_seconds": -479,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1716"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70093",
+                "trip_begins": false,
+                "trip_id": "57599630",
+                "trip_terminates": true,
+                "wait_time_sec": 3751
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:16",
+                "dep_time": "Sun 11:16",
+                "drop_off_type": 1,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "",
+                    "actual_departure": "Sun 11:17",
+                    "offset_seconds": 60,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70059",
+                "trip_begins": true,
+                "trip_id": "57626911",
+                "trip_terminates": false,
+                "wait_time_sec": 870
+            },
+            {
+                "arr_time": "Sun 11:37",
+                "dep_time": "Sun 11:37",
+                "drop_off_type": 0,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:17",
+                    "actual_departure": "Sun 11:18",
+                    "offset_seconds": -1164,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70041",
+                "trip_begins": false,
+                "trip_id": "57626911",
+                "trip_terminates": false,
+                "wait_time_sec": 906
+            },
+            {
+                "arr_time": "Sun 11:19",
+                "dep_time": "Sun 11:19",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:24",
+                    "actual_departure": "Sun 11:25",
+                    "offset_seconds": 315,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1466"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223301",
+                "trip_terminates": false,
+                "wait_time_sec": 1305
+            },
+            {
+                "arr_time": "Sun 11:20",
+                "dep_time": "Sun 11:20",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:03",
+                    "actual_departure": "Sun 11:04",
+                    "offset_seconds": -967,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1466"
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70020",
+                "trip_begins": false,
+                "trip_id": "57223301",
+                "trip_terminates": false,
+                "wait_time_sec": 83
+            },
+            {
+                "arr_time": "Sun 11:16",
+                "dep_time": "Sun 11:16",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:16",
+                    "actual_departure": "Sun 11:17",
+                    "offset_seconds": 7,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1642"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599588",
+                "trip_terminates": false,
+                "wait_time_sec": 817
+            },
+            {
+                "arr_time": "Sun 11:51",
+                "dep_time": "Sun 11:51",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 1,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:42",
+                    "actual_departure": "",
+                    "offset_seconds": -533,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1642"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70093",
+                "trip_begins": false,
+                "trip_id": "57599588",
+                "trip_terminates": true,
+                "wait_time_sec": 2377
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:27",
+                "dep_time": "Sun 11:27",
+                "drop_off_type": 1,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "",
+                    "actual_departure": "Sun 11:28",
+                    "offset_seconds": 60,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70059",
+                "trip_begins": true,
+                "trip_id": "57626912",
+                "trip_terminates": false,
+                "wait_time_sec": 1530
+            },
+            {
+                "arr_time": "Sun 11:48",
+                "dep_time": "Sun 11:48",
+                "drop_off_type": 0,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:28",
+                    "actual_departure": "Sun 11:29",
+                    "offset_seconds": -1164,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70041",
+                "trip_begins": false,
+                "trip_id": "57626912",
+                "trip_terminates": false,
+                "wait_time_sec": 1566
             },
             {
                 "arr_time": "Sun 11:29",
@@ -994,9 +1446,9 @@ and canceled).
                 "headsign": "Forest Hills",
                 "pickup_type": 0,
                 "realtime_data": {
-                    "actual_arrival": "Sun 11:35",
-                    "actual_departure": "Sun 11:36",
-                    "offset_seconds": 331,
+                    "actual_arrival": "Sun 11:13",
+                    "actual_departure": "Sun 11:14",
+                    "offset_seconds": -966,
                     "status": "RNNG",
                     "stop_status": "FULL",
                     "vehicle": ""
@@ -1007,7 +1459,141 @@ and canceled).
                 "trip_begins": false,
                 "trip_id": "57223336",
                 "trip_terminates": false,
-                "wait_time_sec": 1981
+                "wait_time_sec": 684
+            },
+            {
+                "arr_time": "Sun 11:38",
+                "dep_time": "Sun 11:38",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:39",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": 61,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1716"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70077",
+                "trip_begins": false,
+                "trip_id": "57599630",
+                "trip_terminates": false,
+                "wait_time_sec": 2191
+            },
+            {
+                "arr_time": "Sun 12:13",
+                "dep_time": "Sun 12:13",
+                "drop_off_type": 0,
+                "headsign": "Ashmont",
+                "pickup_type": 1,
+                "realtime_data": {
+                    "actual_arrival": "Sun 12:05",
+                    "actual_departure": "",
+                    "offset_seconds": -479,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": "1716"
+                },
+                "route_id": "Red",
+                "short_name": "",
+                "stop_id": "70093",
+                "trip_begins": false,
+                "trip_id": "57599630",
+                "trip_terminates": true,
+                "wait_time_sec": 3751
+            }
+        ],
+        [
+            {
+                "arr_time": "Sun 11:38",
+                "dep_time": "Sun 11:38",
+                "drop_off_type": 1,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "",
+                    "actual_departure": "Sun 11:39",
+                    "offset_seconds": 60,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70059",
+                "trip_begins": true,
+                "trip_id": "57626913",
+                "trip_terminates": false,
+                "wait_time_sec": 2190
+            },
+            {
+                "arr_time": "Sun 11:59",
+                "dep_time": "Sun 11:59",
+                "drop_off_type": 0,
+                "headsign": "Bowdoin",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:39",
+                    "actual_departure": "Sun 11:40",
+                    "offset_seconds": -1164,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Blue",
+                "short_name": "",
+                "stop_id": "70041",
+                "trip_begins": false,
+                "trip_id": "57626913",
+                "trip_terminates": false,
+                "wait_time_sec": 2226
+            },
+            {
+                "arr_time": "Sun 11:40",
+                "dep_time": "Sun 11:40",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:45",
+                    "actual_departure": "Sun 11:46",
+                    "offset_seconds": 316,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70022",
+                "trip_begins": false,
+                "trip_id": "57223179",
+                "trip_terminates": false,
+                "wait_time_sec": 2566
+            },
+            {
+                "arr_time": "Sun 11:41",
+                "dep_time": "Sun 11:41",
+                "drop_off_type": 0,
+                "headsign": "Forest Hills",
+                "pickup_type": 0,
+                "realtime_data": {
+                    "actual_arrival": "Sun 11:24",
+                    "actual_departure": "Sun 11:25",
+                    "offset_seconds": -966,
+                    "status": "RNNG",
+                    "stop_status": "FULL",
+                    "vehicle": ""
+                },
+                "route_id": "Orange",
+                "short_name": "",
+                "stop_id": "70020",
+                "trip_begins": false,
+                "trip_id": "57223179",
+                "trip_terminates": false,
+                "wait_time_sec": 1344
             },
             {
                 "arr_time": "Sun 11:38",

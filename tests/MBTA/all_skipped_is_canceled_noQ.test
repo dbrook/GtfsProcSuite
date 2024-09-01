@@ -1,0 +1,180 @@
+@Description
+Just like the "all skipped is canceled" test but without the Q option.
+This is to test that the mismatched stop sequences are correctly
+revealing NODATA when the stop ID nor stop sequence are matched
+@End
+
+@StartParams
+-dstatic_skip_cancel
+-rmbta_tripUpdates_skip_cancel.pb
+-u600
+-f2023,7,9,11,02,30
+-zALL_SKIPPED_IS_CANCELED
+@End
+
+@Case:Assert Running and Expected Records Loaded
+@Query:SDS
+@Expected
+{
+    "agencies": [
+        {
+            "id": "3",
+            "lang": "EN",
+            "name": "Cape Cod Regional Transit Authority",
+            "phone": "800-352-7155",
+            "tz": "America/New_York",
+            "url": "http://www.capecodrta.org/"
+        },
+        {
+            "id": "1",
+            "lang": "EN",
+            "name": "MBTA",
+            "phone": "617-222-3200",
+            "tz": "America/New_York",
+            "url": "http://www.mbta.com"
+        }
+    ],
+    "application": "GtfsProc 2.3.1",
+*   "appuptime_sec": 375,
+*   "dataloadtime_ms": 5728,
+    "error": 0,
+    "feed_lang": "EN",
+    "feed_publisher": "MBTA",
+    "feed_url": "http://www.mbta.com",
+    "feed_valid_end": "26-Aug-2023",
+    "feed_valid_start": "01-Jul-2023",
+    "feed_version": "Summer 2023, 2023-07-08T15:26:29+00:00, version D",
+    "hide_terminating": false,
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "SDS",
+    "nb_nex_trips": 4,
+    "overrides": "ALL_SKIPPED_IS_CANCELED",
+*   "proc_time_ms": 0,
+*   "processed_reqs": 1,
+    "records": 1526500,
+    "rt_date_match": 0,
+    "rt_trip_seq_match": true,
+    "threadpool_count": 1
+}
+@End
+
+@Case:Realtime Data Integrated and Active
+@Query:RDS
+@Expected
+{
+*   "active_age_sec": 4,
+*   "active_download_ms": 0,
+    "active_feed_time": "09-Jul-2023 11:02:26 EDT",
+*   "active_integration_ms": 30,
+    "active_rt_version": "2.0",
+*   "active_side": "B",
+    "error": 0,
+*   "last_realtime_query": "03-Aug-2023 22:55:43 EDT",
+    "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "RDS",
+*   "proc_time_ms": 0,
+*   "seconds_to_next_fetch": 34
+}
+@End
+
+@Case:Bad RT trip time update stop sequences causing incorrect arrival
+@Query:NCF 20 70020
+@Expected
+{
+    "error": 0,
+*   "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": 2,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stop_desc": "Downtown Crossing - Orange Line - Forest Hills",
+    "stop_id": "70020",
+    "stop_name": "Downtown Crossing",
+    "trips": [
+        {
+            "arr_time": "Sun 11:20",
+            "dep_time": "Sun 11:20",
+            "drop_off_type": 0,
+            "headsign": "Forest Hills",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Sun 11:03",
+                "actual_departure": "Sun 11:04",
+                "offset_seconds": -967,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "1466"
+            },
+            "route_id": "Orange",
+            "short_name": "",
+            "stop_id": "70020",
+            "trip_begins": false,
+            "trip_id": "57223301",
+            "trip_terminates": false,
+            "wait_time_sec": 83
+        },
+        {
+            "arr_time": "Sun 11:30",
+            "dep_time": "Sun 11:30",
+            "drop_off_type": 0,
+            "headsign": "Forest Hills",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Sun 11:13",
+                "actual_departure": "Sun 11:14",
+                "offset_seconds": -966,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": ""
+            },
+            "route_id": "Orange",
+            "short_name": "",
+            "stop_id": "70020",
+            "trip_begins": false,
+            "trip_id": "57223336",
+            "trip_terminates": false,
+            "wait_time_sec": 684
+        }
+    ]
+}
+@End
+
+@Case:Bad RT trip time update stop sequences NO DATA YET condition
+@Query:NCF 20 70018
+@Expected
+{
+    "error": 0,
+*   "message_time": "09-Jul-2023 11:02:30 EDT",
+    "message_type": "NCF",
+*   "proc_time_ms": 2,
+*   "realtime_age_sec": 4,
+    "static_data_modif": "26-Aug-2023 07:43:52 EDT",
+    "stop_desc": "Chinatown - Orange Line - Forest Hills",
+    "stop_id": "70018",
+    "stop_name": "Chinatown",
+    "trips": [
+        {
+            "arr_time": "Sun 11:22",
+            "dep_time": "Sun 11:22",
+            "drop_off_type": 0,
+            "headsign": "Forest Hills",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+                "offset_seconds": 0,
+                "status": "RNNG",
+                "stop_status": "SCHD",
+                "vehicle": "1466"
+            },
+            "route_id": "Orange",
+            "short_name": "",
+            "stop_id": "70018",
+            "trip_begins": false,
+            "trip_id": "57223301",
+            "trip_terminates": false,
+            "wait_time_sec": 1170
+        }
+    ]
+}
+@End

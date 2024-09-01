@@ -20,8 +20,10 @@ GtfsProcSuite consists of 3 applications:
 - Command-line client program that was written for quick rendering (and be warned, the code for it is quite messy (client_cli/)
 - For compatible agencies, the GtfsProc_Agent will control starting and stopping backends and retrieving new data automatically
 
-There is no "official" GtfsProc front-end application, but a PHP-based sample is being tested on Massachusetts Bay
-Transportation Authority data at http://www.danbrook.org/gtfsproc
+The Suite now includes a front-end browser application, see the `python_tui` directory for details.
+
+A PHP-based sample front-end application is being tested on Massachusetts Bay Transportation Authority data at
+http://www.danbrook.org/gtfsproc
 
 Certain agencies also provide modification times on their zipped feeds, so using the GtfsProc_Agent.pl script can
 automatically check for updates in the background and recycle the server when new data is found. The following

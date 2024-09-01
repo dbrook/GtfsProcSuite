@@ -47,3 +47,8 @@ Build Issues?
 1) At least on Arch / Manjaro, your Protocol Buffer setup requires explicit linking of
    libasl, so if you're having issues on that distribution, go to gtfs_realtime.pri and
    do the necessary uncommenting.
+
+Want a front-end?
+I finally got around to making a console data explorer, check out the python_tui
+directory for setting this up. Navigation is with the command line with interaction
+based on message responses for diving deeper into the data and relationships.

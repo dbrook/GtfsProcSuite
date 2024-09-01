@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -344,12 +344,12 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
         // Discovered with CTTransit data, but Google Maps rendering seems to figure it out whereas GtfsProc didn't.
         // (for quality assurance, these kinds of trips will still be considered mimatches as they violate spec)
         QString stopIdRT = QString::fromStdString(tri.stop_time_update(rtSTUpd).stop_id());
-        if (tri.stop_time_update(rtSTUpd).has_stop_sequence() &&
-            stopSeq == tri.stop_time_update(rtSTUpd).stop_sequence() && stopIdRT == stop_id) {
-            // Match Stop ID and Stop Sequence when both are provided
-            break;
-        } else if ((!tri.stop_time_update(rtSTUpd).has_stop_sequence() || _loosenStopSeqEnf) && stop_id == stopIdRT) {
+        if ((!tri.stop_time_update(rtSTUpd).has_stop_sequence() || _loosenStopSeqEnf) && stop_id == stopIdRT) {
             // Trip Update has no stop sequence information, just match the stop ID
+            break;
+        } else if (tri.stop_time_update(rtSTUpd).has_stop_sequence() &&
+                   stopSeq == tri.stop_time_update(rtSTUpd).stop_sequence()) {
+            // Match Stop ID and Stop Sequence when both are provided
             break;
         }
     }
@@ -411,7 +411,11 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
         } else if (stu.arrival().has_time()) {
             realArrTimeUTC = QDateTime::fromSecsSinceEpoch(stu.arrival().time(), QTimeZone::utc());
             realArrBased = 'P';
+        } else {
+            realArrBased = 'X';
         }
+    } else {
+        realArrBased = 'X';
     }
 
     if (stu.has_departure()) {
@@ -421,7 +425,11 @@ void RealTimeTripUpdate::fillPredictedTime(const transit_realtime::TripUpdate_St
         } else if (stu.departure().has_time()) {
             realDepTimeUTC = QDateTime::fromSecsSinceEpoch(stu.departure().time(), QTimeZone::utc());
             realDepBased = 'P';
+        } else {
+            realDepBased = 'X';
         }
+    } else {
+        realDepBased = 'X';
     }
 }
 
@@ -472,15 +480,14 @@ void RealTimeTripUpdate::fillStopTimesForTrip(rtUpdateMatch               realTi
                 // Stop-Sequences are preferred per the GTFS-Realtime specification, even if a stop_id is also present
                 // (should also enforce that the stop id matches the trip update contents)
                 QString stopIdRT = QString::fromStdString(tri.stop_time_update(stUpdIdx).stop_id());
-                if (tri.stop_time_update(stUpdIdx).has_stop_sequence() &&
-                    static_cast<quint32>(stopRec.stop_sequence) == tri.stop_time_update(stUpdIdx).stop_sequence() &&
-                    stopRec.stop_id == stopIdRT) {
-                    stu.stopSequence = stopRec.stop_sequence;
-                    break;
-                } else if ((!tri.stop_time_update(stUpdIdx).has_stop_sequence() || _loosenStopSeqEnf) &&
-                           (stopRec.stop_id == stopIdRT)) {
+                if ((!tri.stop_time_update(stUpdIdx).has_stop_sequence() || _loosenStopSeqEnf) &&
+                    (stopRec.stop_id == stopIdRT)) {
                     // Fill stop sequence from static feed, this could help clients debug in case wrong sequence/id
                     // matched when using the _loosenStopSeqEnf option has been requested.
+                    stu.stopSequence = stopRec.stop_sequence;
+                    break;
+                } else if (tri.stop_time_update(stUpdIdx).has_stop_sequence() &&
+                    static_cast<quint32>(stopRec.stop_sequence) == tri.stop_time_update(stUpdIdx).stop_sequence()) {
                     stu.stopSequence = stopRec.stop_sequence;
                     break;
                 }
@@ -851,18 +858,21 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
         // If any sequences or stops in the real-time buffer are not in the static, flag this trip as mismatching
         const transit_realtime::TripUpdate &tri = entity.trip_update();
         for (qint32 stopTimeIdx = 0; stopTimeIdx < tri.stop_time_update_size(); ++stopTimeIdx) {
+            bool foundMismatch = false;
             if (tri.stop_time_update(stopTimeIdx).has_stop_sequence()) {
                 if (!staticSequnces.contains(tri.stop_time_update(stopTimeIdx).stop_sequence())) {
-                    // Save the real-time trip-update's index, then move to the next
-                    _stopsMismatchTrips[routeID].push_back(tripID);
-                    break;
+                    foundMismatch = true;
                 }
-            } else if (tri.stop_time_update(stopTimeIdx).has_stop_id()) {
+            }
+            if (tri.stop_time_update(stopTimeIdx).has_stop_id()) {
                 if (!staticStopIDs.contains(QString::fromStdString(tri.stop_time_update(stopTimeIdx).stop_id()))) {
-                    // Save the real-time trip-update's index, then move to the next
-                    _stopsMismatchTrips[routeID].push_back(tripID);
-                    break;
+                    foundMismatch = true;
                 }
+            }
+            if (foundMismatch) {
+                // Save the real-time trip-update's index, then move to the next
+                _stopsMismatchTrips[routeID].push_back(tripID);
+                break;
             }
         }
     }

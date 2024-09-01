@@ -20,6 +20,8 @@
 
 #include "realtimetripinformation.h"
 
+#include "datagateway.h"
+
 #include <QJsonArray>
 
 namespace GTFS {
@@ -29,6 +31,8 @@ RealtimeTripInformation::RealtimeTripInformation()
 {
     _rTrips = RealTimeGateway::inst().getActiveFeed();
     RealTimeGateway::inst().realTimeTransactionHandled();
+    _status = GTFS::DataGateway::inst().getStatus();
+
 }
 
 void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
@@ -36,6 +40,18 @@ void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
     if (_rTrips == nullptr) {
         fillProtocolFields("RTI", 0, resp);
         return;
+    }
+
+    // Store dataset modification time
+    resp["static_data_modif"] = _status->getStaticDatasetModifiedTime().toString("dd-MMM-yyyy hh:mm:ss t");
+
+    // If real-time data is available (regardless of if it's relevant for this request or not), store the age of the
+    // data in the active buffer used to produce real-time predictions in this transaction.
+    QDateTime activeFeedTime = _rTrips->getFeedTime();
+    if (activeFeedTime.isNull()) {
+        resp["realtime_age_sec"] = "-";
+    } else {
+        resp["realtime_age_sec"] = activeFeedTime.secsTo(getAgencyTime());
     }
 
     QHash<QString, QVector<QString>> addedRouteTrips, activeRouteTrips, cancelledRouteTrips, mismatchTripIdx;
