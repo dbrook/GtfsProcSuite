@@ -732,6 +732,8 @@ class GtfsProcDecoder:
             return json.dumps(data)
 
     def route_name_from_id_cache(self, route_id) -> str:
+        if route_id not in self.rte_cache:
+            return '#!ROUTE ID?#'
         route_name_s = self.rte_cache[route_id]['short_name']
         route_name_l = self.rte_cache[route_id]['long_name']
         if route_name_s != '':
