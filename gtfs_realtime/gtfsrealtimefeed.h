@@ -221,7 +221,7 @@ public:
                                     QHash<QString, QVector<QString>> &cancelledRouteTrips,
                                     QHash<QString, QVector<QString>> &mismatchRTTrips,
                                     QHash<QString, QHash<QString, QVector<qint32>>> &duplicateRTTrips,
-                                    QVector<QString> &tripsWithoutRoutes) const;
+                                    QList<QString> &tripsWithoutRoutes) const;
 
     // Get a list of Trip IDs from the realtime feed that pertain to the route requested
     void getActiveTripsForRouteID(const QString &routeID, QVector<QString> &) const;

@@ -370,7 +370,7 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
     fillStopTimesForTrip(TRIPID_RECONCILE, -1, tripID, agencyTZ, serviceDate, tripTimes, rtStopTimes);
 
     // Pick out the stop time relevant to the requested stop and return it
-    for (const rtStopTimeUpdate &rtst : std::as_const(rtStopTimes)) {
+    for (const rtStopTimeUpdate &rtst : qAsConst(rtStopTimes)) {
         if (((rtst.stopSequence != -1) && (rtst.stopSequence == stopSeq) && (rtst.stopID == stop_id)) ||
              (rtst.stopID == stop_id)) {
             realArrTimeUTC = rtst.arrTime;
@@ -612,7 +612,7 @@ void RealTimeTripUpdate::getAllTripsWithPredictions(QHash<QString, QVector<QStri
                                                     QHash<QString, QVector<QString>> &cancelledRouteTrips,
                                                     QHash<QString, QVector<QString>> &mismatchRTTrips,
                                                     QHash<QString, QHash<QString, QVector<qint32>>> &duplicateRTTrips,
-                                                    QVector<QString> &tripsWithoutRoutes) const
+                                                    QList<QString> &tripsWithoutRoutes) const
 {
     for (const QString &tripID : _addedTrips.keys()) {
         const transit_realtime::FeedEntity &entity = _tripUpdate.entity(_addedTrips[tripID]);

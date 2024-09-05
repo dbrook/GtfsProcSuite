@@ -86,7 +86,7 @@ void RealtimeProductStatus::fillResponseData(QJsonObject &resp)
 
         QHash<QString, QVector<QString>> addedRouteTrips, activeRouteTrips, canceledRouteTrips, mismatchedTrips;
         QHash<QString, QHash<QString, QVector<qint32>>> duplicateTripIdx;
-        QVector<QString> tripsWithoutRoute;
+        QList<QString> tripsWithoutRoute;
         rTrips->getAllTripsWithPredictions(addedRouteTrips,
                                            activeRouteTrips,
                                            canceledRouteTrips,
