@@ -1,5 +1,13 @@
-THIS RELEASE: Version 2.3.1
+THIS RELEASE: Version 2.3.2
 ---------------------------
+- Discovered a different case of orphaned trips: real-time trip updates with a valid route
+  but the original trip doesn't exist and the trip is not flagged as "ADDED" to the route, these
+  will now appear in the orphaned trips and not shown for NEX/NCF.
+
+
+PREVIOUS RELEASES:
+Version 2.3.1
+-------------
 * Added a Python+Urwid Text-User-Interface to explore data in a console easier!
   - Head into the python_tui directory and follow setup instructions there.
 - Uninitialized fields have been initialized to aid the front-end processing.
@@ -12,7 +20,6 @@ THIS RELEASE: Version 2.3.1
   but technically service different stops (i.e. a different platform than in the schedule
   data). But the requirements for this are being analyzed further.
 
-PREVIOUS RELEASES:
 Version 2.3.0
 -------------
 - Extended EES/EER to ETS/ETR, respectively, allowing the requests to handle a current trip and
