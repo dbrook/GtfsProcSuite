@@ -13,7 +13,7 @@ See the GtfsProc_Documentation.html file for details on starting the server and 
 the schema for all the responses to different request types.
 
 The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license.
-The GtfsProc code is written by Daniel Brook, (c) 2018-2021, GPLv3.
+The GtfsProc code is written by Daniel Brook, (c) 2018-2024, GPLv3.
 
 GtfsProcSuite consists of 3 applications:
 - Server that loads the schedule data (and real-time data if available) and processes client requests (gtfsproc/)

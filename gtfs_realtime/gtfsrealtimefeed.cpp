@@ -142,13 +142,7 @@ qint64 RealTimeTripUpdate::getIntegrationTimeMSec() const
 
 bool RealTimeTripUpdate::tripExists(const QString &trip_id) const
 {
-    if (_activeTrips.contains(trip_id)) {
-        return true;
-    }
-    if (_addedTrips.contains(trip_id)) {
-        return true;
-    }
-    return false;
+    return _activeTrips.contains(trip_id) || _addedTrips.contains(trip_id) || _noRouteTrips.contains(trip_id);
 }
 
 bool RealTimeTripUpdate::tripIsCancelled(const QString &trip_id,
@@ -339,7 +333,7 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
     for (rtSTUpd = 0; rtSTUpd < tri.stop_time_update_size(); ++rtSTUpd) {
         // Despite the specification indicating otherwise, it is possible that stop sequences do not match the static
         // schedule. So this is put in place to ensure that the sequence is in line. Should there be a mismatch, then
-        // a different check (based ONLY on the stop ID) must be attempted. It is not guaranteed to be "as good",
+        // a different check (based ONLY on the stop ID) may be attempted. It is not guaranteed to be "as good",
         // especially if a trip visits the same stop more than once.
         // Discovered with CTTransit data, but Google Maps rendering seems to figure it out whereas GtfsProc didn't.
         // (for quality assurance, these kinds of trips will still be considered mimatches as they violate spec)
@@ -376,7 +370,7 @@ void RealTimeTripUpdate::tripStopActualTime(const QString              &tripID,
     fillStopTimesForTrip(TRIPID_RECONCILE, -1, tripID, agencyTZ, serviceDate, tripTimes, rtStopTimes);
 
     // Pick out the stop time relevant to the requested stop and return it
-    for (const rtStopTimeUpdate &rtst : qAsConst(rtStopTimes)) {
+    for (const rtStopTimeUpdate &rtst : std::as_const(rtStopTimes)) {
         if (((rtst.stopSequence != -1) && (rtst.stopSequence == stopSeq) && (rtst.stopID == stop_id)) ||
              (rtst.stopID == stop_id)) {
             realArrTimeUTC = rtst.arrTime;
@@ -668,7 +662,7 @@ void RealTimeTripUpdate::getAllTripsWithPredictions(QHash<QString, QVector<QStri
 
     mismatchRTTrips    = _stopsMismatchTrips;
 
-    tripsWithoutRoutes = _noRouteTrips;
+    tripsWithoutRoutes = _noRouteTrips.keys();
 }
 
 void RealTimeTripUpdate::getActiveTripsForRouteID(const QString &routeID, QVector<QString> &tripsForRoute) const
@@ -758,6 +752,7 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
                 _duplicateTrips[tripID].push_back(_addedTrips[tripID]);
             }
             _duplicateTrips[tripID].push_back(recIdx);
+            continue;
         }
 
         if (_cancelledTrips.contains(tripID)) {
@@ -766,6 +761,7 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
                 _duplicateTrips[tripID].push_back(_cancelledTrips[tripID]);
             }
             _duplicateTrips[tripID].push_back(recIdx);
+            continue;
         }
 
         if (_activeTrips.contains(tripID)) {
@@ -774,17 +770,25 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
                 _duplicateTrips[tripID].push_back(_activeTrips[tripID]);
             }
             _duplicateTrips[tripID].push_back(recIdx);
+            continue;
         }
 
         // Store a trip which does not contain the route information, or has a bad route ID
         if (!entity.trip_update().trip().has_route_id() && !_tripDB->contains(tripID)) {
-            _noRouteTrips.push_back(tripID);
+            _noRouteTrips[tripID] = recIdx;
+            continue;
         } else if (entity.trip_update().trip().has_route_id() && _tripDB->contains(tripID)) {
             const QString routeFromTrip   = QString::fromStdString(entity.trip_update().trip().route_id());
             const QString routeFromUpdate = (*_tripDB)[tripID].route_id;
             if (!routeFromUpdate.isEmpty() && routeFromTrip != routeFromUpdate) {
-                _noRouteTrips.push_back(tripID);
+                _noRouteTrips[tripID] = recIdx;
+                continue;
             }
+        } else if (entity.trip_update().trip().has_route_id() && !_tripDB->contains(tripID) &&
+                   !entity.trip_update().trip().has_schedule_relationship()) {
+            // Route is provided, but the referenced trip doesn't exist and is not supplemental/added
+            _noRouteTrips[tripID] = recIdx;
+            continue;
         }
 
         // Put the trip update into its relevant category
@@ -901,6 +905,10 @@ bool RealTimeTripUpdate::findEntityIndex(const QString &tripID, qint32 &entityId
     } else if (_activeTrips.contains(tripID)) {
         entityIdx      = _activeTrips[tripID];
         isSupplemental = false;
+        return true;
+    } else if (_noRouteTrips.contains(tripID)) {
+        entityIdx      = _noRouteTrips[tripID];
+        isSupplemental = true;
         return true;
     }
     return false;

@@ -288,7 +288,7 @@ private:
      * When processing real-time trip updates, a best effort is made to align the trip ID with a route (hence why the
      * trips database must be known to this class) in case the real-time trip updates do not contain the related route.
      */
-    QVector<QString> _noRouteTrips;
+    QHash<QString, qint32> _noRouteTrips;
 
     /*
      * Trips that are from the scheduled dataset might have additional stops encoded in the real-time feed. These stops
