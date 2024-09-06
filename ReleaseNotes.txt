@@ -1,11 +1,14 @@
-THIS RELEASE: Version 2.3.2
+THIS RELEASE: Version 2.3.3
 ---------------------------
+- Always show the static data feed age when using RTI, cleaned up the Python GUI.
+
+PREVIOUS RELEASES:
+-------------
+Version 2.3.2
 - Discovered a different case of orphaned trips: real-time trip updates with a valid route
   but the original trip doesn't exist and the trip is not flagged as "ADDED" to the route, these
   will now appear in the orphaned trips and not shown for NEX/NCF.
 
-
-PREVIOUS RELEASES:
 Version 2.3.1
 -------------
 * Added a Python+Urwid Text-User-Interface to explore data in a console easier!

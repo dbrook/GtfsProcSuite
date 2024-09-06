@@ -101,7 +101,7 @@ class GtfsProcDecoder:
                     f"Latest RT Txn  . . . {data['last_realtime_query']}",
                 ]
             else:
-                return ["Real-Time Data Collection is disabled or idle."]
+                return ["Real-time data collection is disabled or idle."]
         elif message_type == 'TRI':
             ret_list = [
                 f"Trip ID  . . . . . . {data['trip_id']}",
@@ -181,6 +181,9 @@ class GtfsProcDecoder:
         elif message_type == 'TRR':
             return []
         elif message_type == 'RTI':
+            if 'realtime_age_sec' not in data:
+                return ["Real-time data collection is disabled or idle."]
+
             if data['static_data_modif'] != self.rte_date:
                 # Update the route-cache if it's outdated
                 self.update_route_cache(data['static_data_modif'])
@@ -661,6 +664,9 @@ class GtfsProcDecoder:
                 ))
             return route_list
         elif message_type == 'RTI':
+            if 'realtime_age_sec' not in data:
+                return []
+
             mismatch_list, mismatch_cmds = self.get_tri_nest(data, 'mismatch_trips')
             canceled_list, canceled_cmds = self.get_tri_nest(data, 'canceled_trips')
             added_list, added_cmds = self.get_tri_nest(data, 'added_trips')

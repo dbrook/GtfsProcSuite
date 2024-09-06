@@ -37,13 +37,13 @@ RealtimeTripInformation::RealtimeTripInformation()
 
 void RealtimeTripInformation::fillResponseData(QJsonObject &resp)
 {
+    // Store dataset modification time
+    resp["static_data_modif"] = _status->getStaticDatasetModifiedTime().toString("dd-MMM-yyyy hh:mm:ss t");
+
     if (_rTrips == nullptr) {
         fillProtocolFields("RTI", 0, resp);
         return;
     }
-
-    // Store dataset modification time
-    resp["static_data_modif"] = _status->getStaticDatasetModifiedTime().toString("dd-MMM-yyyy hh:mm:ss t");
 
     // If real-time data is available (regardless of if it's relevant for this request or not), store the age of the
     // data in the active buffer used to produce real-time predictions in this transaction.
