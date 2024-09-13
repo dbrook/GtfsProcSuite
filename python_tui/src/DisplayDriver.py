@@ -29,7 +29,7 @@ class DisplayDriver:
             urwid.Text(''),
             urwid.Text('Documentation is available on GitHub: http://www.github.com/dbrook/GtfsProcSuite'),
             urwid.Text(''),
-            urwid.Text('This Data Browser version is compatible with GtfsProc backend 2.3.3'),
+            urwid.Text('This Data Browser version is compatible with GtfsProc backend 2.4.0'),
             urwid.Text(''),
             urwid.Text(f'Host: {gtfs_handler.host_name}:{gtfs_handler.host_port}'),
         ])

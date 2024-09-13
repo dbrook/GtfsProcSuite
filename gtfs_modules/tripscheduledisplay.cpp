@@ -196,15 +196,27 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         for (const GTFS::rtStopTimeUpdate &rtsu : qAsConst(stopTimes)) {
             QJsonObject singleStopJSON;
             if (getStatus()->format12h()) {
-                singleStopJSON["arr_time"]  = (rtsu.arrTime.isNull()) ?
+                singleStopJSON["arr_time"] = (rtsu.arrTime.isNull()) ?
                                             "-" : rtsu.arrTime.toTimeZone(getAgencyTime().timeZone()).toString("h:mma");
-                singleStopJSON["dep_time"]  = (rtsu.depTime.isNull()) ?
+                if (singleStopJSON["arr_time"] == "-" && !rtsu.arrOffset.isEmpty()) {
+                    singleStopJSON["arr_time"] = rtsu.arrOffset;
+                }
+                singleStopJSON["dep_time"] = (rtsu.depTime.isNull()) ?
                                             "-" : rtsu.depTime.toTimeZone(getAgencyTime().timeZone()).toString("h:mma");
+                if (singleStopJSON["dep_time"] == "-" && !rtsu.depOffset.isEmpty()) {
+                    singleStopJSON["dep_time"] = rtsu.depOffset;
+                }
             } else {
-                singleStopJSON["arr_time"]  = (rtsu.arrTime.isNull()) ?
+                singleStopJSON["arr_time"] = (rtsu.arrTime.isNull()) ?
                                             "-" : rtsu.arrTime.toTimeZone(getAgencyTime().timeZone()).toString("hh:mm");
-                singleStopJSON["dep_time"]  = (rtsu.depTime.isNull()) ?
+                if (singleStopJSON["arr_time"] == "-" && !rtsu.arrOffset.isEmpty()) {
+                    singleStopJSON["arr_time"] = rtsu.arrOffset;
+                }
+                singleStopJSON["dep_time"] = (rtsu.depTime.isNull()) ?
                                             "-" : rtsu.depTime.toTimeZone(getAgencyTime().timeZone()).toString("hh:mm");
+                if (singleStopJSON["dep_time"] == "-" && !rtsu.depOffset.isEmpty()) {
+                    singleStopJSON["dep_time"] = rtsu.depOffset;
+                }
             }
             singleStopJSON["stop_id"]   = rtsu.stopID;
             singleStopJSON["stop_name"] = (*_stops)[rtsu.stopID].stop_name;

@@ -2,7 +2,7 @@
 <head>
 </head>
     <meta charset="UTF-8">
-    <title>GtfsProc Server and Transaction Documentation (Version 2.3.3)</title>
+    <title>GtfsProc Server and Transaction Documentation (Version 2.4.0)</title>
     <style>
         .fixed {
             font-family: monospace;
@@ -36,7 +36,7 @@
     GtfsProc was written almost entirely in the Qt Application Framework. The TCP server code comes from Bryan Cairns of VoidRealms. See http://www.voidrealms.com/ for the original source and license. The GtfsProc code is written by Daniel Brook (danb358 {AT} gmail {DOT} com), (c) 2018-2024, GPL v 3.
 </p>
 <p>
-    This is the documentation for <b>GtfsProc Version 2.3.3 (06-Sep-2024)</b>
+    This is the documentation for <b>GtfsProc Version 2.4.0 (13-Sep-2024)</b>
 </p>
 
 <h1>Server Options</h1>
@@ -79,7 +79,7 @@
     </li>
 </ol>
 <div class="fixed">
-GtfsProc version 2.3.3 - Running on Process ID: 22112<br>
+GtfsProc version 2.4.0 - Running on Process ID: 22112<br>
 <br>
 Starting Feed Information Gathering ... <br>
 Starting Agency Gathering ...<br>
@@ -290,7 +290,7 @@ Reinitialize the display with 'HOM', quit using 'BYE' <br>
             string
         </td>
         <td>
-            Application name and version. For example: “GtfsProc 1.6”
+            Application name and version. For example: “GtfsProc 2.4.0”
         </td>
     </tr>
     <tr>
@@ -1410,7 +1410,7 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             string
         </td>
         <td>
-            Time of arrival at the stop (scheduled time in TRI, predicted time in RTS/RTF/RTT)
+            Time of arrival at the stop (scheduled time in TRI, predicted time in RTS/RTF/RTT). If an RTF/RTT message with offset-based adjustments, the offset in seconds is shown (like 0s, E50s, L480s).
         </td>
     </tr>
     <tr class="abResponseField">
@@ -1421,7 +1421,7 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             string
         </td>
         <td>
-            Indicator of how the time was derived ("N" = No prediction for this stop along a scheduled trip, "P" = Full POSIX timestamp was used, "O" = Offset-in-seconds, "E" = extrapolated from a previous offset).
+            Indicator of how the time was derived ("N" = No prediction for this stop along a scheduled trip, "P" = Full POSIX timestamp was used, "O" = Offset-in-seconds, "E" = extrapolated from a previous offset, "X" = no data).
         </td>
     </tr>
     <tr>
@@ -1432,7 +1432,7 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             string
         </td>
         <td>
-            Time of departure from the stop (scheduled time in TRI, predicted time in RTF/RTS/RTT)
+            Time of departure from the stop (scheduled time in TRI, predicted time in RTF/RTS/RTT). If an RTF/RTT message with offset-based adjustments, the offset in seconds is shown (like 0s, E50s, L480s).
         </td>
     </tr>
     <tr class="abResponseField">
@@ -1443,7 +1443,7 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             string
         </td>
         <td>
-            Indicator of how the time was derived ("N" = No prediction for this stop along a scheduled trip, "P" = Full POSIX timestamp was used, "O" = Offset-in-seconds, "E" = extrapolated from a previous offset).
+            Indicator of how the time was derived ("N" = No prediction for this stop along a scheduled trip, "P" = Full POSIX timestamp was used, "O" = Offset-in-seconds, "E" = extrapolated from a previous offset, "X" = no data).
         </td>
     </tr>
     <tr>

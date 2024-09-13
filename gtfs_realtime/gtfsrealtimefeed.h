@@ -44,8 +44,10 @@ typedef struct {
     qint64    stopSequence;
     QString   stopID;
     QDateTime arrTime;
+    QString   arrOffset;
     QChar     arrBased;
     QDateTime depTime;
+    QString   depOffset;
     QChar     depBased;
     bool      stopSkipped;
 } rtStopTimeUpdate;
@@ -185,8 +187,11 @@ public:
     void fillPredictedTime(const transit_realtime::TripUpdate_StopTimeUpdate &stu,
                            const QDateTime                                   &schedArrTimeUTC,
                            const QDateTime                                   &schedDepTimeUTC,
+                           bool                                               tripRealTimeTxn,
                            QDateTime                                         &realArrTimeUTC,
                            QDateTime                                         &realDepTimeUTC,
+                           QString                                           &offsetArrTime,
+                           QString                                           &offsetDepTime,
                            QChar                                             &realArrBased,
                            QChar                                             &realDepBased) const;
 
@@ -252,6 +257,11 @@ private:
     // Once data is ingested (either from a byte array from a URL or a local file's fstream), the process to ingest
     // trip updates is the same and encapsulated in this function to prevent previous code duplication
     void processUpdateDetails(const QDateTime &startProcTimeUTC);
+
+    // Determines the index within a trip to then fill the stop time update(s) for it
+    qint32 getStopTimeUpdateIdx(const transit_realtime::TripUpdate &tri,
+                                const StopTimeRec &stopRec,
+                                rtStopTimeUpdate &stu) const;
 
     // Dump the protocol buffer real time update into QDebug
     void showProtobufData() const;

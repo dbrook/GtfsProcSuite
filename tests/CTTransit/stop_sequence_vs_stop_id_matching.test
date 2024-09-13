@@ -62,7 +62,7 @@ to a stop in NEX/NCF.
             "url": "http://www.cttransit.com"
         }
     ],
-    "application": "GtfsProc 2.3.3",
+    "application": "GtfsProc 2.4.0",
 *   "appuptime_sec": 6,
 *   "dataloadtime_ms": 2830,
     "error": 0,

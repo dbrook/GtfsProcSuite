@@ -27,7 +27,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "url": "http://www.ripta.com/"
         }
     ],
-    "application": "GtfsProc 2.3.3",
+    "application": "GtfsProc 2.4.0",
 *   "appuptime_sec": 57,
 *   "dataloadtime_ms": 807,
     "error": 0,
@@ -211,5 +211,1027 @@ offset prediction in a trip can be extrapolated from the last known offset.
             ]
         }
     ]
+}
+@End
+
+@Case:Show a trip prediction output reconciled with its scheduled data
+@Query RTS 2948171
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:11:30 EDT",
+    "message_type": "TRI",
+*   "proc_time_ms": 0,
+    "real_time": true,
+    "real_time_data_time": "22-May-2020 00:11:15 EDT",
+    "route_id": "11",
+    "route_long_name": "Broad/North Main",
+    "route_short_name": "R",
+    "short_name": "",
+    "start_date": "20200521",
+    "start_time": "23:55:00",
+    "stops": [
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 1,
+            "skipped": false,
+            "stop_id": "22765",
+            "stop_name": "PAWTUCKET TRANSIT CENTER"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 2,
+            "skipped": false,
+            "stop_id": "23070",
+            "stop_name": "GOFF AFTER BROAD"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 3,
+            "skipped": false,
+            "stop_id": "22500",
+            "stop_name": "COLLYER PARK (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 4,
+            "skipped": false,
+            "stop_id": "55325",
+            "stop_name": "PEARL STREET (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 5,
+            "skipped": false,
+            "stop_id": "21870",
+            "stop_name": "WHITMAN STREET (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 6,
+            "skipped": false,
+            "stop_id": "21455",
+            "stop_name": "SAYLES AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 7,
+            "skipped": false,
+            "stop_id": "21250",
+            "stop_name": "HOPE ARTISTE VILLAGE (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 8,
+            "skipped": false,
+            "stop_id": "21095",
+            "stop_name": "GRENVILLE STREET (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 9,
+            "skipped": false,
+            "stop_id": "20535",
+            "stop_name": "NINTH STREET"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 10,
+            "skipped": false,
+            "stop_id": "19995",
+            "stop_name": "N MAIN OPP 2ND"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 11,
+            "skipped": false,
+            "stop_id": "19595",
+            "stop_name": "ROCHAMBEAU AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 12,
+            "skipped": false,
+            "stop_id": "19095",
+            "stop_name": "NORTH BURIAL GROUND (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 13,
+            "skipped": false,
+            "stop_id": "18635",
+            "stop_name": "CHARLESGATE (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 14,
+            "skipped": false,
+            "stop_id": "18470",
+            "stop_name": "UNIVERSITY HEIGHTS (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:10",
+            "dep_based": "O",
+            "dep_time": "00:10",
+            "sequence": 15,
+            "skipped": false,
+            "stop_id": "72020",
+            "stop_name": "ROGER WILLIAMS NATIONAL MEMORIAL"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:11",
+            "dep_based": "O",
+            "dep_time": "00:11",
+            "sequence": 16,
+            "skipped": false,
+            "stop_id": "72015",
+            "stop_name": "PROVIDENCE STATION"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:13",
+            "dep_based": "O",
+            "dep_time": "00:13",
+            "sequence": 17,
+            "skipped": false,
+            "stop_id": "16485",
+            "stop_name": "KENNEDY PLAZA (STOP D)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:15",
+            "dep_based": "O",
+            "dep_time": "00:15",
+            "sequence": 18,
+            "skipped": false,
+            "stop_id": "15575",
+            "stop_name": "EMPIRE OPP WESTMINSTER"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:17",
+            "dep_based": "O",
+            "dep_time": "00:17",
+            "sequence": 19,
+            "skipped": false,
+            "stop_id": "15025",
+            "stop_name": "BROAD NS FENNER"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:19",
+            "dep_based": "O",
+            "dep_time": "00:19",
+            "sequence": 20,
+            "skipped": false,
+            "stop_id": "14520",
+            "stop_name": "BROAD FS LOCKWOOD"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:20",
+            "dep_based": "O",
+            "dep_time": "00:20",
+            "sequence": 21,
+            "skipped": false,
+            "stop_id": "14380",
+            "stop_name": "BROAD OPP SOMERSET (MCDONALDS)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:21",
+            "dep_based": "O",
+            "dep_time": "00:21",
+            "sequence": 22,
+            "skipped": false,
+            "stop_id": "13710",
+            "stop_name": "PARKIS AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:22",
+            "dep_based": "O",
+            "dep_time": "00:22",
+            "sequence": 23,
+            "skipped": false,
+            "stop_id": "58870",
+            "stop_name": "PLENTY STREET - SAINT JOSEPH'S HOSPITAL (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:23",
+            "dep_based": "O",
+            "dep_time": "00:23",
+            "sequence": 24,
+            "skipped": false,
+            "stop_id": "13085",
+            "stop_name": "PUBLIC STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:24",
+            "dep_based": "O",
+            "dep_time": "00:24",
+            "sequence": 25,
+            "skipped": false,
+            "stop_id": "12720",
+            "stop_name": "ONTARIO STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:26",
+            "dep_based": "O",
+            "dep_time": "00:26",
+            "sequence": 26,
+            "skipped": false,
+            "stop_id": "12590",
+            "stop_name": "THURBERS AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:27",
+            "dep_based": "O",
+            "dep_time": "00:27",
+            "sequence": 27,
+            "skipped": false,
+            "stop_id": "12070",
+            "stop_name": "EARLY STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:29",
+            "dep_based": "O",
+            "dep_time": "00:29",
+            "sequence": 28,
+            "skipped": false,
+            "stop_id": "11890",
+            "stop_name": "ROGER WILLIAMS PARK (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:30",
+            "dep_based": "O",
+            "dep_time": "00:30",
+            "sequence": 29,
+            "skipped": false,
+            "stop_id": "11535",
+            "stop_name": "CARR STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:33",
+            "dep_based": "E",
+            "dep_time": "00:33",
+            "sequence": 30,
+            "skipped": false,
+            "stop_id": "11230",
+            "stop_name": "BROAD AFTER MONTGOMERY"
+        }
+    ],
+    "trip_id": "2948171",
+    "vehicle": "1313"
+}
+@End
+
+@Case:Show a trip prediction output with only feed data (extrapolation early)
+@Query RTF 2948171
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:11:30 EDT",
+    "message_type": "TRI",
+*   "proc_time_ms": 0,
+    "real_time": true,
+    "real_time_data_time": "22-May-2020 00:11:15 EDT",
+    "route_id": "11",
+    "route_long_name": "Broad/North Main",
+    "route_short_name": "R",
+    "short_name": "",
+    "start_date": "20200521",
+    "start_time": "23:55:00",
+    "stops": [
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "72020",
+            "stop_name": "ROGER WILLIAMS NATIONAL MEMORIAL"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "72015",
+            "stop_name": "PROVIDENCE STATION"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "16485",
+            "stop_name": "KENNEDY PLAZA (STOP D)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "15575",
+            "stop_name": "EMPIRE OPP WESTMINSTER"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "15025",
+            "stop_name": "BROAD NS FENNER"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "14520",
+            "stop_name": "BROAD FS LOCKWOOD"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "14380",
+            "stop_name": "BROAD OPP SOMERSET (MCDONALDS)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "13710",
+            "stop_name": "PARKIS AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "58870",
+            "stop_name": "PLENTY STREET - SAINT JOSEPH'S HOSPITAL (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "13085",
+            "stop_name": "PUBLIC STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "12720",
+            "stop_name": "ONTARIO STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "12590",
+            "stop_name": "THURBERS AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "12070",
+            "stop_name": "EARLY STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "11890",
+            "stop_name": "ROGER WILLIAMS PARK (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "O",
+            "dep_time": "E60s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "11535",
+            "stop_name": "CARR STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "E60s",
+            "dep_based": "X",
+            "dep_time": "-",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "11230",
+            "stop_name": "BROAD AFTER MONTGOMERY"
+        }
+    ],
+    "trip_id": "2948171",
+    "vehicle": "1313"
+}
+@End
+
+@Case:Show a trip prediction output with reconciliation (extrapolation late)
+@Query RTS 2947738
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:11:30 EDT",
+    "message_type": "TRI",
+*   "proc_time_ms": 1,
+    "real_time": true,
+    "real_time_data_time": "22-May-2020 00:11:15 EDT",
+    "route_id": "11",
+    "route_long_name": "Broad/North Main",
+    "route_short_name": "R",
+    "short_name": "",
+    "start_date": "20200521",
+    "start_time": "23:51:00",
+    "stops": [
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 1,
+            "skipped": false,
+            "stop_id": "11240",
+            "stop_name": "BROAD AFTER MONTGOMERY"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 2,
+            "skipped": false,
+            "stop_id": "72000",
+            "stop_name": "CARR STREET (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 3,
+            "skipped": false,
+            "stop_id": "11880",
+            "stop_name": "ROGER WILLIAMS PARK (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 4,
+            "skipped": false,
+            "stop_id": "12135",
+            "stop_name": "BROAD FS EARLY"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 5,
+            "skipped": false,
+            "stop_id": "12480",
+            "stop_name": "THURBERS AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 6,
+            "skipped": false,
+            "stop_id": "12770",
+            "stop_name": "ONTARIO STREET (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 7,
+            "skipped": false,
+            "stop_id": "13135",
+            "stop_name": "PUBLIC STREET (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 8,
+            "skipped": false,
+            "stop_id": "13455",
+            "stop_name": "PLENTY STREET - SAINT JOSEPH'S HOSPITAL (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 9,
+            "skipped": false,
+            "stop_id": "13385",
+            "stop_name": "PARKIS AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 10,
+            "skipped": false,
+            "stop_id": "14365",
+            "stop_name": "TRINITY SQUARE"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 11,
+            "skipped": false,
+            "stop_id": "58415",
+            "stop_name": "BROAD NS LOCKWOOD"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 12,
+            "skipped": false,
+            "stop_id": "14965",
+            "stop_name": "BROAD OPP FENNER"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 13,
+            "skipped": false,
+            "stop_id": "72005",
+            "stop_name": "WESTMINSTER STREET (R-LINE)"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 14,
+            "skipped": false,
+            "stop_id": "16300",
+            "stop_name": "FOUNTAIN NS UNION"
+        },
+        {
+            "arr_based": "N",
+            "arr_time": "-",
+            "dep_based": "N",
+            "dep_time": "-",
+            "sequence": 15,
+            "skipped": false,
+            "stop_id": "16630",
+            "stop_name": "KENNEDY PLAZA (STOP J)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:12",
+            "dep_based": "O",
+            "dep_time": "00:12",
+            "sequence": 16,
+            "skipped": false,
+            "stop_id": "72010",
+            "stop_name": "PROVIDENCE STATION"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:12",
+            "dep_based": "O",
+            "dep_time": "00:12",
+            "sequence": 17,
+            "skipped": false,
+            "stop_id": "16900",
+            "stop_name": "N MAIN NS N COURT"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:14",
+            "dep_based": "O",
+            "dep_time": "00:14",
+            "sequence": 18,
+            "skipped": false,
+            "stop_id": "18445",
+            "stop_name": "UNIVERSITY HEIGHTS (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:15",
+            "dep_based": "O",
+            "dep_time": "00:15",
+            "sequence": 19,
+            "skipped": false,
+            "stop_id": "18615",
+            "stop_name": "CHARLESGATE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:15",
+            "dep_based": "O",
+            "dep_time": "00:15",
+            "sequence": 20,
+            "skipped": false,
+            "stop_id": "19070",
+            "stop_name": "NORTH BURIAL GROUND (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:16",
+            "dep_based": "O",
+            "dep_time": "00:16",
+            "sequence": 21,
+            "skipped": false,
+            "stop_id": "19615",
+            "stop_name": "ROCHAMBEAU AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:18",
+            "dep_based": "O",
+            "dep_time": "00:18",
+            "sequence": 22,
+            "skipped": false,
+            "stop_id": "19915",
+            "stop_name": "THIRD STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:19",
+            "dep_based": "O",
+            "dep_time": "00:19",
+            "sequence": 23,
+            "skipped": false,
+            "stop_id": "20475",
+            "stop_name": "NINTH STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:20",
+            "dep_based": "O",
+            "dep_time": "00:20",
+            "sequence": 24,
+            "skipped": false,
+            "stop_id": "20915",
+            "stop_name": "GRENVILLE STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:21",
+            "dep_based": "O",
+            "dep_time": "00:21",
+            "sequence": 25,
+            "skipped": false,
+            "stop_id": "21290",
+            "stop_name": "HOPE ARTISTE VILLAGE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:21",
+            "dep_based": "O",
+            "dep_time": "00:21",
+            "sequence": 26,
+            "skipped": false,
+            "stop_id": "21450",
+            "stop_name": "SAYLES AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:23",
+            "dep_based": "O",
+            "dep_time": "00:23",
+            "sequence": 27,
+            "skipped": false,
+            "stop_id": "21830",
+            "stop_name": "WHITMAN STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:23",
+            "dep_based": "O",
+            "dep_time": "00:23",
+            "sequence": 28,
+            "skipped": false,
+            "stop_id": "72025",
+            "stop_name": "PEARL STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:25",
+            "dep_based": "O",
+            "dep_time": "00:25",
+            "sequence": 29,
+            "skipped": false,
+            "stop_id": "55320",
+            "stop_name": "COLLYER PARK (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:27",
+            "dep_based": "O",
+            "dep_time": "00:27",
+            "sequence": 30,
+            "skipped": false,
+            "stop_id": "22970",
+            "stop_name": "GOFF NS DEXTER"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "00:30",
+            "dep_based": "E",
+            "dep_time": "00:30",
+            "sequence": 31,
+            "skipped": false,
+            "stop_id": "22765",
+            "stop_name": "PAWTUCKET TRANSIT CENTER"
+        }
+    ],
+    "trip_id": "2947738",
+    "vehicle": "1307"
+}
+@End
+
+@Case:Show a trip prediction output prediction list only (extrapolation late)
+@Query RTF 2947738
+@Expected
+{
+    "error": 0,
+    "message_time": "22-May-2020 00:11:30 EDT",
+    "message_type": "TRI",
+*   "proc_time_ms": 0,
+    "real_time": true,
+    "real_time_data_time": "22-May-2020 00:11:15 EDT",
+    "route_id": "11",
+    "route_long_name": "Broad/North Main",
+    "route_short_name": "R",
+    "short_name": "",
+    "start_date": "20200521",
+    "start_time": "23:51:00",
+    "stops": [
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "72010",
+            "stop_name": "PROVIDENCE STATION"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "16900",
+            "stop_name": "N MAIN NS N COURT"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "18445",
+            "stop_name": "UNIVERSITY HEIGHTS (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "18615",
+            "stop_name": "CHARLESGATE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "19070",
+            "stop_name": "NORTH BURIAL GROUND (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "19615",
+            "stop_name": "ROCHAMBEAU AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "19915",
+            "stop_name": "THIRD STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "20475",
+            "stop_name": "NINTH STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "20915",
+            "stop_name": "GRENVILLE STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "21290",
+            "stop_name": "HOPE ARTISTE VILLAGE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "21450",
+            "stop_name": "SAYLES AVENUE (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "21830",
+            "stop_name": "WHITMAN STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "72025",
+            "stop_name": "PEARL STREET (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "55320",
+            "stop_name": "COLLYER PARK (R-LINE)"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "O",
+            "dep_time": "L120s",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "22970",
+            "stop_name": "GOFF NS DEXTER"
+        },
+        {
+            "arr_based": "O",
+            "arr_time": "L120s",
+            "dep_based": "X",
+            "dep_time": "-",
+            "sequence": 43200000,
+            "skipped": false,
+            "stop_id": "22765",
+            "stop_name": "PAWTUCKET TRANSIT CENTER"
+        }
+    ],
+    "trip_id": "2947738",
+    "vehicle": "1307"
 }
 @End

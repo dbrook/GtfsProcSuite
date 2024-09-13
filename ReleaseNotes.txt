@@ -1,10 +1,21 @@
-THIS RELEASE: Version 2.3.3
+THIS RELEASE: Version 2.4.0
 ---------------------------
-- Always show the static data feed age when using RTI, cleaned up the Python GUI.
+- When using RTF for trips that use the delay-based real-time trip updates, the arr_time and
+  dep_time outputs will now display the lateness or earliness in seconds with an L or R
+  prefix, respectively (previously, this message would always be "-" so now it is useful).
+
+! A future release (2.5.x) will have to rethink how real-time trips may keep a sequence,
+  but technically service different stops (i.e. a different platform than in the schedule
+  data). But the requirements for this are being analyzed further.
+
 
 PREVIOUS RELEASES:
+Version 2.3.3
 -------------
+- Always show the static data feed age when using RTI, cleaned up the Python GUI.
+
 Version 2.3.2
+-------------
 - Discovered a different case of orphaned trips: real-time trip updates with a valid route
   but the original trip doesn't exist and the trip is not flagged as "ADDED" to the route, these
   will now appear in the orphaned trips and not shown for NEX/NCF.
@@ -19,9 +30,6 @@ Version 2.3.1
   real-time trip indexes. The "fix" was reverted here so now (-q) is purely stop ID based,
   and when (-q) is not used, it's purely sequence matched, to allow for alternate stops.
 - Added the static dataset update time to the RTI response to allow client caching.
-! A future release (2.4.x) will have to rethink how real-time trips may keep a sequence,
-  but technically service different stops (i.e. a different platform than in the schedule
-  data). But the requirements for this are being analyzed further.
 
 Version 2.3.0
 -------------
