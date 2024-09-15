@@ -3,6 +3,11 @@ THIS RELEASE: Version 2.4.0
 - When using RTF for trips that use the delay-based real-time trip updates, the arr_time and
   dep_time outputs will now display the lateness or earliness in seconds with an L or R
   prefix, respectively (previously, this message would always be "-" so now it is useful).
+- Using -l 2 (disabled date matching for real-time trip updates), when the same offset applies
+  to multiple service days using POSIX timestamps, only the least-different offset time across
+  all the trips on different days will be reflected for NEX/NCF.
+- Fixed a bug where trip IDs weren't being used to populate trip IDs skipping stops (also added
+  RTD Denver to the test suite as that's where it was discovered).
 
 ! A future release (2.5.x) will have to rethink how real-time trips may keep a sequence,
   but technically service different stops (i.e. a different platform than in the schedule

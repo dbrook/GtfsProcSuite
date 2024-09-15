@@ -144,7 +144,6 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
 
                 // Do not return undefined values for offset for canceled / skipping-stop trips
                 tripRecord.realTimeOffsetSec = 0;
-
                 if (rActiveFeed->scheduledTripIsRunning(tripRecord.tripID,
                                                         tripRecord.tripServiceDate,
                                                         tripRecord.tripFirstDeparture.date(),
@@ -238,6 +237,10 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                     } // End of processing an actual trip with real-time information (non-cancelled, non-stop-skip)
                 } // End of active (real-time) trip handling condition
             } // End of loop on trips
+
+            // FIXME? Post-process the trips to remove duplicates across service days when doing POSIX-time stop
+            //        time updates for agencies (like Denver RTD) that don't put a start date?
+
         } // End of loop on routes
 
         // Add the 'added' trips (mark with SUPPLEMENT)
@@ -421,8 +424,8 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
                                          QHash<QString, StopRecoRouteRec> &fullTrips,
                                          QHash<QString, StopRecoRouteRec> &relevantRouteTrips)
 {
-    qint32 nbTripsForRoute = 0;
-    for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
+    for (quint32 tripIdx = 0; tripIdx < fullTrips[routeID].tripRecos.length(); ++tripIdx) {
+        StopRecoTripRec &tripRecord = fullTrips[routeID].tripRecos[tripIdx];
         QDateTime stopTime;
         if (tripRecord.realTimeDataAvail && tripRecord.stopStatus != "SCHD") {
             // Use real-time data for the lookahead determination unless the trip is running but no data is present...
@@ -483,11 +486,61 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
                 }
             }
         }
+    }
 
+    // If real-time trip-update date matching is disabled (-l 2) then it is possible previous/next
+    // service day trips are mistakenly listed with complete nonsense offsets
+    if (rActiveFeed->getDateEnforcement() == NO_MATCHING) {
+        QHash<QString, QVector<quint32>> knownTrips;
+        for (quint32 tripIdx = 0; tripIdx < fullTrips[routeID].tripRecos.length(); ++tripIdx) {
+            StopRecoTripRec &tripRecord = fullTrips[routeID].tripRecos[tripIdx];
+            knownTrips[tripRecord.tripID].append(tripIdx);
+        }
+
+        // For each of the now-known trips, see which of the multiple trips (spanning the up-to 3 service days) has
+        // the least amount of offset ... that is probably the most-relevant one and the others can be expunged.
+        for (const QString &tripId : knownTrips.keys()) {
+            bool allSame = true;
+            qint64 firstOffset = fullTrips[routeID].tripRecos[knownTrips[tripId][0]].realTimeOffsetSec;
+            for (quint32 tripIdx = 1; tripIdx < knownTrips[tripId].length(); ++tripIdx) {
+                if (firstOffset != fullTrips[routeID].tripRecos[knownTrips[tripId][tripIdx]].realTimeOffsetSec) {
+                    allSame = false;
+                    break;
+                }
+            }
+            if (allSame) {
+                // Nothing to invalidate if all delays across all trips are identical
+                continue;
+            }
+            qint64 smallestOffsetIdx = -1;
+            qint64 smallestOffsetAbs = 0;
+            for (quint32 tripIdx = 0; tripIdx < knownTrips[tripId].length(); ++tripIdx) {
+                qint64 offsetAbs = abs(fullTrips[routeID].tripRecos[knownTrips[tripId][tripIdx]].realTimeOffsetSec);
+                if (smallestOffsetIdx == -1) {
+                    smallestOffsetAbs = offsetAbs;
+                    smallestOffsetIdx = tripIdx;
+                }
+                if (offsetAbs < smallestOffsetAbs) {
+                    smallestOffsetAbs = offsetAbs;
+                    smallestOffsetIdx = tripIdx;
+                }
+            }
+            if (smallestOffsetIdx != -1) {
+                for (quint32 tripIdx = 0; tripIdx < knownTrips[tripId].length(); ++tripIdx) {
+                    StopRecoTripRec &tripRecord = fullTrips[routeID].tripRecos[knownTrips[tripId][tripIdx]];
+                    if (tripRecord.realTimeOffsetSec != smallestOffsetAbs) {
+                        tripRecord.tripStatus = IRRELEVANT;
+                    }
+                }
+            }
+        }
+    }
+
+    for (quint32 tripIdx = 0; tripIdx < fullTrips[routeID].tripRecos.length(); ++tripIdx) {
         // If we didn't mark the trip as irrelevant, then it shall count against the maxTripsForRoute and it can
         // be added to the output structure for output rendering
+        StopRecoTripRec &tripRecord = fullTrips[routeID].tripRecos[tripIdx];
         if (tripRecord.tripStatus != IRRELEVANT) {
-            ++nbTripsForRoute;
             relevantRouteTrips[routeID].tripRecos.push_back(tripRecord);
         }
     }

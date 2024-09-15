@@ -749,6 +749,11 @@ bool RealTimeTripUpdate::getLoosenStopSeqEnf() const
     return _loosenStopSeqEnf;
 }
 
+rtDateLevel RealTimeTripUpdate::getDateEnforcement() const
+{
+    return _dateEnforcement;
+}
+
 void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
 {
     // Process every trip update entity
@@ -793,7 +798,6 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
             const QString routeFromUpdate = (*_tripDB)[tripID].route_id;
             if (!routeFromUpdate.isEmpty() && routeFromTrip != routeFromUpdate) {
                 _noRouteTrips[tripID] = recIdx;
-                continue;
             }
         } else if (entity.trip_update().trip().has_route_id() && !_tripDB->contains(tripID) &&
                    !entity.trip_update().trip().has_schedule_relationship()) {
@@ -845,7 +849,8 @@ void RealTimeTripUpdate::processUpdateDetails(const QDateTime &startProcTimeUTC)
                 if (stopTime.schedule_relationship() ==
                     transit_realtime::TripUpdate_StopTimeUpdate_ScheduleRelationship_SKIPPED) {
                     QString qStopId = QString::fromStdString(stopTime.stop_id());
-                    QPair<QString, quint32> qTripId(QString::fromStdString(entity.id()), stopTime.stop_sequence());
+                    QPair<QString, quint32> qTripId(QString::fromStdString(entity.trip_update().trip().trip_id()),
+                                                    stopTime.stop_sequence());
 
                     _skippedStops[qStopId].push_back(qTripId);
                 }

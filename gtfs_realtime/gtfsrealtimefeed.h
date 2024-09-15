@@ -246,6 +246,9 @@ public:
     // See if the real-time data comparisons match stop sequence numbers (true) or just first-matched stop ID (false)
     bool getLoosenStopSeqEnf() const;
 
+    // Get the trip / stop-time update date enforcement parameter setting
+    rtDateLevel getDateEnforcement() const;
+
 signals:
 
 public slots:

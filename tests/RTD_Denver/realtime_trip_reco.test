@@ -1,0 +1,457 @@
+@Description
+RTD Denver uses POSIX real-time trip updates but does not publish the trip start time and
+date with these updates. As a result, up to 3 days worth of the same trip can appear in
+NEX/NCF unless they are filtered out.
+@End
+
+@StartParams
+-dstatic
+-u600
+-l2
+-rTripUpdate.pb
+-f2024,9,13,18,16,0
+@End
+
+@Case:Assert Running and Expected Records Loaded
+@Query:SDS
+@Expected
+{
+    "agencies": [
+        {
+            "id": "RTD",
+            "lang": "en",
+            "name": "Regional Transportation District",
+            "phone": "",
+            "tz": "America/Denver",
+            "url": "http://rtd-denver.com"
+        }
+    ],
+    "application": "GtfsProc 2.4.0",
+*   "appuptime_sec": 503,
+*   "dataloadtime_ms": 2298,
+    "error": 0,
+    "feed_lang": "EN",
+    "feed_publisher": "RTD",
+    "feed_url": "http://rtd-denver.com",
+    "feed_valid_end": "04-Jan-2025",
+    "feed_valid_start": "26-May-2024",
+    "feed_version": "Merged-33850M33885-20240912-163146-May24 and Sep24",
+    "hide_terminating": false,
+    "message_time": "13-Sep-2024 18:16:00 MDT",
+    "message_type": "SDS",
+    "nb_nex_trips": 4,
+    "overrides": "",
+*   "proc_time_ms": 0,
+*   "processed_reqs": 3,
+    "records": 1503624,
+    "rt_date_match": 2,
+    "rt_trip_seq_match": true,
+    "threadpool_count": 1
+}
+@End
+
+@Case:Realtime Data Integrated and Active
+@Query:RDS
+@Expected
+{
+*   "active_age_sec": 17,
+*   "active_download_ms": 4,
+    "active_feed_time": "13-Sep-2024 18:15:43 MDT",
+*   "active_integration_ms": 10,
+    "active_rt_version": "1.0",
+    "active_side": "A",
+    "error": 0,
+*   "last_realtime_query": "15-Sep-2024 06:45:29 MDT",
+    "message_time": "13-Sep-2024 18:16:00 MDT",
+    "message_type": "RDS",
+*   "proc_time_ms": 0,
+*   "seconds_to_next_fetch": 659
+}
+@End
+
+@Case:Trip with only 2 updates, both skipped with no real-time arrive/depart times provided
+@Query:RTF 114896225
+@Expected
+{
+    "error": 0,
+    "message_time": "13-Sep-2024 18:16:00 MDT",
+    "message_type": "TRI",
+*   "proc_time_ms": 1,
+    "real_time": true,
+    "real_time_data_time": "13-Sep-2024 18:15:43 MDT",
+    "route_id": "0",
+    "route_long_name": "",
+    "route_short_name": "",
+    "short_name": "",
+    "start_date": "",
+    "start_time": "",
+    "stops": [
+        {
+            "arr_based": "X",
+            "arr_time": "-",
+            "dep_based": "X",
+            "dep_time": "-",
+            "sequence": 10,
+            "skipped": true,
+            "stop_id": "12463",
+            "stop_name": "Broadway & W 9th Ave"
+        },
+        {
+            "arr_based": "X",
+            "arr_time": "-",
+            "dep_based": "X",
+            "dep_time": "-",
+            "sequence": 25,
+            "skipped": true,
+            "stop_id": "12501",
+            "stop_name": "S Broadway & W Colorado Ave"
+        }
+    ],
+    "trip_id": "114896225",
+    "vehicle": ""
+}
+@End
+
+@Case:Trip 114896225 at a stop before the first skip update doesn't show up
+@Query:NCF 60 12427
+@Expected
+{
+    "error": 0,
+    "message_time": "13-Sep-2024 18:16:00 MDT",
+    "message_type": "NCF",
+*   "proc_time_ms": 2,
+*   "realtime_age_sec": 17,
+    "static_data_modif": "01-Jan-1980 00:00:00 EST",
+    "stop_desc": "Vehicles Travelling South",
+    "stop_id": "12427",
+    "stop_name": "Broadway & W 13th Ave",
+    "trips": [
+        {
+            "arr_time": "Fri 18:20",
+            "dep_time": "Fri 18:20",
+            "drop_off_type": 0,
+            "headsign": "Englewood Station",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 18:23",
+                "actual_departure": "Fri 18:23",
+                "offset_seconds": 190,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "9366"
+            },
+            "route_id": "0_merged_115125993",
+            "short_name": "",
+            "stop_id": "12427",
+            "trip_begins": false,
+            "trip_id": "114896240",
+            "trip_terminates": false,
+            "wait_time_sec": 457
+        },
+        {
+            "arr_time": "Fri 18:23",
+            "dep_time": "Fri 18:23",
+            "drop_off_type": 0,
+            "headsign": "Nine Mile 83D S Quebec Way",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 18:24",
+                "actual_departure": "Fri 18:24",
+                "offset_seconds": 54,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "9328"
+            },
+            "route_id": "83D",
+            "short_name": "",
+            "stop_id": "12427",
+            "trip_begins": false,
+            "trip_id": "114912157",
+            "trip_terminates": false,
+            "wait_time_sec": 495
+        },
+        {
+            "arr_time": "Fri 19:06",
+            "dep_time": "Fri 19:06",
+            "drop_off_type": 0,
+            "headsign": "Highlands Ranch",
+            "pickup_type": 0,
+            "route_id": "0_merged_115125993",
+            "short_name": "",
+            "stop_id": "12427",
+            "trip_begins": false,
+            "trip_id": "114896264",
+            "trip_terminates": false,
+            "wait_time_sec": 3019
+        },
+        {
+            "arr_time": "Fri 19:08",
+            "dep_time": "Fri 19:08",
+            "drop_off_type": 0,
+            "headsign": "Nine Mile",
+            "pickup_type": 0,
+            "route_id": "83L",
+            "short_name": "",
+            "stop_id": "12427",
+            "trip_begins": false,
+            "trip_id": "114912138",
+            "trip_terminates": false,
+            "wait_time_sec": 3141
+        }
+    ]
+}
+@End
+
+@Case:Trip 114896225 at a stop it explicitly skips
+@Query:NCF 60 12463
+@Expected
+{
+    "error": 0,
+    "message_time": "13-Sep-2024 18:16:00 MDT",
+    "message_type": "NCF",
+*   "proc_time_ms": 2,
+*   "realtime_age_sec": 17,
+    "static_data_modif": "01-Jan-1980 00:00:00 EST",
+    "stop_desc": "Vehicles Travelling South",
+    "stop_id": "12463",
+    "stop_name": "Broadway & W 9th Ave",
+    "trips": [
+        {
+            "arr_time": "Fri 18:22",
+            "dep_time": "Fri 18:22",
+            "drop_off_type": 0,
+            "headsign": "Englewood Station",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+                "offset_seconds": 0,
+                "status": "SKIP",
+                "stop_status": "",
+                "vehicle": ""
+            },
+            "route_id": "0_merged_115125993",
+            "short_name": "",
+            "stop_id": "12463",
+            "trip_begins": false,
+            "trip_id": "114896240",
+            "trip_terminates": false,
+            "wait_time_sec": 414
+        },
+        {
+            "arr_time": "Fri 18:25",
+            "dep_time": "Fri 18:25",
+            "drop_off_type": 0,
+            "headsign": "Nine Mile 83D S Quebec Way",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+                "offset_seconds": 0,
+                "status": "SKIP",
+                "stop_status": "",
+                "vehicle": ""
+            },
+            "route_id": "83D",
+            "short_name": "",
+            "stop_id": "12463",
+            "trip_begins": false,
+            "trip_id": "114912157",
+            "trip_terminates": false,
+            "wait_time_sec": 551
+        },
+        {
+            "arr_time": "Fri 18:37",
+            "dep_time": "Fri 18:37",
+            "drop_off_type": 0,
+            "headsign": "Highlands Ranch",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+                "offset_seconds": 0,
+                "status": "SKIP",
+                "stop_status": "",
+                "vehicle": ""
+            },
+            "route_id": "0_merged_115125993",
+            "short_name": "",
+            "stop_id": "12463",
+            "trip_begins": false,
+            "trip_id": "114896269",
+            "trip_terminates": false,
+            "wait_time_sec": 1314
+        },
+        {
+            "arr_time": "Fri 18:40",
+            "dep_time": "Fri 18:40",
+            "drop_off_type": 0,
+            "headsign": "Nine Mile",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+                "offset_seconds": 0,
+                "status": "SKIP",
+                "stop_status": "",
+                "vehicle": ""
+            },
+            "route_id": "83L",
+            "short_name": "",
+            "stop_id": "12463",
+            "trip_begins": false,
+            "trip_id": "114912137",
+            "trip_terminates": false,
+            "wait_time_sec": 1451
+        },
+        {
+            "arr_time": "Fri 18:53",
+            "dep_time": "Fri 18:53",
+            "drop_off_type": 0,
+            "headsign": "Englewood Station",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+                "offset_seconds": 0,
+                "status": "SKIP",
+                "stop_status": "",
+                "vehicle": ""
+            },
+            "route_id": "0_merged_115125993",
+            "short_name": "",
+            "stop_id": "12463",
+            "trip_begins": false,
+            "trip_id": "114896225",
+            "trip_terminates": false,
+            "wait_time_sec": 2253
+        },
+        {
+            "arr_time": "Fri 19:08",
+            "dep_time": "Fri 19:08",
+            "drop_off_type": 0,
+            "headsign": "Highlands Ranch",
+            "pickup_type": 0,
+            "route_id": "0_merged_115125993",
+            "short_name": "",
+            "stop_id": "12463",
+            "trip_begins": false,
+            "trip_id": "114896264",
+            "trip_terminates": false,
+            "wait_time_sec": 3153
+        },
+        {
+            "arr_time": "Fri 19:10",
+            "dep_time": "Fri 19:10",
+            "drop_off_type": 0,
+            "headsign": "Nine Mile",
+            "pickup_type": 0,
+            "route_id": "83L",
+            "short_name": "",
+            "stop_id": "12463",
+            "trip_begins": false,
+            "trip_id": "114912138",
+            "trip_terminates": false,
+            "wait_time_sec": 3251
+        }
+    ]
+}
+@End
+
+@Case:Trip 114896225 at a stop downstream of one it marked as skipped (No Data)
+@Query:NCF 60 17772
+@Expected
+{
+    "error": 0,
+    "message_time": "13-Sep-2024 18:16:00 MDT",
+*   "message_type": "NCF",
+*   "proc_time_ms": 1,
+    "realtime_age_sec": 17,
+    "static_data_modif": "01-Jan-1980 00:00:00 EST",
+    "stop_desc": "Vehicles Travelling South",
+    "stop_id": "17772",
+    "stop_name": "Broadway & W 5th Ave",
+    "trips": [
+        {
+            "arr_time": "Fri 18:25",
+            "dep_time": "Fri 18:25",
+            "drop_off_type": 0,
+            "headsign": "Englewood Station",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "Fri 18:28",
+                "actual_departure": "Fri 18:28",
+                "offset_seconds": 191,
+                "status": "RNNG",
+                "stop_status": "FULL",
+                "vehicle": "9366"
+            },
+            "route_id": "0_merged_115125993",
+            "short_name": "",
+            "stop_id": "17772",
+            "trip_begins": false,
+            "trip_id": "114896240",
+            "trip_terminates": false,
+            "wait_time_sec": 734
+        },
+        {
+            "arr_time": "Fri 18:40",
+            "dep_time": "Fri 18:40",
+            "drop_off_type": 0,
+            "headsign": "Highlands Ranch",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+                "offset_seconds": 0,
+                "status": "RNNG",
+                "stop_status": "SCHD",
+                "vehicle": ""
+            },
+            "route_id": "0_merged_115125993",
+            "short_name": "",
+            "stop_id": "17772",
+            "trip_begins": false,
+            "trip_id": "114896269",
+            "trip_terminates": false,
+            "wait_time_sec": 1443
+        },
+        {
+            "arr_time": "Fri 18:55",
+            "dep_time": "Fri 18:55",
+            "drop_off_type": 0,
+            "headsign": "Englewood Station",
+            "pickup_type": 0,
+            "realtime_data": {
+                "actual_arrival": "",
+                "actual_departure": "",
+                "offset_seconds": 0,
+                "status": "RNNG",
+                "stop_status": "SCHD",
+                "vehicle": ""
+            },
+            "route_id": "0_merged_115125993",
+            "short_name": "",
+            "stop_id": "17772",
+            "trip_begins": false,
+            "trip_id": "114896225",
+            "trip_terminates": false,
+            "wait_time_sec": 2370
+        },
+        {
+            "arr_time": "Fri 19:10",
+            "dep_time": "Fri 19:10",
+            "drop_off_type": 0,
+            "headsign": "Highlands Ranch",
+            "pickup_type": 0,
+            "route_id": "0_merged_115125993",
+            "short_name": "",
+            "stop_id": "17772",
+            "trip_begins": false,
+            "trip_id": "114896264",
+            "trip_terminates": false,
+            "wait_time_sec": 3270
+        }
+    ]
+}
+@End
