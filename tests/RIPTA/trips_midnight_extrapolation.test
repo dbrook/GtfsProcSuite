@@ -6,10 +6,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
 @End
 
 @StartParams
--dstatic
--u600
--l1
--rripta_tripUpdates.pb
+-ctrips_midnight_extrapolation.ini
 -f2020,5,22,0,11,30
 @End
 

@@ -9,10 +9,7 @@ and canceled).
 @End
 
 @StartParams
--dstatic
--u600
--l0
--rmbta_tripUpdates.pb
+-cafter_midnights.ini
 -f2020,5,22,0,7,30
 @End
 

@@ -226,6 +226,14 @@ class GtfsProcDecoder:
             commands = []
             is_rt = data['real_time']
             for stop in data['stops']:
+                if 'arr_time' in stop:
+                    arr_time = stop['arr_time']
+                else:
+                    arr_time = ''
+                if 'dep_time' in stop:
+                    dep_time = stop['dep_time']
+                else:
+                    dep_time = ''
                 if is_rt:
                     if stop['skipped']:
                         skip = 'S'
@@ -243,9 +251,9 @@ class GtfsProcDecoder:
                         f"{stop['sequence']}",
                         f"{stop['stop_id']}",
                         stop['stop_name'],
-                        stop['arr_time'].ljust(7),
+                        arr_time.ljust(7),
                         a_base,
-                        stop['dep_time'].ljust(7),
+                        dep_time.ljust(7),
                         d_base,
                         skip,
                     ])
@@ -254,8 +262,8 @@ class GtfsProcDecoder:
                         f"{stop['sequence']}",
                         f"{stop['stop_id']}",
                         stop['stop_name'],
-                        "{:7}".format(stop['arr_time']),
-                        "{:7}".format(stop['dep_time']),
+                        "{:7}".format(arr_time),
+                        "{:7}".format(dep_time),
                         get_pickup(stop['pickup_type']),
                         get_dropoff(stop['drop_off_type']),
                     ])
@@ -585,14 +593,22 @@ class GtfsProcDecoder:
                         start_term = 'S'
                     else:
                         start_term = ' '
+                    if 'arr_time' in trip:
+                        arr_time = trip['arr_time']
+                    else:
+                        arr_time = ''
+                    if 'dep_time' in trip:
+                        dep_time = trip['dep_time']
+                    else:
+                        dep_time = ''
                     trip_list.append([
                         f"{trip['trip_id']}",
                         f"{trip['headsign']}",
                         f"{trip['operate_days_condensed']}",
                         exc,
                         sup,
-                        "{:7}".format(trip['arr_time']),
-                        "{:7}".format(trip['dep_time']),
+                        "{:7}".format(arr_time),
+                        "{:7}".format(dep_time),
                         start_term,
                         get_pickup(trip['pickup_type']),
                         get_dropoff(trip['drop_off_type']),

@@ -7,10 +7,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
 @End
 
 @StartParams
--dstatic
--u600
--l2
--rsepta_tripUpdates.pb
+-ctrips_before_and_after_midnight.ini
 -f2020,5,22,0,30,30
 @End
 

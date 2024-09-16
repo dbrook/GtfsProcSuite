@@ -5,11 +5,8 @@ revealing NODATA when the stop ID nor stop sequence are matched
 @End
 
 @StartParams
--dstatic_skip_cancel
--rmbta_tripUpdates_skip_cancel.pb
--u600
+-call_skipped_is_canceled_noQ.ini
 -f2023,7,9,11,02,30
--zALL_SKIPPED_IS_CANCELED
 @End
 
 @Case:Assert Running and Expected Records Loaded

@@ -92,7 +92,6 @@ class RealTimeTripUpdate : public QObject
     Q_OBJECT
 public:
     explicit RealTimeTripUpdate(const QString      &rtPath,
-                                bool                dumpProtobuf,
                                 rtDateLevel         skipDateMatching,
                                 bool                loosenStopSeqEnf,
                                 bool                allSkippedCanceled,
@@ -100,7 +99,6 @@ public:
                                 const StopTimeData *stopTimeDB,
                                 QObject            *parent = nullptr);
     explicit RealTimeTripUpdate(const QByteArray   &gtfsRealTimeData,
-                                bool                dumpProtobuf,
                                 rtDateLevel         skipDateMatching,
                                 bool                loosenStopSeqEnf,
                                 bool                displayBufferInfo,

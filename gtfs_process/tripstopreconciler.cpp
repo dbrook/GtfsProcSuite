@@ -490,7 +490,7 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
 
     // If real-time trip-update date matching is disabled (-l 2) then it is possible previous/next
     // service day trips are mistakenly listed with complete nonsense offsets
-    if (rActiveFeed->getDateEnforcement() == NO_MATCHING) {
+    if (_realTimeMode && rActiveFeed->getDateEnforcement() == NO_MATCHING) {
         QHash<QString, QVector<quint32>> knownTrips;
         for (quint32 tripIdx = 0; tripIdx < fullTrips[routeID].tripRecos.length(); ++tripIdx) {
             StopRecoTripRec &tripRecord = fullTrips[routeID].tripRecos[tripIdx];

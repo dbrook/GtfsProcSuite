@@ -5,10 +5,7 @@ NEX/NCF unless they are filtered out.
 @End
 
 @StartParams
--dstatic
--u600
--l2
--rTripUpdate.pb
+-crealtime_trip_reco.ini
 -f2024,9,13,18,16,0
 @End
 

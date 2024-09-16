@@ -62,9 +62,9 @@ def decode(gtfs_proc_deco, dd, resp):
 
 def get_stop_time(trip: dict):
     # Prefer the departure time if present, otherwise the arrival
-    if trip['dep_time'] != '-':
+    if 'dep_time' in trip and trip['dep_time'] != '-':
         stop_time = '{:11}'.format(trip['dep_time'])
-    elif trip['arr_time'] != '-':
+    elif 'arr_time' in trip and trip['arr_time'] != '-':
         stop_time = '{:11}'.format(trip['arr_time'])
     else:
         stop_time = 'SCH?'

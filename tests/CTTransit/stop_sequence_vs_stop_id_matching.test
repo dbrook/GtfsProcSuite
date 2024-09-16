@@ -6,13 +6,7 @@ to a stop in NEX/NCF.
 @End
 
 @StartParams
--dstatic
--p5000
--i
--t1
--q
--u5000
--rcttransit_route83bug_2020-05-24-8-20-00.pb
+-cstop_sequence_vs_stop_id_matching.ini
 -f2020,5,24,8,21,45
 @End
 

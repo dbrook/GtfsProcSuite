@@ -31,7 +31,6 @@
 namespace GTFS {
 
 RealTimeTripUpdate::RealTimeTripUpdate(const QString      &rtPath,
-                                       bool                dumpProtobuf,
                                        rtDateLevel         skipDateMatching,
                                        bool                loosenStopSeqEnf,
                                        bool                allSkippedCanceled,
@@ -52,15 +51,10 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QString      &rtPath,
     std::fstream pbfstream(rtPath.toUtf8(), std::ios::in | std::ios::binary);
     _tripUpdate.ParseFromIstream(&pbfstream);
 
-    if (dumpProtobuf) {
-        showProtobufData();
-    }
-
     processUpdateDetails(startUTC);
 }
 
 RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray   &gtfsRealTimeData,
-                                       bool                dumpProtobuf,
                                        rtDateLevel         skipDateMatching,
                                        bool                loosenStopSeqEnf,
                                        bool                displayBufferInfo,
@@ -84,10 +78,6 @@ RealTimeTripUpdate::RealTimeTripUpdate(const QByteArray   &gtfsRealTimeData,
     if (displayBufferInfo) {
         qDebug() << "  (RTTU) GTFS-Realtime : LIVE Protobuf: " << _tripUpdate.ByteSizeLong()
                  << "bytes consisting of" << _tripUpdate.entity_size() << "real-time records.";
-    }
-
-    if (dumpProtobuf) {
-        showProtobufData();
     }
 
     processUpdateDetails(startUTC);

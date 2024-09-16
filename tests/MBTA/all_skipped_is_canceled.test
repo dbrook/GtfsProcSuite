@@ -9,12 +9,8 @@ and canceled).
 @End
 
 @StartParams
--dstatic_skip_cancel
--rmbta_tripUpdates_skip_cancel.pb
--u600
--q
+-call_skipped_is_canceled.ini
 -f2023,7,9,11,02,30
--zALL_SKIPPED_IS_CANCELED
 @End
 
 @Case:Assert Running and Expected Records Loaded

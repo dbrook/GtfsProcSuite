@@ -5,11 +5,7 @@ case proves that both types of trips are visible to a single stop that is served
 @End
 
 @StartParams
--dstatic
--u600
--l1
--q
--rcttransit_tripUpdates.pb
+-ctrips_before_and_after_midnight.ini
 -f2020,5,22,0,17,30
 @End
 
