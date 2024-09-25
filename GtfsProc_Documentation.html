@@ -46,12 +46,12 @@
 <ul>
     <li><b class="fixed">-v, --version</b>: Just display the version information.</li>
     <li><b class="fixed">-h, --help</b>: Displays all command line options.</li>
-    TODO: Need to update the INI file configuration details.
+    <li><b class="fixed">-c</b>: Configuration file path.</li>
 </ul>
 <p>The following options are only for debugging purposes</p>
 <ul>
     <li><b class="fixed">-f {year,month,day,hour,minute,second}</b>: Force the time of all transactions to a fixed date and time (this is useful for debugging, in particular with integrating GTFS-Realtime information) where a naturally-advancing clock might make a condition/transaction unreproducible.</li>
-    <li><b class="fixed">-x</b>: Dumps the GTFS-Realtime decoded into a JSON format to standard error.</li>
+    <li><b class="fixed">-i</b>: Show every message handled to STDERR.</li>
 </ul>
 
 <h2>Simple Server Startup Guide</h2>
@@ -59,13 +59,12 @@
     Looking to just start a server quickly? Here is an example workflow
 </p>
 <ol>
-    <li>Find your data source online. A site like OpenMobilityData archives known transit agency data repositories.</li>
+    <li>Find your data source online. A site like MobilityData archives known transit agency data repositories.</li>
     <li>mkdir -p agency_data/MBTA && cd agency_data/MBTA</li>
     <li>wget https://cdn.mbta.com/MBTA_GTFS.zip</li>
     <li>unzip MBTA_GTFS.zip</li>
-    <li>gtfsproc -d agency_data/MBTA -r https://cdn.mbta.com/realtime/TripUpdates.pb -u 90 -p 5000 -t 5<br>
-    This starts GtfsProc with the data downloaded in the MBTA, refetches realtime trip update data every 90 seconds, has 5 worker threads to handle simultaneous transactions, and answers clients connecting to TCP port 5000. All the static transit data is loaded into an in-memory database. See the example output below!
-    </li>
+    <li>Setup your server configuration INI file based on instructions within the provided sample file.</li>
+    <li>gtfsproc -c /path/to/your/config/file.ini</li>
 </ol>
 <div class="fixed">
 GtfsProc version 2.4.0 - Running on Process ID: 22112<br>

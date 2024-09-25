@@ -91,6 +91,7 @@ void TripsServingRoute::fillResponseData(QJsonObject &resp)
             } else {
                 singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
             }
+            singleStopJSON["first_stop_next_day"] = OperatingDay::isNextActualDay(tripIDwTime.second);
         } else {
             QDateTime localNoon(_onlyDate, QTime(12, 0, 0), getAgencyTime().timeZone());
             QDateTime firstStopDep = localNoon.addSecs(tripIDwTime.second);
@@ -99,7 +100,8 @@ void TripsServingRoute::fillResponseData(QJsonObject &resp)
             } else {
                 singleStopJSON["first_stop_departure"] = firstStopDep.toString("hh:mm");
             }
-            singleStopJSON["first_stop_dst_on"]    = firstStopDep.isDaylightTime();
+            singleStopJSON["first_stop_dst_on"]   = firstStopDep.isDaylightTime();
+            singleStopJSON["first_stop_next_day"] = OperatingDay::isNextActualDay(tripIDwTime.second);
         }
 
         // First StopID of Trip (trips do not always begin at a terminal and just relying on headsign is thus evil!)
@@ -117,6 +119,7 @@ void TripsServingRoute::fillResponseData(QJsonObject &resp)
             } else {
                 singleStopJSON["last_stop_arrival"] = lastStopArr.toString("hh:mm");
             }
+            singleStopJSON["last_stop_next_day"] = OperatingDay::isNextActualDay(lastStop.arrival_time);
         } else {
             QDateTime localNoon(_onlyDate, QTime(12, 0, 0), getAgencyTime().timeZone());
             QDateTime lastStopArr = localNoon.addSecs(lastStop.arrival_time);
@@ -125,7 +128,8 @@ void TripsServingRoute::fillResponseData(QJsonObject &resp)
             } else {
                 singleStopJSON["last_stop_arrival"] = lastStopArr.toString("hh:mm");
             }
-            singleStopJSON["last_stop_dst_on"]  = lastStopArr.isDaylightTime();
+            singleStopJSON["last_stop_dst_on"]   = lastStopArr.isDaylightTime();
+            singleStopJSON["last_stop_next_day"] = OperatingDay::isNextActualDay(lastStop.arrival_time);
         }
 
         // Last StopID of Trip

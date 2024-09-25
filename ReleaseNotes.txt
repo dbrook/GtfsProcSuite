@@ -13,6 +13,8 @@ THIS RELEASE: Version 2.4.0
   all the trips on different days will be reflected for NEX/NCF.
 - Fixed a bug where trip IDs weren't being used to populate trip IDs skipping stops (also added
   RTD Denver to the test suite as that's where it was discovered).
+- Fixed issue in AM/PM display of Trip Arrival times in TSS/TSD responses with "-a" on.
+- Show after midnight explicitly in TRI, TSR, TSS and date-specific variants thereof.
 
 ! A future release (2.5.x) will have to rethink how real-time trips may keep a sequence,
   but technically service different stops (i.e. a different platform than in the schedule

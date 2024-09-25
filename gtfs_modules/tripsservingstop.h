@@ -66,9 +66,7 @@ private:
                                         const GTFS::TripData     *tripDB,
                                         const QDate              &serviceDate,
                                         bool                      skipServiceDetail,
-                                        bool                      addWaitTime,
                                         const QDateTime          &currAgency,
-                                        qint64                    waitTimeSec,
                                         QJsonObject              &singleStopJSON);
 
     // Instance variables

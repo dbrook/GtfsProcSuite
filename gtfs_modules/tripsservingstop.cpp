@@ -73,8 +73,8 @@ void TripsServingStop::fillResponseData(QJsonObject &resp)
             }
 
             QJsonObject tripDetails;
-            fillUnifiedTripDetailsForArray(tripID, stopTripIdx, _svc, _stopTimes, _tripDB, _onlyDate,
-                                           false, false, getAgencyTime(), 0, tripDetails);
+            fillUnifiedTripDetailsForArray(tripID, stopTripIdx, _svc, _stopTimes, _tripDB, _onlyDate, false,
+                                           getAgencyTime(), tripDetails);
 
             routeTripArray.push_back(tripDetails);
         }
@@ -99,9 +99,7 @@ void TripsServingStop::fillUnifiedTripDetailsForArray(const QString            &
                                                       const GTFS::TripData     *tripDB,
                                                       const QDate              &serviceDate,
                                                       bool                      skipServiceDetail,
-                                                      bool                      addWaitTime,
                                                       const QDateTime          &currAgency,
-                                                      qint64                    waitTimeSec,
                                                       QJsonObject              &singleStopJSON)
 {
     QString serviceID = (*tripDB)[tripID].service_id;
@@ -147,18 +145,22 @@ void TripsServingStop::fillUnifiedTripDetailsForArray(const QString            &
             } else {
                 singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
             }
+            singleStopJSON["dep_next_day"] = OperatingDay::isNextActualDay((*stopTimes)[tripID].at(stopTripIdx).departure_time);
         } else {
             singleStopJSON["dep_time"] = "-";
+            singleStopJSON["dep_next_day"] = false;
         }
         if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != StopTimes::kNoTime) {
             QTime stopArr = localNoon.addSecs((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
             if (getStatus()->format12h()) {
-                singleStopJSON["dep_time"] = stopArr.toString("h:mma");
+                singleStopJSON["arr_time"] = stopArr.toString("h:mma");
             } else {
                 singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
             }
+            singleStopJSON["arr_next_day"] = OperatingDay::isNextActualDay((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
         } else {
             singleStopJSON["arr_time"] = "-";
+            singleStopJSON["arr_next_day"] = false;
         }
     } else {
         // A service day was specified so we should respect the actual DateTime (in case of daylight saving, etc.)
@@ -166,8 +168,6 @@ void TripsServingStop::fillUnifiedTripDetailsForArray(const QString            &
         // and daylight-saving bugs
         QTime     localNoon(12, 0, 0);
         QDateTime localNoonDT(serviceDate, localNoon, currAgency.timeZone());
-
-//        localNoonDT = localNoonDT.toUTC();
 
         if ((*stopTimes)[tripID].at(stopTripIdx).departure_time != StopTimes::kNoTime) {
             QDateTime stopDep = localNoonDT.addSecs((*stopTimes)[tripID].at(stopTripIdx).departure_time);
@@ -177,8 +177,10 @@ void TripsServingStop::fillUnifiedTripDetailsForArray(const QString            &
                 singleStopJSON["dep_time"] = stopDep.toString("hh:mm");
             }
             singleStopJSON["dst_on"]   = stopDep.isDaylightTime();
+            singleStopJSON["dep_next_day"] = OperatingDay::isNextActualDay((*stopTimes)[tripID].at(stopTripIdx).departure_time);
         } else {
             singleStopJSON["dep_time"] = "-";
+            singleStopJSON["dep_next_day"] = false;
         }
         if ((*stopTimes)[tripID].at(stopTripIdx).arrival_time != StopTimes::kNoTime) {
             QDateTime stopArr = localNoonDT.addSecs((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
@@ -188,19 +190,11 @@ void TripsServingStop::fillUnifiedTripDetailsForArray(const QString            &
                 singleStopJSON["arr_time"] = stopArr.toString("hh:mm");
             }
             singleStopJSON["dst_on"]   = stopArr.isDaylightTime();
+            singleStopJSON["arr_next_day"] = OperatingDay::isNextActualDay((*stopTimes)[tripID].at(stopTripIdx).arrival_time);
         } else {
             singleStopJSON["arr_time"] = "-";
+            singleStopJSON["arr_next_day"] = false;
         }
-    }
-
-    // For the "NEX" display, we need to actually show how long somebody will wait
-    // Just showing a time in the NEX display is also ambiguous, so we should also add the ACTUAL day with it
-    // TODO: This code should probably be removed as it is never called
-    if (addWaitTime) {
-        singleStopJSON["wait_time_sec"] = waitTimeSec;
-
-        QDateTime tripStopTime = currAgency.addSecs(waitTimeSec);
-        singleStopJSON["actual_day"]    = tripStopTime.toString("ddd");
     }
 
     // Indicate that the trip actually terminates at the requested stop (i.e. a client may wish to omit

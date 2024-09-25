@@ -106,8 +106,10 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
                 } else {
                     singleStopJSON["arr_time"] = arrivalTime.toString("hh:mm");
                 }
+                singleStopJSON["arr_next_day"] = OperatingDay::isNextActualDay(stop.arrival_time);
             } else {
                 singleStopJSON["arr_time"] = "-";
+                singleStopJSON["arr_next_day"] = false;
             }
 
             if (stop.departure_time != StopTimes::kNoTime) {
@@ -117,8 +119,10 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
                 } else {
                     singleStopJSON["dep_time"]  = departureTime.toString("hh:mm");
                 }
+                singleStopJSON["dep_next_day"] = OperatingDay::isNextActualDay(stop.departure_time);
             } else {
                 singleStopJSON["dep_time"]  = "-";
+                singleStopJSON["dep_next_day"] = false;
             }
 
             singleStopJSON["sequence"]      = stop.stop_sequence;

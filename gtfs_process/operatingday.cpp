@@ -26,6 +26,8 @@
 
 namespace GTFS {
 
+const qint32 k12hInSec = 43200;
+
 OperatingDay::OperatingDay(const QString dataRootPath, QObject *parent) : QObject(parent)
 {
     QVector<QVector<QString>> dataStore;
@@ -339,6 +341,11 @@ QDate OperatingDay::getServiceEndDate(const QString &serviceName) const
 const QHash<QString, CalendarRec> &OperatingDay::getServiceDB() const
 {
     return this->calendarDb;
+}
+
+bool OperatingDay::isNextActualDay(qint32 noonOffsetSeconds)
+{
+    return noonOffsetSeconds >= k12hInSec;
 }
 
 void OperatingDay::calendarCSVOrder(const QVector<QString> csvHeader,

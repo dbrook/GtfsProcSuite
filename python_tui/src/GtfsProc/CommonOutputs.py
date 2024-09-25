@@ -63,16 +63,16 @@ def decode(gtfs_proc_deco, dd, resp):
 def get_stop_time(trip: dict):
     # Prefer the departure time if present, otherwise the arrival
     if 'dep_time' in trip and trip['dep_time'] != '-':
-        stop_time = '{:11}'.format(trip['dep_time'])
+        stop_time = '{:>11}'.format(trip['dep_time'])
     elif 'arr_time' in trip and trip['arr_time'] != '-':
-        stop_time = '{:11}'.format(trip['arr_time'])
+        stop_time = '{:>11}'.format(trip['arr_time'])
     else:
         stop_time = 'SCH?'
     if 'realtime_data' in trip:
         if trip['realtime_data']['actual_departure'] != '':
-            stop_time = '{:11}'.format(trip['realtime_data']['actual_departure'])
+            stop_time = '{:>11}'.format(trip['realtime_data']['actual_departure'])
         elif trip['realtime_data']['actual_arrival'] != '':
-            stop_time = '{:11}'.format(trip['realtime_data']['actual_arrival'])
+            stop_time = '{:>11}'.format(trip['realtime_data']['actual_arrival'])
     return stop_time
 
 
@@ -139,6 +139,14 @@ def get_status(trip: dict) -> str:
         return 'L{:4}m'.format(floor(offset_sec / 60))
     else:
         return '?     '
+
+
+def get_vehicle(trip: dict) -> str:
+    if 'realtime_data' not in trip:
+        return ' '
+    if 'vehicle' not in trip['realtime_data']:
+        return ' '
+    return trip['realtime_data']['vehicle']
 
 
 def decode_error_number(ec: int) -> str:

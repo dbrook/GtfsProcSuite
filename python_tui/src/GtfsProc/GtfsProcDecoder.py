@@ -6,7 +6,7 @@ from typing import List, Tuple
 
 from .GtfsProcSocket import GtfsProcSocket
 from .TabularData import TabularData
-from .CommonOutputs import get_pickup, get_dropoff, get_status, get_countdown, get_stop_time
+from .CommonOutputs import get_pickup, get_dropoff, get_status, get_countdown, get_stop_time, get_vehicle
 
 
 class GtfsProcDecoder:
@@ -32,7 +32,7 @@ class GtfsProcDecoder:
         elif code == 'E2E':
             return 'End-to-End Connections'
         elif code == 'TRI':
-            return 'Trip Information'
+            return 'Single Trip Information'
         elif code == 'STA':
             return 'Station Information'
         elif code == 'RTE':
@@ -226,14 +226,6 @@ class GtfsProcDecoder:
             commands = []
             is_rt = data['real_time']
             for stop in data['stops']:
-                if 'arr_time' in stop:
-                    arr_time = stop['arr_time']
-                else:
-                    arr_time = ''
-                if 'dep_time' in stop:
-                    dep_time = stop['dep_time']
-                else:
-                    dep_time = ''
                 if is_rt:
                     if stop['skipped']:
                         skip = 'S'
@@ -247,23 +239,32 @@ class GtfsProcDecoder:
                         d_base = stop['dep_based']
                     else:
                         d_base = ' '
+                    # TODO: get the after-midnight stuff? (Does it make sense for an RTS/RTF/RTI message?)
                     ret_list.append([
                         f"{stop['sequence']}",
                         f"{stop['stop_id']}",
                         stop['stop_name'],
-                        arr_time.ljust(7),
+                        "{:1}{:>7}".format(' ', stop['arr_time']),
                         a_base,
-                        dep_time.ljust(7),
+                        "{:1}{:>7}".format(' ', stop['dep_time']),
                         d_base,
                         skip,
                     ])
                 else:
+                    if stop['arr_next_day']:
+                        arr_next_day = '+'
+                    else:
+                        arr_next_day = ' '
+                    if stop['dep_next_day']:
+                        dep_next_day = '+'
+                    else:
+                        dep_next_day = ' '
                     ret_list.append([
                         f"{stop['sequence']}",
                         f"{stop['stop_id']}",
                         stop['stop_name'],
-                        "{:7}".format(arr_time),
-                        "{:7}".format(dep_time),
+                        "{:1}{:>7}".format(arr_next_day, stop['arr_time']),
+                        "{:1}{:>7}".format(dep_next_day, stop['dep_time']),
                         get_pickup(stop['pickup_type']),
                         get_dropoff(stop['drop_off_type']),
                     ])
@@ -279,12 +280,12 @@ class GtfsProcDecoder:
             if is_rt:
                 name = '[ Real-Time Predictions ]'
                 cols = [1, 1, 3, None, None, None, None, None]
-                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE ', 'A', 'DEPART ', 'D', 'S']
+                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE  ', 'A', 'DEPART  ', 'D', 'S']
                 aligns = ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left']
             else:
                 name = '[ Trip Schedule (Static Dataset) ]'
                 cols = [1, 1, 3, None, None, None, None]
-                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE ', 'DEPART ', 'P', 'D']
+                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE  ', 'DEPART  ', 'P', 'D']
                 aligns = ['left', 'left', 'left', 'left', 'left', 'left', 'left']
             return [TabularData(name, cols, headers, aligns, ret_list, commands, True)]
         elif message_type == 'STA':
@@ -393,9 +394,9 @@ class GtfsProcDecoder:
                 route_name = self.route_name_from_id_cache(route['route_id'])
                 route_list.append(TabularData(
                     f"[ {route_name} ]",
-                    [1, 2, None, None, None, None, None, None],
-                    ['TRIP ID/NAME', 'HEADSIGN', 'MINS', 'STATUS', 'STOP TIME  ', 'T', 'P', 'D'],
-                    ['left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
+                    [2, 3, 1, None, None, None, None, None, None],
+                    ['TRIP ID/NAME', 'HEADSIGN', 'VEHICLE', 'MINS', 'STATUS', 'STOP TIME  ', 'T', 'P', 'D'],
+                    ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'right', 'right'],
                     ret_list,
                     cmd_list,
                     True,
@@ -497,13 +498,24 @@ class GtfsProcDecoder:
                     sup = 'S'
                 else:
                     sup = ' '
+                if trip['first_stop_next_day']:
+                    first_stop_next_day = '+'
+                else:
+                    first_stop_next_day = ' '
+                if trip['last_stop_next_day']:
+                    last_stop_next_day = '+'
+                else:
+                    last_stop_next_day = ' '
                 trip_list.append([
                     f"{trip['trip_id']}",
                     f"{trip['headsign']}",
                     f"{trip['operate_days_condensed']}",
                     exc,
                     sup,
-                    "{:7} - {:7}".format(trip['first_stop_departure'], trip['last_stop_arrival']),
+                    "{:1}{:>7} - {:1}{:>7}".format(first_stop_next_day,
+                                                   trip['first_stop_departure'],
+                                                   last_stop_next_day,
+                                                   trip['last_stop_arrival']),
                 ])
                 trip_cmds.append([f"TRI {trip['trip_id']}"])
             return [
@@ -516,7 +528,7 @@ class GtfsProcDecoder:
                 TabularData(
                     '',
                     [2, 3, None, None, None, None],
-                    ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'START-END        '],
+                    ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'START-END          '],
                     ['left', 'left', 'left', 'left', 'left', 'left'],
                     trip_list,
                     trip_cmds,
@@ -593,22 +605,22 @@ class GtfsProcDecoder:
                         start_term = 'S'
                     else:
                         start_term = ' '
-                    if 'arr_time' in trip:
-                        arr_time = trip['arr_time']
+                    if trip['arr_next_day']:
+                        arr_next_day = '+'
                     else:
-                        arr_time = ''
-                    if 'dep_time' in trip:
-                        dep_time = trip['dep_time']
+                        arr_next_day = ' '
+                    if trip['dep_next_day']:
+                        dep_next_day = '+'
                     else:
-                        dep_time = ''
+                        dep_next_day = ' '
                     trip_list.append([
                         f"{trip['trip_id']}",
                         f"{trip['headsign']}",
                         f"{trip['operate_days_condensed']}",
                         exc,
                         sup,
-                        "{:7}".format(arr_time),
-                        "{:7}".format(dep_time),
+                        "{:1}{:>7}".format(arr_next_day, trip['arr_time']),
+                        "{:1}{:>7}".format(dep_next_day, trip['dep_time']),
                         start_term,
                         get_pickup(trip['pickup_type']),
                         get_dropoff(trip['drop_off_type']),
@@ -617,7 +629,7 @@ class GtfsProcDecoder:
                 route_list.append(TabularData(
                     f"[ Route: {route_name} ]",
                     [2, 3, None, None, None, None, None, None, None, None],
-                    ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'ARRIVES', 'DEPARTS', 'T', 'P', 'D'],
+                    ['TRIP ID', 'HEADSIGN', 'OPERATING DAYS', 'E', 'S', 'ARRIVE  ', 'DEPART  ', 'T', 'P', 'D'],
                     ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
                     trip_list,
                     trip_cmds,
@@ -785,9 +797,10 @@ class GtfsProcDecoder:
             stop_time = get_stop_time(trip)
             minutes = get_countdown(trip)
             status = get_status(trip)
+            vehicle = get_vehicle(trip)
             if skip_route:
                 ret_list.append([
-                    trip_name, headsign, minutes, status, stop_time, start_term, pickup, dropoff
+                    trip_name, headsign, vehicle, minutes, status, stop_time, start_term, pickup, dropoff
                 ])
             else:
                 ret_list.append([
