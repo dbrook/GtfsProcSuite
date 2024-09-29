@@ -67,7 +67,7 @@ def get_stop_time(trip: dict):
     elif 'arr_time' in trip and trip['arr_time'] != '-':
         stop_time = '{:>11}'.format(trip['arr_time'])
     else:
-        stop_time = 'SCH?'
+        stop_time = '       SCH?'
     if 'realtime_data' in trip:
         if trip['realtime_data']['actual_departure'] != '':
             stop_time = '{:>11}'.format(trip['realtime_data']['actual_departure'])
