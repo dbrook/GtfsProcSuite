@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -144,6 +144,9 @@ public:
 
     // Figure out where an added trip is headed since no way to lookup headsign for a trip not in the static feed
     const QString getFinalStopIdForAddedTrip(const QString &trip_id) const;
+
+    // Determines if an added trip terminates at the stop id / sequence provided
+    bool stopIsEndOfAddedTrip(const QString &trip_id, qint64 stop_seq, const QString &stop_id) const;
 
     // Retrieve the route ID that the trip relates to
     const QString getRouteID(const QString &trip_id) const;

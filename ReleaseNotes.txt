@@ -15,6 +15,8 @@ THIS RELEASE: Version 2.4.0
   RTD Denver to the test suite as that's where it was discovered).
 - Fixed issue in AM/PM display of Trip Arrival times in TSS/TSD responses with "-a" on.
 - Show after midnight explicitly in TRI, TSR, TSS and date-specific variants thereof.
+- Indicate that supplemental trips are terminating inside NEX/NCF messages. Note: you can't
+  infer the start of a supplemental trip because there's no 'entire' schedule to reference.
 
 ! A future release (2.5.x) will have to rethink how real-time trips may keep a sequence,
   but technically service different stops (i.e. a different platform than in the schedule

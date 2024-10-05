@@ -277,7 +277,7 @@ and canceled).
             "stop_id": "70047",
             "trip_begins": false,
             "trip_id": "ADDED-1580408774",
-            "trip_terminates": false,
+            "trip_terminates": true,
             "wait_time_sec": 109
         }
     ]

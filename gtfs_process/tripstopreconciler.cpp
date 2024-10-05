@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -259,7 +259,7 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
 
                 // We cannot reliably map information of a real-time-only trip
                 tripRecord.beginningOfTrip = false;
-                tripRecord.endOfTrip       = false;
+                tripRecord.endOfTrip       = rActiveFeed->stopIsEndOfAddedTrip(tripAndIndex.first, tripAndIndex.second, stopID);
                 tripRecord.dropoffType     = 0;
                 tripRecord.pickupType      = 0;
                 tripRecord.tripID          = tripAndIndex.first;

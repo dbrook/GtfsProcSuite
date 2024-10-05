@@ -184,6 +184,20 @@ const QString RealTimeTripUpdate::getFinalStopIdForAddedTrip(const QString &trip
     return QString::fromStdString(entity.trip_update().stop_time_update(lastStopTimeIdx).stop_id());
 }
 
+bool RealTimeTripUpdate::stopIsEndOfAddedTrip(const QString &trip_id, qint64 stop_seq, const QString &stop_id) const
+{
+    qint32 recIdx = _addedTrips[trip_id];
+    const transit_realtime::FeedEntity &entity = _tripUpdate.entity(recIdx);
+    qint32 lastStopTimeIdx = entity.trip_update().stop_time_update_size() - 1;
+
+    if (_loosenStopSeqEnf) {
+        return QString::fromStdString(entity.trip_update().stop_time_update(lastStopTimeIdx).stop_id()) == stop_id;
+    } else {
+        return QString::fromStdString(entity.trip_update().stop_time_update(lastStopTimeIdx).stop_id()) == stop_id &&
+               entity.trip_update().stop_time_update(lastStopTimeIdx).stop_sequence() == stop_seq;
+    }
+}
+
 const QString RealTimeTripUpdate::getRouteID(const QString &trip_id) const
 {
     QString routeIDrt;
