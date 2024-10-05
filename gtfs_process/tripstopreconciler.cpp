@@ -194,8 +194,12 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                                                    tripRecord.realTimeDeparture);
 
                         // Trip has an arrival time, so we can mark a trip as arriving withing 30 seconds
-                        if (!predictArrUTC.isNull() && _agencyTime.secsTo(predictArrUTC) < 30)
-                            tripRecord.tripStatus = ARRIVE;
+                        if (!predictArrUTC.isNull()) {
+                            if (_agencyTime.secsTo(predictArrUTC) < 0)
+                                tripRecord.tripStatus = IRRELEVANT;
+                            else if (_agencyTime.secsTo(predictArrUTC) < 30)
+                                tripRecord.tripStatus = ARRIVE;
+                        }
 
                         // Trip has already departed, still shows up in the feed and departed more than 30 seconds ago
                         qint64 secondsUntilDeparture = _agencyTime.secsTo(predictDepUTC);
@@ -299,8 +303,12 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                 tripRecord.realTimeOffsetSec = 0;
 
                 // Trip has an arrival time, so we can mark a trip as arriving withing 30 seconds
-                if (!prArrTime.isNull() && _agencyTime.secsTo(prArrTime) < 30)
-                    tripRecord.tripStatus = ARRIVE;
+                if (!prArrTime.isNull()) {
+                    if (_agencyTime.secsTo(prArrTime) < 0)
+                        tripRecord.tripStatus = IRRELEVANT;
+                    else if (_agencyTime.secsTo(prArrTime) < 30)
+                        tripRecord.tripStatus = ARRIVE;
+                }
 
                 // Trip has already departed but still shows up in the feed (and within 30 seconds since leaving)
                 qint64 secondsUntilDeparture = _agencyTime.secsTo(prDepTime);

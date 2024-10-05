@@ -17,6 +17,8 @@ THIS RELEASE: Version 2.4.0
 - Show after midnight explicitly in TRI, TSR, TSS and date-specific variants thereof.
 - Indicate that supplemental trips are terminating inside NEX/NCF messages. Note: you can't
   infer the start of a supplemental trip because there's no 'entire' schedule to reference.
+- Tweaked arrival status of trips that have no departure and would just stay as ARRV after
+  arriving when not yet removed from the realtime feed.
 
 ! A future release (2.5.x) will have to rethink how real-time trips may keep a sequence,
   but technically service different stops (i.e. a different platform than in the schedule
