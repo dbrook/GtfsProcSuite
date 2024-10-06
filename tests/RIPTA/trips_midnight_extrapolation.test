@@ -86,6 +86,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "dep_time": "Fri 00:10",
             "drop_off_type": 0,
             "headsign": "PAWTUCKET via NORTH MAIN",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:12",
@@ -108,6 +109,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "dep_time": "Fri 00:22",
             "drop_off_type": 0,
             "headsign": "WOONSOCKET",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:18",
@@ -130,6 +132,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "dep_time": "Fri 00:30",
             "drop_off_type": 0,
             "headsign": "PAWTUCKET via NORTH MAIN",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:30",
@@ -152,6 +155,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "dep_time": "Fri 00:50",
             "drop_off_type": 0,
             "headsign": "PAWTUCKET via NORTH MAIN",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:50",

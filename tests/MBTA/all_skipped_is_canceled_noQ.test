@@ -93,6 +93,7 @@ revealing NODATA when the stop ID nor stop sequence are matched
             "dep_time": "Sun 11:20",
             "drop_off_type": 0,
             "headsign": "Forest Hills",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Sun 11:03",
@@ -115,6 +116,7 @@ revealing NODATA when the stop ID nor stop sequence are matched
             "dep_time": "Sun 11:30",
             "drop_off_type": 0,
             "headsign": "Forest Hills",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Sun 11:13",
@@ -155,6 +157,7 @@ revealing NODATA when the stop ID nor stop sequence are matched
             "dep_time": "Sun 11:22",
             "drop_off_type": 0,
             "headsign": "Forest Hills",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",

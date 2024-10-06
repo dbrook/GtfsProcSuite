@@ -34,6 +34,8 @@ typedef struct {
     // Arrival and Departure Times for the stop ID in the trip. If no time is present, the value is StopTimes::kNoTime
     qint32  arrival_time;     // in seconds relative to local noon of the operating day (can exceed 12-hours!)
     qint32  departure_time;   // in seconds relative to local noon of the operating day (can exceed 12-hours!)
+    double  distance;         // Distance traveled over the route (optional) ... used for interpolating times
+    bool    interpolated;     // The stop times were interpolated based on distance/velocity and surrounding times
 
     /*
      * There are several more feeds which are not mandatory (nor are interesting here), so we will skip them for now.
@@ -42,8 +44,8 @@ typedef struct {
      * so it is up to the front-end to decide how/if to show this information (as this software is intended to be used
      * as more of a wait / countdown for service, the pickup types might be the most interesting
      */
-    qint16  drop_off_type;
-    qint16  pickup_type;
+    qint8   drop_off_type;
+    qint8   pickup_type;
 
     QString stop_id;
 
@@ -79,7 +81,10 @@ public:
 
     // Notion of local noon (for offset calculations)
     static qint32 computeSecondsLocalNoonOffset(QStringView hhmmssTime);  // Send time as (h)h:mm:ss
+
     static const qint32 s_localNoonSec;
+
+    static const double s_noDistance;
 
 private:
     static void stopTimesCSVOrder(const QVector<QString> csvHeader,
@@ -90,7 +95,8 @@ private:
                                   qint8 &depTimePos,
                                   qint8 &dropOffPos,
                                   qint8 &pickupPos,
-                                  qint8 &stopHeadsignPos);
+                                  qint8 &stopHeadsignPos,
+                                  qint8 &sdtPos);
 
     bool operator <(const StopTimeRec &strec) const;
 

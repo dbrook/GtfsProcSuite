@@ -19,6 +19,7 @@ THIS RELEASE: Version 2.4.0
   infer the start of a supplemental trip because there's no 'entire' schedule to reference.
 - Tweaked arrival status of trips that have no departure and would just stay as ARRV after
   arriving when not yet removed from the realtime feed.
+- Finally added interpolation support for schedules containing traveled distances and time gaps.
 
 ! A future release (2.5.x) will have to rethink how real-time trips may keep a sequence,
   but technically service different stops (i.e. a different platform than in the schedule

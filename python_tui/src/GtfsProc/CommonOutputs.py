@@ -23,7 +23,7 @@ def decode(gtfs_proc_deco, dd, resp):
     fixed_area = gtfs_proc_deco.get_fixed_portion(resp)
     output_zone = []
     for fix_text in fixed_area:
-        output_zone.append(urwid.Text(fix_text, wrap='ellipsis'))
+        output_zone.append(urwid.Text(fix_text, wrap='space'))
     tables = gtfs_proc_deco.get_tabular_portion(resp)
     if type(tables) is str:
         # When an unprocessed/unformatted response is received, just dump to scrollable area

@@ -87,6 +87,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "dep_time": "Fri 00:32",
             "drop_off_type": 0,
             "headsign": "Lansdale",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:32",
@@ -127,6 +128,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "dep_time": "Fri 00:46",
             "drop_off_type": 0,
             "headsign": "Malvern",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:46",

@@ -89,6 +89,7 @@ and canceled).
             "dep_time": "Fri 00:07",
             "drop_off_type": 0,
             "headsign": "Watertown Square",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:08",
@@ -111,6 +112,7 @@ and canceled).
             "dep_time": "Fri 00:27",
             "drop_off_type": 0,
             "headsign": "Watertown Square",
+            "interp": false,
             "pickup_type": 0,
             "route_id": "71",
             "short_name": "",
@@ -125,6 +127,7 @@ and canceled).
             "dep_time": "Sat 00:27",
             "drop_off_type": 0,
             "headsign": "Watertown Square",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:32",
@@ -147,6 +150,7 @@ and canceled).
             "dep_time": "Fri 00:52",
             "drop_off_type": 0,
             "headsign": "Watertown Square",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:50",
@@ -169,6 +173,7 @@ and canceled).
             "dep_time": "Fri 01:17",
             "drop_off_type": 0,
             "headsign": "Watertown Square",
+            "interp": false,
             "pickup_type": 0,
             "route_id": "71",
             "short_name": "",
@@ -201,6 +206,7 @@ and canceled).
             "dep_time": "Fri 00:07",
             "drop_off_type": 0,
             "headsign": "Wonderland",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",
@@ -223,6 +229,7 @@ and canceled).
             "dep_time": "-",
             "drop_off_type": 0,
             "headsign": "Wonderland",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:09",
@@ -263,6 +270,7 @@ and canceled).
             "dep_time": "-",
             "drop_off_type": 0,
             "headsign": "Airport",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:09",

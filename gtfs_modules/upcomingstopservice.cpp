@@ -237,6 +237,7 @@ void UpcomingStopService::fillTripData(const StopRecoTripRec &rts, QJsonObject &
     stopTripItem["drop_off_type"]   = rts.dropoffType;
     stopTripItem["trip_begins"]     = rts.beginningOfTrip;
     stopTripItem["trip_terminates"] = rts.endOfTrip;
+    stopTripItem["interp"]          = rts.interp;
 
     if (format12h) {
         stopTripItem["dep_time"]        = rts.schDepTime.isNull() ? "-" : rts.schDepTime.toString("ddd h:mma");

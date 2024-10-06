@@ -128,6 +128,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 18:20",
             "drop_off_type": 0,
             "headsign": "Englewood Station",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 18:23",
@@ -150,6 +151,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 18:23",
             "drop_off_type": 0,
             "headsign": "Nine Mile 83D S Quebec Way",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 18:24",
@@ -172,6 +174,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 19:06",
             "drop_off_type": 0,
             "headsign": "Highlands Ranch",
+            "interp": false,
             "pickup_type": 0,
             "route_id": "0_merged_115125993",
             "short_name": "",
@@ -186,6 +189,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 19:08",
             "drop_off_type": 0,
             "headsign": "Nine Mile",
+            "interp": false,
             "pickup_type": 0,
             "route_id": "83L",
             "short_name": "",
@@ -218,6 +222,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 18:22",
             "drop_off_type": 0,
             "headsign": "Englewood Station",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",
@@ -240,6 +245,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 18:25",
             "drop_off_type": 0,
             "headsign": "Nine Mile 83D S Quebec Way",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",
@@ -262,6 +268,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 18:37",
             "drop_off_type": 0,
             "headsign": "Highlands Ranch",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",
@@ -284,6 +291,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 18:40",
             "drop_off_type": 0,
             "headsign": "Nine Mile",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",
@@ -306,6 +314,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 18:53",
             "drop_off_type": 0,
             "headsign": "Englewood Station",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",
@@ -328,6 +337,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 19:08",
             "drop_off_type": 0,
             "headsign": "Highlands Ranch",
+            "interp": false,
             "pickup_type": 0,
             "route_id": "0_merged_115125993",
             "short_name": "",
@@ -342,6 +352,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 19:10",
             "drop_off_type": 0,
             "headsign": "Nine Mile",
+            "interp": false,
             "pickup_type": 0,
             "route_id": "83L",
             "short_name": "",
@@ -374,6 +385,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 18:25",
             "drop_off_type": 0,
             "headsign": "Englewood Station",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 18:28",
@@ -396,6 +408,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 18:40",
             "drop_off_type": 0,
             "headsign": "Highlands Ranch",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",
@@ -418,6 +431,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 18:55",
             "drop_off_type": 0,
             "headsign": "Englewood Station",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",
@@ -440,6 +454,7 @@ NEX/NCF unless they are filtered out.
             "dep_time": "Fri 19:10",
             "drop_off_type": 0,
             "headsign": "Highlands Ranch",
+            "interp": false,
             "pickup_type": 0,
             "route_id": "0_merged_115125993",
             "short_name": "",

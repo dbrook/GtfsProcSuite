@@ -1489,6 +1489,17 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             0/Empty = Regular pickup, 1 = No pickup, 2 = Call agency to arrange pickup, 3 = Arrange/Flag operator
         </td>
     </tr>
+    <tr class="bResponseField">
+        <td class="fixed">
+            interp
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the scheduled stop time was determined by interpolating time and distance between surrounding stop times
+        </td>
+    </tr>
     <tr class="abResponseField">
         <td class="fixed">
             skipped
@@ -2315,6 +2326,17 @@ Fields in gray shadow are only available in TRI requests, fields in orange shado
             True if the trip begins at the requested Stop ID
         </td>
     </tr>
+    <tr>
+        <td class="fixed">
+            interp
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the scheduled stop time was determined by interpolating time and distance between surrounding stop times
+        </td>
+    </tr>
 </table>
 
 <h2>Station / Stop ID Details Display (STA)</h2>
@@ -3003,6 +3025,17 @@ NEX {look-ahead minutes} {stopID1}|{stopID2}|...|{stopIDn}
         </td>
         <td>
             True if this stop if the last stop of the trip
+        </td>
+    </tr>
+    <tr>
+        <td class="fixed">
+            interp
+        </td>
+        <td class="fixed">
+            Boolean
+        </td>
+        <td>
+            True if the scheduled stop time was determined by interpolating time and distance between surrounding stop times
         </td>
     </tr>
     <tr>

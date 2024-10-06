@@ -251,6 +251,10 @@ class GtfsProcDecoder:
                         skip,
                     ])
                 else:
+                    if stop['interp']:
+                        interpolated = 'i'
+                    else:
+                        interpolated = ' '
                     if stop['arr_next_day']:
                         arr_next_day = '+'
                     else:
@@ -265,11 +269,14 @@ class GtfsProcDecoder:
                         stop['stop_name'],
                         "{:1}{:>7}".format(arr_next_day, stop['arr_time']),
                         "{:1}{:>7}".format(dep_next_day, stop['dep_time']),
+                        interpolated,
                         get_pickup(stop['pickup_type']),
                         get_dropoff(stop['drop_off_type']),
                     ])
                 commands.append([
                     f'STA {stop["stop_id"]}',
+                    f'TSS {stop["stop_id"]}',
+                    f'TSD D {stop["stop_id"]}',
                     f'NCF 60 {stop["stop_id"]}',
                     f'NCF 120 {stop["stop_id"]}',
                     f'NCF 240 {stop["stop_id"]}',
@@ -279,14 +286,14 @@ class GtfsProcDecoder:
                 ])
             if is_rt:
                 name = '[ Real-Time Predictions ]'
-                cols = [1, 1, 3, None, None, None, None, None]
+                cols = [1, 2, 3, None, None, None, None, None]
                 headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE  ', 'A', 'DEPART  ', 'D', 'S']
                 aligns = ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left']
             else:
                 name = '[ Trip Schedule (Static Dataset) ]'
-                cols = [1, 1, 3, None, None, None, None]
-                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE  ', 'DEPART  ', 'P', 'D']
-                aligns = ['left', 'left', 'left', 'left', 'left', 'left', 'left']
+                cols = [1, 2, 3, None, None, None, None, None]
+                headers = ['SEQ', 'STOP ID', 'STOP NAME', 'ARRIVE  ', 'DEPART  ', 'I', 'P', 'D']
+                aligns = ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left']
             return [TabularData(name, cols, headers, aligns, ret_list, commands, True)]
         elif message_type == 'STA':
             routes_list = []
@@ -547,6 +554,8 @@ class GtfsProcDecoder:
                 ])
                 stop_cmds.append([
                     f"STA {stop['stop_id']}",
+                    f'TSS {stop["stop_id"]}',
+                    f'TSD D {stop["stop_id"]}',
                     f"NCF 60 {stop['stop_id']}",
                     f"NCF 120 {stop['stop_id']}",
                     f"NCF 240 {stop['stop_id']}",
@@ -603,6 +612,8 @@ class GtfsProcDecoder:
                         start_term = 'T'
                     elif trip['trip_begins']:
                         start_term = 'S'
+                    elif trip['interp']:
+                        start_term = 'i'
                     else:
                         start_term = ' '
                     if trip['arr_next_day']:
@@ -790,6 +801,8 @@ class GtfsProcDecoder:
                 start_term = 'T'
             elif trip['trip_begins']:
                 start_term = 'S'
+            elif trip['interp']:
+                start_term = 'i'
             else:
                 start_term = ' '
             pickup = get_pickup(trip['pickup_type'])

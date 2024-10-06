@@ -110,6 +110,7 @@ void TripsServingStop::fillUnifiedTripDetailsForArray(const QString            &
     singleStopJSON["short_name"]    = (*tripDB)[tripID].trip_short_name;
     singleStopJSON["drop_off_type"] = (*stopTimes)[tripID].at(stopTripIdx).drop_off_type;
     singleStopJSON["pickup_type"]   = (*stopTimes)[tripID].at(stopTripIdx).pickup_type;
+    singleStopJSON["interp"]        = (*stopTimes)[tripID].at(stopTripIdx).interpolated;
 
     // The service (applicable days, dates, exceptions, additions) details of each trip are not very interesting
     // on transactions where a specific time is requested, so we provide the option to NOT bother sending it in the

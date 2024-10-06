@@ -241,10 +241,6 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                     } // End of processing an actual trip with real-time information (non-cancelled, non-stop-skip)
                 } // End of active (real-time) trip handling condition
             } // End of loop on trips
-
-            // FIXME? Post-process the trips to remove duplicates across service days when doing POSIX-time stop
-            //        time updates for agencies (like Denver RTD) that don't put a start date?
-
         } // End of loop on routes
 
         // Add the 'added' trips (mark with SUPPLEMENT)
@@ -263,7 +259,10 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
 
                 // We cannot reliably map information of a real-time-only trip
                 tripRecord.beginningOfTrip = false;
-                tripRecord.endOfTrip       = rActiveFeed->stopIsEndOfAddedTrip(tripAndIndex.first, tripAndIndex.second, stopID);
+                tripRecord.endOfTrip       = rActiveFeed->stopIsEndOfAddedTrip(tripAndIndex.first,
+                                                                               tripAndIndex.second,
+                                                                               stopID);
+                tripRecord.interp          = false;
                 tripRecord.dropoffType     = 0;
                 tripRecord.pickupType      = 0;
                 tripRecord.tripID          = tripAndIndex.first;
@@ -374,6 +373,7 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
         tripRec.stopSequenceNum = (*sStopTimes)[curTripId].at(stopTripIdx).stop_sequence;
         tripRec.beginningOfTrip = (stopTripIdx == 0) ? true : false;
         tripRec.endOfTrip       = (stopTripIdx == (*sStopTimes)[curTripId].length() - 1) ? true : false;
+        tripRec.interp          = (*sStopTimes)[curTripId].at(stopTripIdx).interpolated;
         tripRec.dropoffType     = (*sStopTimes)[curTripId].at(stopTripIdx).drop_off_type;
         tripRec.pickupType      = (*sStopTimes)[curTripId].at(stopTripIdx).pickup_type;
         tripRec.headsign        = ((*sStopTimes)[curTripId].at(stopTripIdx).stop_headsign != "")

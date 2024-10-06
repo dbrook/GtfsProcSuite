@@ -130,6 +130,7 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
             singleStopJSON["stop_name"]     = (*_stops)[stop.stop_id].stop_name;
             singleStopJSON["drop_off_type"] = stop.drop_off_type;
             singleStopJSON["pickup_type"]   = stop.pickup_type;
+            singleStopJSON["interp"]        = stop.interpolated;
             tripStopArray.push_back(singleStopJSON);
         }
         resp["stops"] = tripStopArray;
