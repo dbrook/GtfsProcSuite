@@ -49,6 +49,8 @@ class GtfsProcDecoder:
             return 'Real-Time Data Analysis'
         elif code == 'SBS':
             return 'Scheduled Service Between Stops'
+        elif code == 'SNT':
+            return 'Stops in Database without Trips'
         else:
             return 'UNKNOWN RESPONSE'
 
@@ -196,6 +198,8 @@ class GtfsProcDecoder:
                 f"Destin Stop Desc . . {data['des_stop_desc']}",
                 f"Service Date . . . . {data['service_date']}",
             ]
+        elif message_type == 'SNT':
+            return []
         else:
             return ['Response not yet formattable from GtfsProcDecoder']
 
@@ -772,6 +776,24 @@ class GtfsProcDecoder:
                 trip_list,
                 trip_cmds,
                 True,
+            )]
+        elif message_type == 'SNT':
+            stop_list = []
+            for stop in data['stops']:
+                stop_list.append([
+                    stop['stop_id'],
+                    stop['stop_name'],
+                    stop['stop_desc'],
+                    '{:>21}'.format(f"{stop['loc_lat'][:10]},{stop['loc_lon'][:10]}"),
+                ])
+            return [TabularData(
+                "",
+                [1, 2, 2, None],
+                ['ID', 'NAME', 'DESC', 'LOC                  '],
+                ['left', 'left', 'left', 'right'],
+                stop_list,
+                [],
+                False,
             )]
         else:
             return json.dumps(data)
