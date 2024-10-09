@@ -50,7 +50,7 @@ class GtfsProcDecoder:
         elif code == 'SBS':
             return 'Scheduled Service Between Stops'
         elif code == 'SNT':
-            return 'Stops in Database without Trips'
+            return 'Stops Without Any Trips'
         else:
             return 'UNKNOWN RESPONSE'
 
@@ -194,12 +194,12 @@ class GtfsProcDecoder:
             return [
                 f"Origin Stop  . . . . {data['ori_stop_name']}",
                 f"Origin Stop Desc . . {data['ori_stop_desc']}",
-                f"Destin Stop .... . . {data['des_stop_name']}",
+                f"Destin Stop  . . . . {data['des_stop_name']}",
                 f"Destin Stop Desc . . {data['des_stop_desc']}",
                 f"Service Date . . . . {data['service_date']}",
             ]
         elif message_type == 'SNT':
-            return []
+            return [f"Total Stops: {len(data['stops'])}"]
         else:
             return ['Response not yet formattable from GtfsProcDecoder']
 
