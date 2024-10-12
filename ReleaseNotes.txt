@@ -1,10 +1,7 @@
 THIS RELEASE: Version 2.4.0
 ---------------------------
 - Changed how GtfsProc startup works, now replaces command-line arguments with a configuration
-  file since we're also supporting API-key access to Trip Update feeds (and those should stay
-  out of your command line history for safety)!
-- As mentioned above, real-time trip update feeds that require API keys to access (either as
-  URL parameters or HTTP headers) are now supported.
+  file since we're also supporting API-key access to Trip Update feeds.
 - When using RTF for trips that use the delay-based real-time trip updates, the arr_time and
   dep_time outputs will now display the lateness or earliness in seconds with an L or R
   prefix, respectively (previously, this message would always be "-" so now it is useful).
@@ -20,6 +17,9 @@ THIS RELEASE: Version 2.4.0
 - Tweaked arrival status of trips that have no departure and would just stay as ARRV after
   arriving when not yet removed from the realtime feed.
 - Finally added interpolation support for schedules containing traveled distances and time gaps.
+
+! Work-in-progress: support for HTTP Header Authentication for real-time trip update access.
+  (Unable to find a suitable example yet)
 
 ! A future release (2.5.x) will have to rethink how real-time trips may keep a sequence,
   but technically service different stops (i.e. a different platform than in the schedule
