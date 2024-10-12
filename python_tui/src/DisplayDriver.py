@@ -55,7 +55,7 @@ class DisplayDriver:
                 self.gtfs_view.focus_position = 'footer'
         elif key in {"f7"}:
             if self.qb_select is None and self.quick_brw is None:
-                self.draw_qb_select(['SDS', 'RDS', 'RTE', 'RTI'])
+                self.draw_qb_select(['RTE', 'SDS', 'RDS', 'RTI'])
             else:
                 self.gtfs_cmmd.set_edit_text(self.qb_command)
                 self.loop.widget = self.gtfs_view
