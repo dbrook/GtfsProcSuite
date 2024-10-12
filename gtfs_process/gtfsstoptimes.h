@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -34,7 +34,7 @@ typedef struct {
     // Arrival and Departure Times for the stop ID in the trip. If no time is present, the value is StopTimes::kNoTime
     qint32  arrival_time;     // in seconds relative to local noon of the operating day (can exceed 12-hours!)
     qint32  departure_time;   // in seconds relative to local noon of the operating day (can exceed 12-hours!)
-    double  distance;         // Distance traveled over the route (optional) ... used for interpolating times
+    float   distance;         // Distance traveled over the route (optional) ... used for interpolating times
     bool    interpolated;     // The stop times were interpolated based on distance/velocity and surrounding times
 
     /*
