@@ -12,7 +12,7 @@
 # $restartHour) if new data is available from the $agencyDataLoc. If it is, then
 # the server will be killed an restarted with the new data automatically.
 #
-# (c) 2020, Daniel Brook (danb358@gmail.com)
+# (c) 2020-2024, Daniel Brook (danb358@gmail.com)
 ###################################################################################
 
 ##############################################
@@ -21,6 +21,9 @@
 
 # GtfsProc server program location
 my $gtfsProcServer = "/opt/gtfsproc/gtfsproc";
+
+# Path to the server configuration
+my $configFilePath = "/opt/gtfsproc/temp_agency.ini";
 
 # Web location of Transit Operator's Static Dataset
 my $agencyDataLoc  = "";
@@ -43,20 +46,10 @@ my $tmpStaticStat  = "";
 # Example:
 #my $tmpStaticStat  = "/opt/gtfsproc/staticdata_staged.dat";
 
-# GtfsProc Server Port to listen on
-my $portNum        = "5000";
-
-# Additional options for GtfsProc, like realtime data location and refresh interval
-# See gtfsproc --help to find the other options (besides -p and -d which are mandatory)
-my $addedProcOpts  = "-t 1";
-# Example:
-#my $addedProcOpts  = "-t 1 -r https://cdn.mbta.com/realtime/TripUpdates.pb -u 90";
-
 # The hour (in 24-hour format of the system's local time) to attempt to restart and fetch
 # You should pick an hour that fits your transit agency (like if they operate after midnight)
 # Example: for 04:00 am each day, use "04", for 11:00 pm each day, use "23"
 my $restartHour    = "03";
-
 
 
 ###########################################################
@@ -64,7 +57,7 @@ my $restartHour    = "03";
 ###########################################################
 
 # Build the runtime command
-$gtfsProcLine = "$gtfsProcServer -d $staticDataLoc -p $portNum $addedProcOpts";
+$gtfsProcLine = "$gtfsProcServer -c $configFilePath";
 
 # Check for new data using curl with header information
 sub UpdateAvailable

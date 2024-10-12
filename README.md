@@ -1,7 +1,14 @@
-GtfsProcSuite
-=============
+# GtfsProcSuite
+
 Roll your own public transit API backend with GTFS and GTFS-Realtime data without the need to make agency-specific
 clients! GtfsProc integrates GTFS static and realtime data feeds into a single unified server interface.
+
+## Recent Major Changes
+
+As of version 2.4.0, launching the GtfsProc server is done using a configuration INI file instead of command-line
+arguments. See the included sample_serverconfig.ini file for details.
+
+## About
 
 GtfsProc is a GTFS schedule processor which loads transit agency data into memory and associates routes, trips, and
 stops, responding to lookup requests made from clients using Qt TCP Sockets with JSON-encoded results. The main use case
@@ -23,7 +30,7 @@ GtfsProcSuite consists of 3 applications:
 The Suite now includes a front-end browser application, see the `python_tui` directory for details.
 
 A PHP-based sample front-end application is being tested on Massachusetts Bay Transportation Authority data at
-http://www.danbrook.org/gtfsproc
+[my website](http://www.danbrook.org/gtfsproc).
 
 Certain agencies also provide modification times on their zipped feeds, so using the GtfsProc_Agent.pl script can
 automatically check for updates in the background and recycle the server when new data is found. The following

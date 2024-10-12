@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -144,7 +144,6 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
 
                 // Do not return undefined values for offset for canceled / skipping-stop trips
                 tripRecord.realTimeOffsetSec = 0;
-
                 if (rActiveFeed->scheduledTripIsRunning(tripRecord.tripID,
                                                         tripRecord.tripServiceDate,
                                                         tripRecord.tripFirstDeparture.date(),
@@ -195,8 +194,12 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                                                    tripRecord.realTimeDeparture);
 
                         // Trip has an arrival time, so we can mark a trip as arriving withing 30 seconds
-                        if (!predictArrUTC.isNull() && _agencyTime.secsTo(predictArrUTC) < 30)
-                            tripRecord.tripStatus = ARRIVE;
+                        if (!predictArrUTC.isNull()) {
+                            if (_agencyTime.secsTo(predictArrUTC) < 0)
+                                tripRecord.tripStatus = IRRELEVANT;
+                            else if (_agencyTime.secsTo(predictArrUTC) < 30)
+                                tripRecord.tripStatus = ARRIVE;
+                        }
 
                         // Trip has already departed, still shows up in the feed and departed more than 30 seconds ago
                         qint64 secondsUntilDeparture = _agencyTime.secsTo(predictDepUTC);
@@ -256,7 +259,10 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
 
                 // We cannot reliably map information of a real-time-only trip
                 tripRecord.beginningOfTrip = false;
-                tripRecord.endOfTrip       = false;
+                tripRecord.endOfTrip       = rActiveFeed->stopIsEndOfAddedTrip(tripAndIndex.first,
+                                                                               tripAndIndex.second,
+                                                                               stopID);
+                tripRecord.interp          = false;
                 tripRecord.dropoffType     = 0;
                 tripRecord.pickupType      = 0;
                 tripRecord.tripID          = tripAndIndex.first;
@@ -296,8 +302,12 @@ void TripStopReconciler::getTripsByRoute(QHash<QString, StopRecoRouteRec> &route
                 tripRecord.realTimeOffsetSec = 0;
 
                 // Trip has an arrival time, so we can mark a trip as arriving withing 30 seconds
-                if (!prArrTime.isNull() && _agencyTime.secsTo(prArrTime) < 30)
-                    tripRecord.tripStatus = ARRIVE;
+                if (!prArrTime.isNull()) {
+                    if (_agencyTime.secsTo(prArrTime) < 0)
+                        tripRecord.tripStatus = IRRELEVANT;
+                    else if (_agencyTime.secsTo(prArrTime) < 30)
+                        tripRecord.tripStatus = ARRIVE;
+                }
 
                 // Trip has already departed but still shows up in the feed (and within 30 seconds since leaving)
                 qint64 secondsUntilDeparture = _agencyTime.secsTo(prDepTime);
@@ -363,6 +373,7 @@ void TripStopReconciler::addTripRecordsForServiceDay(const QString    &routeID,
         tripRec.stopSequenceNum = (*sStopTimes)[curTripId].at(stopTripIdx).stop_sequence;
         tripRec.beginningOfTrip = (stopTripIdx == 0) ? true : false;
         tripRec.endOfTrip       = (stopTripIdx == (*sStopTimes)[curTripId].length() - 1) ? true : false;
+        tripRec.interp          = (*sStopTimes)[curTripId].at(stopTripIdx).interpolated;
         tripRec.dropoffType     = (*sStopTimes)[curTripId].at(stopTripIdx).drop_off_type;
         tripRec.pickupType      = (*sStopTimes)[curTripId].at(stopTripIdx).pickup_type;
         tripRec.headsign        = ((*sStopTimes)[curTripId].at(stopTripIdx).stop_headsign != "")
@@ -421,8 +432,8 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
                                          QHash<QString, StopRecoRouteRec> &fullTrips,
                                          QHash<QString, StopRecoRouteRec> &relevantRouteTrips)
 {
-    qint32 nbTripsForRoute = 0;
-    for (StopRecoTripRec &tripRecord : fullTrips[routeID].tripRecos) {
+    for (quint32 tripIdx = 0; tripIdx < fullTrips[routeID].tripRecos.length(); ++tripIdx) {
+        StopRecoTripRec &tripRecord = fullTrips[routeID].tripRecos[tripIdx];
         QDateTime stopTime;
         if (tripRecord.realTimeDataAvail && tripRecord.stopStatus != "SCHD") {
             // Use real-time data for the lookahead determination unless the trip is running but no data is present...
@@ -483,11 +494,61 @@ void TripStopReconciler::invalidateTrips(const QString                    &route
                 }
             }
         }
+    }
 
+    // If real-time trip-update date matching is disabled (-l 2) then it is possible previous/next
+    // service day trips are mistakenly listed with complete nonsense offsets
+    if (_realTimeMode && rActiveFeed->getDateEnforcement() == NO_MATCHING) {
+        QHash<QString, QVector<quint32>> knownTrips;
+        for (quint32 tripIdx = 0; tripIdx < fullTrips[routeID].tripRecos.length(); ++tripIdx) {
+            StopRecoTripRec &tripRecord = fullTrips[routeID].tripRecos[tripIdx];
+            knownTrips[tripRecord.tripID].append(tripIdx);
+        }
+
+        // For each of the now-known trips, see which of the multiple trips (spanning the up-to 3 service days) has
+        // the least amount of offset ... that is probably the most-relevant one and the others can be expunged.
+        for (const QString &tripId : knownTrips.keys()) {
+            bool allSame = true;
+            qint64 firstOffset = fullTrips[routeID].tripRecos[knownTrips[tripId][0]].realTimeOffsetSec;
+            for (quint32 tripIdx = 1; tripIdx < knownTrips[tripId].length(); ++tripIdx) {
+                if (firstOffset != fullTrips[routeID].tripRecos[knownTrips[tripId][tripIdx]].realTimeOffsetSec) {
+                    allSame = false;
+                    break;
+                }
+            }
+            if (allSame) {
+                // Nothing to invalidate if all delays across all trips are identical
+                continue;
+            }
+            qint64 smallestOffsetIdx = -1;
+            qint64 smallestOffsetAbs = 0;
+            for (quint32 tripIdx = 0; tripIdx < knownTrips[tripId].length(); ++tripIdx) {
+                qint64 offsetAbs = abs(fullTrips[routeID].tripRecos[knownTrips[tripId][tripIdx]].realTimeOffsetSec);
+                if (smallestOffsetIdx == -1) {
+                    smallestOffsetAbs = offsetAbs;
+                    smallestOffsetIdx = tripIdx;
+                }
+                if (offsetAbs < smallestOffsetAbs) {
+                    smallestOffsetAbs = offsetAbs;
+                    smallestOffsetIdx = tripIdx;
+                }
+            }
+            if (smallestOffsetIdx != -1) {
+                for (quint32 tripIdx = 0; tripIdx < knownTrips[tripId].length(); ++tripIdx) {
+                    StopRecoTripRec &tripRecord = fullTrips[routeID].tripRecos[knownTrips[tripId][tripIdx]];
+                    if (tripRecord.realTimeOffsetSec != smallestOffsetAbs) {
+                        tripRecord.tripStatus = IRRELEVANT;
+                    }
+                }
+            }
+        }
+    }
+
+    for (quint32 tripIdx = 0; tripIdx < fullTrips[routeID].tripRecos.length(); ++tripIdx) {
         // If we didn't mark the trip as irrelevant, then it shall count against the maxTripsForRoute and it can
         // be added to the output structure for output rendering
+        StopRecoTripRec &tripRecord = fullTrips[routeID].tripRecos[tripIdx];
         if (tripRecord.tripStatus != IRRELEVANT) {
-            ++nbTripsForRoute;
             relevantRouteTrips[routeID].tripRecos.push_back(tripRecord);
         }
     }

@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -106,8 +106,10 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
                 } else {
                     singleStopJSON["arr_time"] = arrivalTime.toString("hh:mm");
                 }
+                singleStopJSON["arr_next_day"] = OperatingDay::isNextActualDay(stop.arrival_time);
             } else {
                 singleStopJSON["arr_time"] = "-";
+                singleStopJSON["arr_next_day"] = false;
             }
 
             if (stop.departure_time != StopTimes::kNoTime) {
@@ -117,8 +119,10 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
                 } else {
                     singleStopJSON["dep_time"]  = departureTime.toString("hh:mm");
                 }
+                singleStopJSON["dep_next_day"] = OperatingDay::isNextActualDay(stop.departure_time);
             } else {
                 singleStopJSON["dep_time"]  = "-";
+                singleStopJSON["dep_next_day"] = false;
             }
 
             singleStopJSON["sequence"]      = stop.stop_sequence;
@@ -126,6 +130,7 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
             singleStopJSON["stop_name"]     = (*_stops)[stop.stop_id].stop_name;
             singleStopJSON["drop_off_type"] = stop.drop_off_type;
             singleStopJSON["pickup_type"]   = stop.pickup_type;
+            singleStopJSON["interp"]        = stop.interpolated;
             tripStopArray.push_back(singleStopJSON);
         }
         resp["stops"] = tripStopArray;
@@ -196,15 +201,27 @@ void TripScheduleDisplay::fillResponseData(QJsonObject &resp)
         for (const GTFS::rtStopTimeUpdate &rtsu : qAsConst(stopTimes)) {
             QJsonObject singleStopJSON;
             if (getStatus()->format12h()) {
-                singleStopJSON["arr_time"]  = (rtsu.arrTime.isNull()) ?
+                singleStopJSON["arr_time"] = (rtsu.arrTime.isNull()) ?
                                             "-" : rtsu.arrTime.toTimeZone(getAgencyTime().timeZone()).toString("h:mma");
-                singleStopJSON["dep_time"]  = (rtsu.depTime.isNull()) ?
+                if (singleStopJSON["arr_time"] == "-" && !rtsu.arrOffset.isEmpty()) {
+                    singleStopJSON["arr_time"] = rtsu.arrOffset;
+                }
+                singleStopJSON["dep_time"] = (rtsu.depTime.isNull()) ?
                                             "-" : rtsu.depTime.toTimeZone(getAgencyTime().timeZone()).toString("h:mma");
+                if (singleStopJSON["dep_time"] == "-" && !rtsu.depOffset.isEmpty()) {
+                    singleStopJSON["dep_time"] = rtsu.depOffset;
+                }
             } else {
-                singleStopJSON["arr_time"]  = (rtsu.arrTime.isNull()) ?
+                singleStopJSON["arr_time"] = (rtsu.arrTime.isNull()) ?
                                             "-" : rtsu.arrTime.toTimeZone(getAgencyTime().timeZone()).toString("hh:mm");
-                singleStopJSON["dep_time"]  = (rtsu.depTime.isNull()) ?
+                if (singleStopJSON["arr_time"] == "-" && !rtsu.arrOffset.isEmpty()) {
+                    singleStopJSON["arr_time"] = rtsu.arrOffset;
+                }
+                singleStopJSON["dep_time"] = (rtsu.depTime.isNull()) ?
                                             "-" : rtsu.depTime.toTimeZone(getAgencyTime().timeZone()).toString("hh:mm");
+                if (singleStopJSON["dep_time"] == "-" && !rtsu.depOffset.isEmpty()) {
+                    singleStopJSON["dep_time"] = rtsu.depOffset;
+                }
             }
             singleStopJSON["stop_id"]   = rtsu.stopID;
             singleStopJSON["stop_name"] = (*_stops)[rtsu.stopID].stop_name;

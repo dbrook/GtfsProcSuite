@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -44,7 +44,6 @@ RealTimeGateway &RealTimeGateway::inst()
 
 void RealTimeGateway::setRealTimeFeedPath(const QString      &realTimeFeedPath,
                                           qint32              refreshIntervalSec,
-                                          bool                showProtobuf,
                                           rtDateLevel         rtDateMatchLevel,
                                           bool                loosenStopSeqEnf,
                                           bool                allSkippedCan,
@@ -64,9 +63,6 @@ void RealTimeGateway::setRealTimeFeedPath(const QString      &realTimeFeedPath,
 
     // Upon the first call to setting the realtime path, the refresh should happen right away
     _latestRealTimeTxn = _nextFetchTimeUTC = QDateTime::currentDateTimeUtc();
-
-    // Render the protocol buffer to QDebug every time one is received
-    _debugProtobuf = showProtobuf;
 
     // Run-time matching and offset parameters
     _skipDateMatching = rtDateMatchLevel;
@@ -198,7 +194,6 @@ void RealTimeGateway::refetchData()
 
             if (!_dataPathLocal.isNull()) {
                 _sideA = new RealTimeTripUpdate(_dataPathLocal,
-                                                _debugProtobuf,
                                                 _skipDateMatching,
                                                 _loosenStopSeqEnf,
                                                 _allSkippedCan,
@@ -206,7 +201,6 @@ void RealTimeGateway::refetchData()
                                                 _staticStopTimeDB);
             } else {
                 _sideA = new RealTimeTripUpdate(GtfsRealTimePB,
-                                                _debugProtobuf,
                                                 _skipDateMatching,
                                                 _loosenStopSeqEnf,
                                                 _trace,
@@ -222,7 +216,6 @@ void RealTimeGateway::refetchData()
 
             if (!_dataPathLocal.isNull()) {
                 _sideB = new RealTimeTripUpdate(_dataPathLocal,
-                                                _debugProtobuf,
                                                 _skipDateMatching,
                                                 _loosenStopSeqEnf,
                                                 _allSkippedCan,
@@ -230,7 +223,6 @@ void RealTimeGateway::refetchData()
                                                 _staticStopTimeDB);
             } else {
                 _sideB = new RealTimeTripUpdate(GtfsRealTimePB,
-                                                _debugProtobuf,
                                                 _skipDateMatching,
                                                 _loosenStopSeqEnf,
                                                 _trace,

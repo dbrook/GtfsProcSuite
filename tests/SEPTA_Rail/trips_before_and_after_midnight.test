@@ -7,10 +7,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
 @End
 
 @StartParams
--dstatic
--u600
--l2
--rsepta_tripUpdates.pb
+-ctrips_before_and_after_midnight.ini
 -f2020,5,22,0,30,30
 @End
 
@@ -28,7 +25,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "url": "http://www.septa.org"
         }
     ],
-    "application": "GtfsProc 2.3.3",
+    "application": "GtfsProc 2.4.0",
 *   "appuptime_sec": 9,
 *   "dataloadtime_ms": 8,
     "error": 0,
@@ -90,6 +87,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "dep_time": "Fri 00:32",
             "drop_off_type": 0,
             "headsign": "Lansdale",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:32",
@@ -130,6 +128,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "dep_time": "Fri 00:46",
             "drop_off_type": 0,
             "headsign": "Malvern",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:46",

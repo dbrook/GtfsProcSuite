@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -29,6 +29,7 @@ namespace GTFS {
 
 const qint32 StopTimes::s_localNoonSec = 43200; // 12 * 60 * 60
 const qint32 StopTimes::kNoTime        = std::numeric_limits<qint32>::max();
+const double StopTimes::s_noDistance   = -10000;
 
 StopTimes::StopTimes(const QString dataRootPath, QObject *parent) : QObject(parent)
 {
@@ -37,9 +38,10 @@ StopTimes::StopTimes(const QString dataRootPath, QObject *parent) : QObject(pare
     // Read in the feed information
     qDebug() << "Starting Stop-Time Process ...";
     CsvProcess((dataRootPath + "/stop_times.txt").toUtf8(), &dataStore);
-    qint8 tripIdPos, stopSeqPos, stopIdPos, arrTimePos, depTimePos, dropOffPos, pickupPos, stopHeadsignPos;
+    qint8 tripIdPos, stopSeqPos, stopIdPos, arrTimePos, depTimePos, dropOffPos, pickupPos, stopHeadsignPos, sdtPos;
     stopTimesCSVOrder(dataStore.at(0),
-                      tripIdPos, stopSeqPos, stopIdPos, arrTimePos, depTimePos, dropOffPos, pickupPos, stopHeadsignPos);
+                      tripIdPos, stopSeqPos, stopIdPos, arrTimePos, depTimePos,
+                      dropOffPos, pickupPos, stopHeadsignPos, sdtPos);
 
     // Ingest the data, organize by trip_id
     for (int l = 1; l < dataStore.size(); ++l) {
@@ -48,17 +50,83 @@ StopTimes::StopTimes(const QString dataRootPath, QObject *parent) : QObject(pare
         stopTime.stop_id        = dataStore.at(l).at(stopIdPos);
         stopTime.arrival_time   = computeSecondsLocalNoonOffset(dataStore.at(l).at(arrTimePos));
         stopTime.departure_time = computeSecondsLocalNoonOffset(dataStore.at(l).at(depTimePos));
-        stopTime.drop_off_type  = (dropOffPos != -1)      ? dataStore.at(l).at(dropOffPos).toShort() : 0;
-        stopTime.pickup_type    = (pickupPos != -1)       ? dataStore.at(l).at(pickupPos).toShort()  : 0;
-        stopTime.stop_headsign  = (stopHeadsignPos != -1) ? dataStore.at(l).at(stopHeadsignPos)    : "";
+        stopTime.drop_off_type  = (dropOffPos != -1)      ? dataStore.at(l).at(dropOffPos).toShort() :  0;
+        stopTime.pickup_type    = (pickupPos != -1)       ? dataStore.at(l).at(pickupPos).toShort()  :  0;
+        stopTime.stop_headsign  = (stopHeadsignPos != -1) ? dataStore.at(l).at(stopHeadsignPos)      : "";
+        stopTime.distance       = (sdtPos != -1)          ? dataStore.at(l).at(sdtPos).toDouble()    : s_noDistance;
+        stopTime.interpolated   = false;
 
         this->stopTimeDb[dataStore.at(l).at(tripIdPos)].push_back(stopTime);
     }
 
     // The stop times aren't always sorted by the squence number (stop_sequence)
-    qDebug() << "  Sort StopTimes by Sequence within each TripID ...";
-    for (auto entry : this->stopTimeDb.keys()) {
-        std::sort(this->stopTimeDb[entry].begin(), this->stopTimeDb[entry].end(), StopTimes::compareByStopSequence);
+    qDebug() << "  Sort StopTimes by sequence within each trip ...";
+    for (const QString &tripId : this->stopTimeDb.keys()) {
+        std::sort(this->stopTimeDb[tripId].begin(), this->stopTimeDb[tripId].end(), StopTimes::compareByStopSequence);
+    }
+
+    // Identify trips that have distances and times that require interpolation
+    qDebug() << "  Interpolate schedules (as needed) for each trip ...";
+    for (const QString &tripId : this->stopTimeDb.keys()) {
+        quint32 tripHasInterp  = 0;
+        bool    tripAllHasDist = true;
+        for (const StopTimeRec &stopTime : this->stopTimeDb[tripId]) {
+            if (stopTime.arrival_time == kNoTime && stopTime.departure_time == kNoTime) {
+                ++tripHasInterp;
+            }
+            if (stopTime.distance == s_noDistance) {
+                tripAllHasDist = false;
+            }
+        }
+        // qDebug() << "    TripID" << tripId << " interp[" << tripHasInterp << "]  distance[" << tripAllHasDist << "]";
+
+        if (!tripAllHasDist || tripHasInterp == 0) continue;
+
+        // Find range to fill in / interpolate times for
+        bool startIdx = 0;
+        while (true) {
+            qint32 begTimeIdx   = -1;
+            qint32 begInterpIdx = -1;
+            qint32 endInterpIdx = -1;
+            qint32 endTimeIdx   = -1;
+            for (qint32 idx = startIdx; idx < this->stopTimeDb[tripId].length(); ++idx) {
+                if (this->stopTimeDb[tripId][idx].arrival_time == kNoTime  &&
+                    this->stopTimeDb[tripId][idx].departure_time == kNoTime  ) {
+                    begTimeIdx   = idx - 1;
+                    begInterpIdx = idx;
+                    startIdx     = idx;  // So it's known where to start on the next loop
+                    break;
+                }
+            }
+            if (begTimeIdx == -1) break;
+
+            for (qint32 idx = begInterpIdx; idx < this->stopTimeDb[tripId].length(); ++idx) {
+                if (!(this->stopTimeDb[tripId][idx].arrival_time == kNoTime   &&
+                      this->stopTimeDb[tripId][idx].departure_time == kNoTime)  ) {
+                    endTimeIdx   = idx;
+                    endInterpIdx = idx - 1;
+                    startIdx     = idx;  // So it's known where to start on the next loop
+                    break;
+                }
+            }
+            if (endTimeIdx == -1) break;
+
+            float begDist = this->stopTimeDb[tripId][begTimeIdx].distance;
+            float begTime = this->stopTimeDb[tripId][begTimeIdx].departure_time == kNoTime
+                                ? this->stopTimeDb[tripId][begTimeIdx].arrival_time
+                                : this->stopTimeDb[tripId][begTimeIdx].departure_time;
+            float endTime = this->stopTimeDb[tripId][endTimeIdx].arrival_time == kNoTime
+                                ? this->stopTimeDb[tripId][endTimeIdx].departure_time
+                                : this->stopTimeDb[tripId][endTimeIdx].arrival_time;
+            float avrgVel = (this->stopTimeDb[tripId][endTimeIdx].distance - begDist) / (endTime - begTime);
+
+            for (qint32 idx = begInterpIdx; idx <= endInterpIdx; ++idx) {
+                this->stopTimeDb[tripId][idx].arrival_time =
+                    (this->stopTimeDb[tripId][idx].distance - begDist) / avrgVel + begTime;
+                this->stopTimeDb[tripId][idx].departure_time = this->stopTimeDb[tripId][idx].arrival_time;
+                this->stopTimeDb[tripId][idx].interpolated = true;
+            }
+        }
     }
 }
 
@@ -86,10 +154,12 @@ void StopTimes::stopTimesCSVOrder(const QVector<QString> csvHeader,
                                   qint8 &depTimePos,
                                   qint8 &dropOffPos,
                                   qint8 &pickupPos,
-                                  qint8 &stopHeadsignPos)
+                                  qint8 &stopHeadsignPos,
+                                  qint8 &sdtPos)
 {
-    tripIdPos = stopSeqPos = stopIdPos = arrTimePos = depTimePos = dropOffPos = pickupPos = stopHeadsignPos = -1;
     qint8 position = 0;
+    tripIdPos = stopSeqPos = stopIdPos = arrTimePos = depTimePos = dropOffPos = pickupPos = stopHeadsignPos = sdtPos
+        = -1;
 
     for (const QString &item : csvHeader) {
         if (item == "trip_id") {
@@ -108,6 +178,8 @@ void StopTimes::stopTimesCSVOrder(const QVector<QString> csvHeader,
             pickupPos = position;
         } else if (item == "stop_headsign") {
             stopHeadsignPos = position;
+        } else if (item == "shape_dist_traveled") {
+            sdtPos = position;
         }
         ++position;
     }
@@ -116,9 +188,9 @@ void StopTimes::stopTimesCSVOrder(const QVector<QString> csvHeader,
 qint32 StopTimes::computeSecondsLocalNoonOffset(QStringView hhmmssTime)
 {
     /*
-     * Time comes in in the format of hh:mm:ss but with a 24+ hour format to deal with trip times that
-     * occur past midnight the following day but for operational trips that fall on the previous day's schedule
-     * It is not unusual to see times posted like 25:14 for a stop at 1:14 AM the following day, for instance
+     * Time comes in in the format of hh:mm:ss but with a 24+ hour format to deal with trip times that occur past
+     * midnight the following day but for operational trips that fall on the previous calendar day's schedule.
+     * It is not unusual to see times posted like 25:14 for a stop at 1:14 AM the following day, for instance.
      */
     if (hhmmssTime.isEmpty()) {
         return kNoTime;

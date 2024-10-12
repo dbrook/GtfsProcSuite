@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -45,7 +45,6 @@ public:
      * rtInterval:     number of seconds to wait between each refresh of the real-time data feed
      * frozenTime:     yyyy,mm,dd,hh,mm,ss to force the transactions to always process as if it is the date specified
      *                     NOTE: this is in the timezone of the GTFS agency.txt file time
-     * showProtobuf:   set to true to print realtime updates to a string on QDebug each time an update is received
      * use12h:         all date-times should render with AM/PM indicator using a 12-hour clock instead of default 24-h
      * rtDateMatchLev: real-time trip update date matching enforcement level
      * showTraces:     set to true if all transactions and real-time update operations should be logged to the terminal
@@ -58,7 +57,6 @@ public:
               QString  realTimePath,
               qint32   rtInterval,
               QString  frozenTime,
-              bool     showProtobuf,
               bool     use12h,
               quint32  rtDateMatchLev,
               bool     showTraces,

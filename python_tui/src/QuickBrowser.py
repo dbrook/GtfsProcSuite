@@ -10,7 +10,32 @@ class QuickBrowser:
         self.command = command
 
     def get_panel(self, parent_widget, dd) -> urwid.Overlay:
-        resp = self.gtfs_handler.req_resp(self.command)
+        try:
+            resp = self.gtfs_handler.req_resp(self.command)
+        except Exception as ex:
+            tmp_list_box = urwid.Filler(urwid.Text(f"Unexpected {ex=}, {type(ex)=})]"), "top")
+            output_panel = (urwid.Frame(
+                tmp_list_box,
+                header=urwid.AttrMap(urwid.Text('EXCEPTION ENCOUNTERED'), 'error'),
+                footer=urwid.Columns(
+                    [
+                        ('weight', 1, urwid.Text(' ')),
+                        ('pack', urwid.AttrMap(urwid.Text('F7: To Main'), 'keys')),
+                        ('pack', urwid.AttrMap(urwid.Text('ESC: Close'), 'keys')),
+                    ],
+                    dividechars=1,
+                ),
+                focus_part='body'
+            ))
+            qb_panel = urwid.Overlay(
+                urwid.LineBox(output_panel),
+                parent_widget,
+                align=urwid.CENTER,
+                width=(urwid.RELATIVE, 50),
+                valign=urwid.MIDDLE,
+                height=(urwid.RELATIVE, 20),
+            )
+            return qb_panel
         if resp['error'] != 0:
             # Error response needs some padding and help to render unlike a ListBox
             tmp_list_box = urwid.Filler(urwid.AttrMap(urwid.Text(

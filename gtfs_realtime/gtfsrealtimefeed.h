@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -44,8 +44,10 @@ typedef struct {
     qint64    stopSequence;
     QString   stopID;
     QDateTime arrTime;
+    QString   arrOffset;
     QChar     arrBased;
     QDateTime depTime;
+    QString   depOffset;
     QChar     depBased;
     bool      stopSkipped;
 } rtStopTimeUpdate;
@@ -90,7 +92,6 @@ class RealTimeTripUpdate : public QObject
     Q_OBJECT
 public:
     explicit RealTimeTripUpdate(const QString      &rtPath,
-                                bool                dumpProtobuf,
                                 rtDateLevel         skipDateMatching,
                                 bool                loosenStopSeqEnf,
                                 bool                allSkippedCanceled,
@@ -98,7 +99,6 @@ public:
                                 const StopTimeData *stopTimeDB,
                                 QObject            *parent = nullptr);
     explicit RealTimeTripUpdate(const QByteArray   &gtfsRealTimeData,
-                                bool                dumpProtobuf,
                                 rtDateLevel         skipDateMatching,
                                 bool                loosenStopSeqEnf,
                                 bool                displayBufferInfo,
@@ -145,6 +145,9 @@ public:
     // Figure out where an added trip is headed since no way to lookup headsign for a trip not in the static feed
     const QString getFinalStopIdForAddedTrip(const QString &trip_id) const;
 
+    // Determines if an added trip terminates at the stop id / sequence provided
+    bool stopIsEndOfAddedTrip(const QString &trip_id, qint64 stop_seq, const QString &stop_id) const;
+
     // Retrieve the route ID that the trip relates to
     const QString getRouteID(const QString &trip_id) const;
 
@@ -185,8 +188,11 @@ public:
     void fillPredictedTime(const transit_realtime::TripUpdate_StopTimeUpdate &stu,
                            const QDateTime                                   &schedArrTimeUTC,
                            const QDateTime                                   &schedDepTimeUTC,
+                           bool                                               tripRealTimeTxn,
                            QDateTime                                         &realArrTimeUTC,
                            QDateTime                                         &realDepTimeUTC,
+                           QString                                           &offsetArrTime,
+                           QString                                           &offsetDepTime,
                            QChar                                             &realArrBased,
                            QChar                                             &realDepBased) const;
 
@@ -241,6 +247,9 @@ public:
     // See if the real-time data comparisons match stop sequence numbers (true) or just first-matched stop ID (false)
     bool getLoosenStopSeqEnf() const;
 
+    // Get the trip / stop-time update date enforcement parameter setting
+    rtDateLevel getDateEnforcement() const;
+
 signals:
 
 public slots:
@@ -252,6 +261,11 @@ private:
     // Once data is ingested (either from a byte array from a URL or a local file's fstream), the process to ingest
     // trip updates is the same and encapsulated in this function to prevent previous code duplication
     void processUpdateDetails(const QDateTime &startProcTimeUTC);
+
+    // Determines the index within a trip to then fill the stop time update(s) for it
+    qint32 getStopTimeUpdateIdx(const transit_realtime::TripUpdate &tri,
+                                const StopTimeRec &stopRec,
+                                rtStopTimeUpdate &stu) const;
 
     // Dump the protocol buffer real time update into QDebug
     void showProtobufData() const;

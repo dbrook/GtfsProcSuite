@@ -6,13 +6,7 @@ to a stop in NEX/NCF.
 @End
 
 @StartParams
--dstatic
--p5000
--i
--t1
--q
--u5000
--rcttransit_route83bug_2020-05-24-8-20-00.pb
+-cstop_sequence_vs_stop_id_matching.ini
 -f2020,5,24,8,21,45
 @End
 
@@ -62,7 +56,7 @@ to a stop in NEX/NCF.
             "url": "http://www.cttransit.com"
         }
     ],
-    "application": "GtfsProc 2.3.3",
+    "application": "GtfsProc 2.4.0",
 *   "appuptime_sec": 6,
 *   "dataloadtime_ms": 2830,
     "error": 0,
@@ -124,6 +118,7 @@ to a stop in NEX/NCF.
             "dep_time": "Sun 08:40",
             "drop_off_type": 0,
             "headsign": "82/84 - TOLLAND ST-Downtown Hartford",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Sun 08:42",
@@ -146,6 +141,7 @@ to a stop in NEX/NCF.
             "dep_time": "Sun 08:40",
             "drop_off_type": 0,
             "headsign": "913 - HARTFORD EXPRESS",
+            "interp": false,
             "pickup_type": 1,
             "realtime_data": {
                 "actual_arrival": "Sun 08:44",
@@ -168,6 +164,7 @@ to a stop in NEX/NCF.
             "dep_time": "Sun 08:47",
             "drop_off_type": 0,
             "headsign": "83 - SILVER LA-Downtown Hartford",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Sun 08:47",
@@ -208,6 +205,7 @@ to a stop in NEX/NCF.
             "dep_time": "Sun 09:30",
             "drop_off_type": 0,
             "headsign": "83 - SILVER LA-Downtown Hartford via McKee St",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",

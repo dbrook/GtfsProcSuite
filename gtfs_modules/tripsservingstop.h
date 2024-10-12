@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -66,9 +66,7 @@ private:
                                         const GTFS::TripData     *tripDB,
                                         const QDate              &serviceDate,
                                         bool                      skipServiceDetail,
-                                        bool                      addWaitTime,
                                         const QDateTime          &currAgency,
-                                        qint64                    waitTimeSec,
                                         QJsonObject              &singleStopJSON);
 
     // Instance variables

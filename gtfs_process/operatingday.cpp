@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -25,6 +25,8 @@
 #include <QFileInfo>
 
 namespace GTFS {
+
+const qint32 k12hInSec = 43200;
 
 OperatingDay::OperatingDay(const QString dataRootPath, QObject *parent) : QObject(parent)
 {
@@ -339,6 +341,11 @@ QDate OperatingDay::getServiceEndDate(const QString &serviceName) const
 const QHash<QString, CalendarRec> &OperatingDay::getServiceDB() const
 {
     return this->calendarDb;
+}
+
+bool OperatingDay::isNextActualDay(qint32 noonOffsetSeconds)
+{
+    return noonOffsetSeconds >= k12hInSec;
 }
 
 void OperatingDay::calendarCSVOrder(const QVector<QString> csvHeader,

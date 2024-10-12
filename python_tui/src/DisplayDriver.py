@@ -29,7 +29,7 @@ class DisplayDriver:
             urwid.Text(''),
             urwid.Text('Documentation is available on GitHub: http://www.github.com/dbrook/GtfsProcSuite'),
             urwid.Text(''),
-            urwid.Text('This Data Browser version is compatible with GtfsProc backend 2.3.3'),
+            urwid.Text('This Data Browser version is compatible with GtfsProc backend 2.4.0'),
             urwid.Text(''),
             urwid.Text(f'Host: {gtfs_handler.host_name}:{gtfs_handler.host_port}'),
         ])
@@ -55,7 +55,7 @@ class DisplayDriver:
                 self.gtfs_view.focus_position = 'footer'
         elif key in {"f7"}:
             if self.qb_select is None and self.quick_brw is None:
-                self.draw_qb_select(['SDS', 'RDS', 'RTE', 'RTI'])
+                self.draw_qb_select(['RTE', 'SDS', 'RDS', 'RTI'])
             else:
                 self.gtfs_cmmd.set_edit_text(self.qb_command)
                 self.loop.widget = self.gtfs_view

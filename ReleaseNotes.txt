@@ -1,10 +1,38 @@
-THIS RELEASE: Version 2.3.3
+THIS RELEASE: Version 2.4.0
 ---------------------------
-- Always show the static data feed age when using RTI, cleaned up the Python GUI.
+- Changed how GtfsProc startup works, now replaces command-line arguments with a configuration
+  file since we're also supporting API-key access to Trip Update feeds.
+- When using RTF for trips that use the delay-based real-time trip updates, the arr_time and
+  dep_time outputs will now display the lateness or earliness in seconds with an L or R
+  prefix, respectively (previously, this message would always be "-" so now it is useful).
+- Using -l 2 (disabled date matching for real-time trip updates), when the same offset applies
+  to multiple service days using POSIX timestamps, only the least-different offset time across
+  all the trips on different days will be reflected for NEX/NCF.
+- Fixed a bug where trip IDs weren't being used to populate trip IDs skipping stops (also added
+  RTD Denver to the test suite as that's where it was discovered).
+- Fixed issue in AM/PM display of Trip Arrival times in TSS/TSD responses with "-a" on.
+- Show after midnight explicitly in TRI, TSR, TSS and date-specific variants thereof.
+- Indicate that supplemental trips are terminating inside NEX/NCF messages. Note: you can't
+  infer the start of a supplemental trip because there's no 'entire' schedule to reference.
+- Tweaked arrival status of trips that have no departure and would just stay as ARRV after
+  arriving when not yet removed from the realtime feed.
+- Finally added interpolation support for schedules containing traveled distances and time gaps.
+
+! Work-in-progress: support for HTTP Header Authentication for real-time trip update access.
+  (Unable to find a suitable example yet)
+
+! A future release (2.5.x) will have to rethink how real-time trips may keep a sequence,
+  but technically service different stops (i.e. a different platform than in the schedule
+  data). But the requirements for this are being analyzed further.
+
 
 PREVIOUS RELEASES:
+Version 2.3.3
 -------------
+- Always show the static data feed age when using RTI, cleaned up the Python GUI.
+
 Version 2.3.2
+-------------
 - Discovered a different case of orphaned trips: real-time trip updates with a valid route
   but the original trip doesn't exist and the trip is not flagged as "ADDED" to the route, these
   will now appear in the orphaned trips and not shown for NEX/NCF.
@@ -19,9 +47,6 @@ Version 2.3.1
   real-time trip indexes. The "fix" was reverted here so now (-q) is purely stop ID based,
   and when (-q) is not used, it's purely sequence matched, to allow for alternate stops.
 - Added the static dataset update time to the RTI response to allow client caching.
-! A future release (2.4.x) will have to rethink how real-time trips may keep a sequence,
-  but technically service different stops (i.e. a different platform than in the schedule
-  data). But the requirements for this are being analyzed further.
 
 Version 2.3.0
 -------------

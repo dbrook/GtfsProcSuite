@@ -9,10 +9,7 @@ and canceled).
 @End
 
 @StartParams
--dstatic
--u600
--l0
--rmbta_tripUpdates.pb
+-cafter_midnights.ini
 -f2020,5,22,0,7,30
 @End
 
@@ -30,7 +27,7 @@ and canceled).
             "url": "http://www.mbta.com"
         }
     ],
-    "application": "GtfsProc 2.3.3",
+    "application": "GtfsProc 2.4.0",
 *   "appuptime_sec": 15,
 *   "dataloadtime_ms": 8034,
     "error": 0,
@@ -92,6 +89,7 @@ and canceled).
             "dep_time": "Fri 00:07",
             "drop_off_type": 0,
             "headsign": "Watertown Square",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:08",
@@ -114,6 +112,7 @@ and canceled).
             "dep_time": "Fri 00:27",
             "drop_off_type": 0,
             "headsign": "Watertown Square",
+            "interp": false,
             "pickup_type": 0,
             "route_id": "71",
             "short_name": "",
@@ -128,6 +127,7 @@ and canceled).
             "dep_time": "Sat 00:27",
             "drop_off_type": 0,
             "headsign": "Watertown Square",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:32",
@@ -150,6 +150,7 @@ and canceled).
             "dep_time": "Fri 00:52",
             "drop_off_type": 0,
             "headsign": "Watertown Square",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:50",
@@ -172,6 +173,7 @@ and canceled).
             "dep_time": "Fri 01:17",
             "drop_off_type": 0,
             "headsign": "Watertown Square",
+            "interp": false,
             "pickup_type": 0,
             "route_id": "71",
             "short_name": "",
@@ -204,6 +206,7 @@ and canceled).
             "dep_time": "Fri 00:07",
             "drop_off_type": 0,
             "headsign": "Wonderland",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",
@@ -226,6 +229,7 @@ and canceled).
             "dep_time": "-",
             "drop_off_type": 0,
             "headsign": "Wonderland",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:09",
@@ -266,6 +270,7 @@ and canceled).
             "dep_time": "-",
             "drop_off_type": 0,
             "headsign": "Airport",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:09",
@@ -280,7 +285,7 @@ and canceled).
             "stop_id": "70047",
             "trip_begins": false,
             "trip_id": "ADDED-1580408774",
-            "trip_terminates": false,
+            "trip_terminates": true,
             "wait_time_sec": 109
         }
     ]

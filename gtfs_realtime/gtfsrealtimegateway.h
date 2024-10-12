@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -48,7 +48,6 @@ public:
     // Store the path from which to grab new protobuf data
     void setRealTimeFeedPath(const QString      &realTimeFeedPath,
                              qint32              refreshIntervalSec,
-                             bool                showProtobuf,
                              rtDateLevel         rtDateMatchLevel,
                              bool                loosenStopSeqEnf,
                              bool                allSkippedCan,
@@ -99,7 +98,6 @@ private:
     QUrl                _dataPathRemote;     // Data Fetch Path (remote URL)
     QDateTime           _nextFetchTimeUTC;   // Time at which new data real-time data should be fetched
     QDateTime           _latestRealTimeTxn;  // Stores the date of the most recent transaction requesting realtime data
-    bool                _debugProtobuf;      // true if a protobuf should be serialized each time it is received
     rtDateLevel         _skipDateMatching;   // true to skip all date matching from schedule trips and realtime feed
     bool                _loosenStopSeqEnf;   // true to skip stop seq checks from stop ids from static vs. realtime feed
     bool                _allSkippedCan;      // true to automatically mark a trip update as a canceled trip if skipping

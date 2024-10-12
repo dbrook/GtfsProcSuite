@@ -5,11 +5,7 @@ case proves that both types of trips are visible to a single stop that is served
 @End
 
 @StartParams
--dstatic
--u600
--l1
--q
--rcttransit_tripUpdates.pb
+-ctrips_before_and_after_midnight.ini
 -f2020,5,22,0,17,30
 @End
 
@@ -59,7 +55,7 @@ case proves that both types of trips are visible to a single stop that is served
             "url": "http://www.cttransit.com"
         }
     ],
-    "application": "GtfsProc 2.3.3",
+    "application": "GtfsProc 2.4.0",
 *   "appuptime_sec": 16,
 *   "dataloadtime_ms": 2736,
     "error": 0,
@@ -117,17 +113,18 @@ case proves that both types of trips are visible to a single stop that is served
     "stop_name": "Atlantic St and N State St",
     "trips": [
         {
-            "arr_time": "-",
-            "dep_time": "-",
+            "arr_time": "Fri 00:28",
+            "dep_time": "Fri 00:28",
             "drop_off_type": 0,
             "headsign": "328 - COVE RD-Cove Island Park",
+            "interp": true,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:32",
                 "actual_departure": "Fri 00:32",
-                "offset_seconds": 0,
+                "offset_seconds": 284,
                 "status": "RNNG",
-                "stop_status": "PRED",
+                "stop_status": "FULL",
                 "vehicle": "1481"
             },
             "route_id": "11395",
@@ -139,17 +136,18 @@ case proves that both types of trips are visible to a single stop that is served
             "wait_time_sec": 925
         },
         {
-            "arr_time": "-",
-            "dep_time": "-",
+            "arr_time": "Fri 00:33",
+            "dep_time": "Fri 00:33",
             "drop_off_type": 0,
             "headsign": "311B - STAMFORD via Hamilton Ave",
+            "interp": true,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Fri 00:33",
                 "actual_departure": "Fri 00:33",
-                "offset_seconds": 0,
+                "offset_seconds": -3,
                 "status": "RNNG",
-                "stop_status": "PRED",
+                "stop_status": "FULL",
                 "vehicle": "1064"
             },
             "route_id": "11388",

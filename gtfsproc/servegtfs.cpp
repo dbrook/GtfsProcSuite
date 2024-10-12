@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2023, Daniel Brook
+ * Copyright (C) 2018-2024, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -34,7 +34,6 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
                      QString  realTimePath,
                      qint32   rtInterval,
                      QString  frozenTime,
-                     bool     showProtobuf,
                      bool     use12h,
                      quint32  rtDateMatchLev,
                      bool     showTraces,
@@ -89,7 +88,6 @@ ServeGTFS::ServeGTFS(QString  dbRootPath,
 
     rtData.setRealTimeFeedPath(realTimePath,
                                rtInterval,
-                               showProtobuf,
                                dateEnforcement,
                                loosenRealTimeStopSeq,
                                allSkippedIsCanceled,

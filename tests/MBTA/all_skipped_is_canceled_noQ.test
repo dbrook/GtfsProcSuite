@@ -5,11 +5,8 @@ revealing NODATA when the stop ID nor stop sequence are matched
 @End
 
 @StartParams
--dstatic_skip_cancel
--rmbta_tripUpdates_skip_cancel.pb
--u600
+-call_skipped_is_canceled_noQ.ini
 -f2023,7,9,11,02,30
--zALL_SKIPPED_IS_CANCELED
 @End
 
 @Case:Assert Running and Expected Records Loaded
@@ -34,7 +31,7 @@ revealing NODATA when the stop ID nor stop sequence are matched
             "url": "http://www.mbta.com"
         }
     ],
-    "application": "GtfsProc 2.3.3",
+    "application": "GtfsProc 2.4.0",
 *   "appuptime_sec": 375,
 *   "dataloadtime_ms": 5728,
     "error": 0,
@@ -96,6 +93,7 @@ revealing NODATA when the stop ID nor stop sequence are matched
             "dep_time": "Sun 11:20",
             "drop_off_type": 0,
             "headsign": "Forest Hills",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Sun 11:03",
@@ -118,6 +116,7 @@ revealing NODATA when the stop ID nor stop sequence are matched
             "dep_time": "Sun 11:30",
             "drop_off_type": 0,
             "headsign": "Forest Hills",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "Sun 11:13",
@@ -158,6 +157,7 @@ revealing NODATA when the stop ID nor stop sequence are matched
             "dep_time": "Sun 11:22",
             "drop_off_type": 0,
             "headsign": "Forest Hills",
+            "interp": false,
             "pickup_type": 0,
             "realtime_data": {
                 "actual_arrival": "",
