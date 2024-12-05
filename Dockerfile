@@ -1,5 +1,5 @@
-# Debian 12 with Qt 6 is the reference environment for GtfsProc
-FROM debian:bookworm
+# Debian 13 with Qt 6 is the reference environment for Docker-GtfsProc
+FROM debian:trixie
 
 # Install UTF8 English (US) because ... sure, why not?
 RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* 
 ENV LANG en_US.utf8
 
 # Install GtfsProc Qt build and refresher script's runtime requirements
-RUN apt-get update && apt-get install -y build-essential qtchooser qmake6 qt6-base-dev qt6-connectivity-dev libcsv-dev protobuf-compiler libprotobuf-dev libncurses-dev perl-base unzip curl
+RUN apt-get update && apt-get install -y build-essential qtchooser qmake6 qt6-base-dev qt6-connectivity-dev libcsv-dev protobuf-compiler libprotobuf-dev libabsl-dev libncurses-dev perl-base unzip curl
 
 WORKDIR /src
 
@@ -16,7 +16,6 @@ COPY . .
 # Build GtfsProc (assumes mounting in the top-level src directory in the container)
 RUN qtchooser -install qt6 $(which qmake6) \
     && protoc --version \
-    && cat gtfs_realtime/gtfs-realtime.pb.h \
     && ls -la /usr/include/google/protobuf \
     && export QT_SELECT=qt6 \
     && qmake6 \
