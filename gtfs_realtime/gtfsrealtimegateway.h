@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2024, Daniel Brook
+ * Copyright (C) 2018-2025, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -25,6 +25,7 @@
 #include <QDateTime>
 #include <QUrl>
 #include <QMutex>
+#include <QtNetwork/QNetworkAccessManager>
 
 #include "gtfsrealtimefeed.h"
 
@@ -107,6 +108,8 @@ private:
 
     const TripData     *_staticFeedTripDB;   // Pointer to the static trip database (for route ID matching)
     const StopTimeData *_staticStopTimeDB;   // Pointer to the static stop time database (for trip sanity-checks)
+
+    QNetworkAccessManager *_feedNAM;        // Pointer to the network access manager (reusable) for data retrieval
 };
 
 } // Namespace GTFS
