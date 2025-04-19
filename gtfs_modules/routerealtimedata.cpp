@@ -84,7 +84,7 @@ void RouteRealtimeData::fillResponseData(QJsonObject &resp)
         // Sort by trip ID (lexicographically) to make output more consistent between each update/call
         QVector<QString> tripIDsForRouteID;
         _realTimeProc->getActiveTripsForRouteID(routeID, tripIDsForRouteID);
-        std::sort(tripIDsForRouteID.begin(), tripIDsForRouteID.end(), [] (auto &a, auto &b) { return a < b; });
+        std::sort(tripIDsForRouteID.begin(), tripIDsForRouteID.end(), [] (QString &a, QString &b) { return a < b; });
 
         QJsonArray tripsForRoute;
         for (const QString &tripID : tripIDsForRouteID) {
