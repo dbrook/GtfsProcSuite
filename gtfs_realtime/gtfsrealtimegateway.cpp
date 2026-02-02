@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2024, Daniel Brook
+ * Copyright (C) 2018-2025, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -23,7 +23,6 @@
 #include <QDateTime>
 #include <QTimer>
 #include <QEventLoop>
-#include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 #include <QDebug>
@@ -54,8 +53,11 @@ void RealTimeGateway::setRealTimeFeedPath(const QString      &realTimeFeedPath,
     // TODO : Make this more robust?
     if (realTimeFeedPath.startsWith("http://") || realTimeFeedPath.startsWith("https://")) {
         _dataPathRemote = QUrl(realTimeFeedPath);
+        _feedNAM = new QNetworkAccessManager(this);
     } else {
+        _dataPathRemote = QUrl();
         _dataPathLocal = realTimeFeedPath;
+        _feedNAM = nullptr;
     }
 
     // Set how many seconds should elapse between data fetches
@@ -151,10 +153,9 @@ void RealTimeGateway::refetchData()
 
     // Do the download into memory if required, otherwise we are in local file mode, so skip the download
     QByteArray GtfsRealTimePB;
-    if (!_dataPathRemote.isLocalFile()) {
-        QNetworkAccessManager  manager;
-        QNetworkReply         *response = manager.get(QNetworkRequest(_dataPathRemote));
-        QEventLoop             event;
+    if (!_dataPathRemote.isEmpty()) {
+        QNetworkReply *response = _feedNAM->get(QNetworkRequest(_dataPathRemote));
+        QEventLoop     event;
         connect(response, SIGNAL(finished()), &event, SLOT(quit()));
         event.exec();
         GtfsRealTimePB = response->readAll();

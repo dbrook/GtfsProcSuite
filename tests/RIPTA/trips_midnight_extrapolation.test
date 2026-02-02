@@ -24,7 +24,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "url": "http://www.ripta.com/"
         }
     ],
-    "application": "GtfsProc 2.4.0",
+    "application": "GtfsProc 2.4.1",
 *   "appuptime_sec": 57,
 *   "dataloadtime_ms": 807,
     "error": 0,
@@ -195,12 +195,13 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "text_color": "",
             "trips": [
                 {
-                    "arrive": "Fri 00:11",
-                    "depart": "Fri 00:11",
+                    "arrive": "Fri 00:12",
+                    "depart": "Fri 00:12",
+                    "direction_id": 103,
                     "drop_off_type": 0,
                     "headsign": "GALILEE via TF GREEN AIRPORT",
-                    "next_stop_id": "50645",
-                    "next_stop_name": "RT 2 NS WAITES CORNER",
+                    "next_stop_id": "50650",
+                    "next_stop_name": "RT 2 NS RT 138",
                     "next_stop_parent": "",
                     "pickup_type": 0,
                     "rt_start_date": "21-May-2020",
@@ -560,7 +561,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "72020",
             "stop_name": "ROGER WILLIAMS NATIONAL MEMORIAL"
@@ -570,7 +571,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "72015",
             "stop_name": "PROVIDENCE STATION"
@@ -580,7 +581,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "16485",
             "stop_name": "KENNEDY PLAZA (STOP D)"
@@ -590,7 +591,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "15575",
             "stop_name": "EMPIRE OPP WESTMINSTER"
@@ -600,7 +601,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "15025",
             "stop_name": "BROAD NS FENNER"
@@ -610,7 +611,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "14520",
             "stop_name": "BROAD FS LOCKWOOD"
@@ -620,7 +621,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "14380",
             "stop_name": "BROAD OPP SOMERSET (MCDONALDS)"
@@ -630,7 +631,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "13710",
             "stop_name": "PARKIS AVENUE (R-LINE)"
@@ -640,7 +641,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "58870",
             "stop_name": "PLENTY STREET - SAINT JOSEPH'S HOSPITAL (R-LINE)"
@@ -650,7 +651,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "13085",
             "stop_name": "PUBLIC STREET (R-LINE)"
@@ -660,7 +661,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "12720",
             "stop_name": "ONTARIO STREET (R-LINE)"
@@ -670,7 +671,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "12590",
             "stop_name": "THURBERS AVENUE (R-LINE)"
@@ -680,7 +681,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "12070",
             "stop_name": "EARLY STREET (R-LINE)"
@@ -690,7 +691,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "11890",
             "stop_name": "ROGER WILLIAMS PARK (R-LINE)"
@@ -700,7 +701,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "O",
             "dep_time": "E60s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "11535",
             "stop_name": "CARR STREET (R-LINE)"
@@ -710,7 +711,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "E60s",
             "dep_based": "X",
             "dep_time": "-",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "11230",
             "stop_name": "BROAD AFTER MONTGOMERY"
@@ -1076,7 +1077,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "72010",
             "stop_name": "PROVIDENCE STATION"
@@ -1086,7 +1087,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "16900",
             "stop_name": "N MAIN NS N COURT"
@@ -1096,7 +1097,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "18445",
             "stop_name": "UNIVERSITY HEIGHTS (R-LINE)"
@@ -1106,7 +1107,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "18615",
             "stop_name": "CHARLESGATE (R-LINE)"
@@ -1116,7 +1117,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "19070",
             "stop_name": "NORTH BURIAL GROUND (R-LINE)"
@@ -1126,7 +1127,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "19615",
             "stop_name": "ROCHAMBEAU AVENUE (R-LINE)"
@@ -1136,7 +1137,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "19915",
             "stop_name": "THIRD STREET (R-LINE)"
@@ -1146,7 +1147,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "20475",
             "stop_name": "NINTH STREET (R-LINE)"
@@ -1156,7 +1157,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "20915",
             "stop_name": "GRENVILLE STREET (R-LINE)"
@@ -1166,7 +1167,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "21290",
             "stop_name": "HOPE ARTISTE VILLAGE (R-LINE)"
@@ -1176,7 +1177,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "21450",
             "stop_name": "SAYLES AVENUE (R-LINE)"
@@ -1186,7 +1187,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "21830",
             "stop_name": "WHITMAN STREET (R-LINE)"
@@ -1196,7 +1197,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "72025",
             "stop_name": "PEARL STREET (R-LINE)"
@@ -1206,7 +1207,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "55320",
             "stop_name": "COLLYER PARK (R-LINE)"
@@ -1216,7 +1217,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "O",
             "dep_time": "L120s",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "22970",
             "stop_name": "GOFF NS DEXTER"
@@ -1226,7 +1227,7 @@ offset prediction in a trip can be extrapolated from the last known offset.
             "arr_time": "L120s",
             "dep_based": "X",
             "dep_time": "-",
-            "sequence": 43200000,
+*           "sequence": 43200000,
             "skipped": false,
             "stop_id": "22765",
             "stop_name": "PAWTUCKET TRANSIT CENTER"

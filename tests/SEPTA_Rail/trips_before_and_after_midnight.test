@@ -25,7 +25,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "url": "http://www.septa.org"
         }
     ],
-    "application": "GtfsProc 2.4.0",
+    "application": "GtfsProc 2.4.1",
 *   "appuptime_sec": 9,
 *   "dataloadtime_ms": 8,
     "error": 0,
@@ -170,6 +170,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
                 {
                     "arrive": "00:31",
                     "depart": "00:31",
+                    "direction_id": 103,
                     "drop_off_type": 0,
                     "headsign": "Malvern",
                     "next_stop_id": "90005",
@@ -194,6 +195,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
                 {
                     "arrive": "00:32",
                     "depart": "00:32",
+                    "direction_id": 103,
                     "drop_off_type": 0,
                     "headsign": "Lansdale",
                     "next_stop_id": "90530",
@@ -218,6 +220,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
                 {
                     "arrive": "00:31",
                     "depart": "00:31",
+                    "direction_id": 103,
                     "drop_off_type": 0,
                     "headsign": "Warminster",
                     "next_stop_id": "90407",

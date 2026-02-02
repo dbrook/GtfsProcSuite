@@ -1,5 +1,17 @@
-THIS RELEASE: Version 2.4.0
+THIS RELEASE: Version 2.4.1
 ---------------------------
+- The main focus of this patch is on the TRR transaction:
+  - The output of TRR is sorted by Trip IDs now
+  - Added the direction ID to the output (this is lifted right from the feed(s))
+  - The "Next Stop" value is filled based on the upcoming stop per the current agency time
+    and not just the first item in the real-time feed update (as the old arrivals do not
+    immediately disappear when the agency time has passed).
+- Starting to build in some ability to Dockerize the application
+
+
+PREVIOUS RELEASES:
+Version 2.4.0
+-------------
 - Changed how GtfsProc startup works, now replaces command-line arguments with a configuration
   file since we're also supporting API-key access to Trip Update feeds.
 - When using RTF for trips that use the delay-based real-time trip updates, the arr_time and
@@ -25,8 +37,6 @@ THIS RELEASE: Version 2.4.0
   but technically service different stops (i.e. a different platform than in the schedule
   data). But the requirements for this are being analyzed further.
 
-
-PREVIOUS RELEASES:
 Version 2.3.3
 -------------
 - Always show the static data feed age when using RTI, cleaned up the Python GUI.

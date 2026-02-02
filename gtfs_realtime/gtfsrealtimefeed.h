@@ -217,6 +217,9 @@ public:
     // Retrieve operating vehicle information
     const QString getOperatingVehicle(const QString &tripID) const;
 
+    // Retrieve direction of travel for the trip in the route
+    quint32 getDirectionId(const QString &tripID) const;
+
     // Retrieve the start_date and start_time fields of the trip_update from the realtime feed
     const QString getTripStartTime(const QString &tripID) const;
     const QString getTripStartDate(const QString &tripID) const;
@@ -231,9 +234,6 @@ public:
 
     // Get a list of Trip IDs from the realtime feed that pertain to the route requested
     void getActiveTripsForRouteID(const QString &routeID, QVector<QString> &) const;
-
-    // Retrieve next prediction in the real time feed
-    QString getNextStopIDInPrediction(const QString &tripID) const;
 
     // Dump a string-representation of the protobuf trip updates
     void serializeTripUpdates(QString &output) const;

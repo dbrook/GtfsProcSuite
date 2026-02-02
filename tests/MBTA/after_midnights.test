@@ -27,7 +27,7 @@ and canceled).
             "url": "http://www.mbta.com"
         }
     ],
-    "application": "GtfsProc 2.4.0",
+    "application": "GtfsProc 2.4.1",
 *   "appuptime_sec": 15,
 *   "dataloadtime_ms": 8034,
     "error": 0,
@@ -292,7 +292,7 @@ and canceled).
 }
 @End
 
-@Case:Real time operating information for a some Commerter Rail routes
+@Case:Real time operating information for a some Commuter Rail routes
 @Query:TRR CR-Providence|CR-Fitchburg
 @Expected
 {
@@ -312,6 +312,7 @@ and canceled).
                 {
                     "arrive": "Fri 00:10",
                     "depart": "Fri 00:10",
+                    "direction_id": 0,
                     "drop_off_type": 0,
                     "headsign": "Providence",
                     "next_stop_id": "South Attleboro",
@@ -336,6 +337,7 @@ and canceled).
                 {
                     "arrive": "Fri 00:10",
                     "depart": "Fri 00:10",
+                    "direction_id": 0,
                     "drop_off_type": 0,
                     "headsign": "Wachusett",
                     "next_stop_id": "Concord",

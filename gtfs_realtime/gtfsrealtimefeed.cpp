@@ -598,6 +598,30 @@ const QString RealTimeTripUpdate::getOperatingVehicle(const QString &tripID) con
     return QString::fromStdString(tri.vehicle().label());
 }
 
+quint32 RealTimeTripUpdate::getDirectionId(const QString &tripID) const
+{
+    qint32 tripUpdateEntity;
+    bool   isSupplementalTrip;
+    if (!findEntityIndex(tripID, tripUpdateEntity, isSupplementalTrip)) {
+        // Return 100 if the trip isn't found
+        return 100;
+    }
+
+    if (_tripUpdate.entity(tripUpdateEntity).has_trip_update()) {
+        if (_tripUpdate.entity(tripUpdateEntity).trip_update().has_trip()) {
+            if (_tripUpdate.entity(tripUpdateEntity).trip_update().trip().has_direction_id()) {
+                // Direction ID should be 0 or 1
+                return _tripUpdate.entity(tripUpdateEntity).trip_update().trip().direction_id();
+            } else {
+                return 103;
+            }
+        } else {
+            return 102;
+        }
+    }
+    return 101;
+}
+
 const QString RealTimeTripUpdate::getTripStartTime(const QString &tripID) const
 {
     qint32 tripUpdateEntity;
@@ -707,23 +731,6 @@ void RealTimeTripUpdate::getActiveTripsForRouteID(const QString &routeID, QVecto
             tripsForRoute.push_back(tripID);
         }
     }
-}
-
-QString RealTimeTripUpdate::getNextStopIDInPrediction(const QString &tripID) const
-{
-    qint32 tripUpdateEntity;
-    bool   isSupplementalTrip;
-    if (!findEntityIndex(tripID, tripUpdateEntity, isSupplementalTrip)) {
-        return "?";
-    }
-
-    const transit_realtime::TripUpdate &tri = _tripUpdate.entity(tripUpdateEntity).trip_update();
-
-    if (tri.stop_time_update_size() == 0) {
-        return "!";
-    }
-
-    return QString::fromStdString(tri.stop_time_update(0).stop_id());
 }
 
 void RealTimeTripUpdate::serializeTripUpdates(QString &output) const

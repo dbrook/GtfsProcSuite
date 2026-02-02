@@ -675,6 +675,7 @@ class GtfsProcDecoder:
                         dropoff = '-'
                     trip_list.append([
                         f"{trip['trip_id']}",
+                        "{:3}".format(trip['direction_id']),
                         f"{trip['headsign']}",
                         f"{trip['next_stop_name']}",
                         f"{trip['vehicle']}",
@@ -698,9 +699,9 @@ class GtfsProcDecoder:
                     ])
                 route_list.append(TabularData(
                     f"[ Route: {route_name} ]",
-                    [3, 3, 2, 1, None, None, None, None, None],
-                    ['TRIP ID', 'HEADSIGN', 'NEXT STOP', 'VEHICLE', 'ARRIVE     ', 'DEPART     ', 'P', 'D', 'S'],
-                    ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
+                    [3, None, 3, 2, 1, None, None, None, None, None],
+                    ['TRIP ID', 'DID', 'HEADSIGN', 'NEXT STOP', 'VEHICLE', 'ARRIVE     ', 'DEPART     ', 'P', 'D', 'S'],
+                    ['left', 'right', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'],
                     trip_list,
                     trip_cmds,
                     True,

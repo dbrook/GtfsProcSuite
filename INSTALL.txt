@@ -20,7 +20,7 @@ Several individual moving parts will help in this process:
     - libncurses-dev
 
    If you wish to use the GtfsProc_Agent.pl script, you will also need these tools:
-    - perl
+    - perl-base
     - unzip
     - curl
     - wget
@@ -29,7 +29,7 @@ Several individual moving parts will help in this process:
 
 3) Under the new user, download, build, and install GtfsProc:
     A) Clone/extract/whatever the gtfsproc sources
-    B) qmake
+    B) qmake6
     C) make
     D) sudo mkdir -p /opt/gtfsproc
     E) sudo chown (GtfsProc user's name) /opt/gtfsproc
