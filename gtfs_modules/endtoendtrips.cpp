@@ -75,7 +75,6 @@ void EndToEndTrips::fillResponseData(QJsonObject &resp)
     // Ensure the validity of input arguments
     for (quint32 i = 0; i < argLength; ++i) {
         if (i >= 2 && (i - 2) % 3 == 0) {
-            // TODO: allow parsing a connection time as a range like "5-20" or standalone minimum "5"
             QList<QString> connectionRange = _tripCnx[i].split("-");
             if (connectionRange.length() > 2) {
                 fillProtocolFields("E2E", 904, resp);  // Only allowed a minimum and maximum connection time, ex: "1-5"
