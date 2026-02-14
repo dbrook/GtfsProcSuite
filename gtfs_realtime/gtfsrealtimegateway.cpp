@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2018-2025, Daniel Brook
+ * Copyright (C) 2018-2026, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -156,7 +156,10 @@ void RealTimeGateway::refetchData()
     if (!_dataPathRemote.isEmpty()) {
         QNetworkReply *response = _feedNAM->get(QNetworkRequest(_dataPathRemote));
         QEventLoop     event;
+        QTimer         dataTimer = QTimer();
+        connect(&dataTimer, SIGNAL(timeout()), &event, SLOT(quit()));
         connect(response, SIGNAL(finished()), &event, SLOT(quit()));
+        dataTimer.start(4000);                 // 4 seconds to download or we stop to clear for next check
         event.exec();
         GtfsRealTimePB = response->readAll();
         response->deleteLater();               // Need to do this or else we leak memory from the QNetworkReply pointer
