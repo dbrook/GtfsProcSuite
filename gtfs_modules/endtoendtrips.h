@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2023, Daniel Brook
+ * Copyright (C) 2023-2026, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -72,7 +72,8 @@ private:
      * Arguments:
      * legNum           - 0-indexed leg number of the origin-destination requested
      * initialCnx       - specify a valid time that the first connection must be caught after (initial delay)
-     * xferMin          - transfer time minutes between previous destination arrival and the current origin departure
+     * xferMin          - minimum time in minutes between previous destination arrival and the current origin departure
+     * xferMax          - maximum time in minutes between previous destination arrival and the current origin departure
      * oriStopId        - stop ID of the beginning of the leg to board
      * desStopId        - stop ID of the end of the leg to alight
      * deadRecos        - vector indexes of allRecos which are not possible to connect within 12 hours
@@ -81,6 +82,7 @@ private:
     void fillRecoOD(quint8                             legNum,
                     QDateTime                          initialCnx,
                     quint32                            xferMin,
+                    quint32                            xferMax,
                     QString                            oriStopId,
                     QString                            desStopId,
                     QSet<qsizetype>                   &deadRecos,

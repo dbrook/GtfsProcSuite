@@ -1,5 +1,16 @@
-THIS RELEASE: Version 2.4.1
+THIS RELEASE: Version 2.5.0
 ---------------------------
+- Fixed a hidden issue with real-time data retrieval thread that would prevent it from
+  refetching real time data after a network or host outage. This was accomplished by
+  placing a timeout signal of 4 seconds, after which a feed would be marked disabled.
+- Added the ability to place a connection time as a range into the EES/EER/ETS/ETR
+  request, providing a convenient way to filter out connections that are above an optional
+  upper bound time. Leaving the upper bound blank preserves the original behavior.
+
+
+PREVIOUS RELEASES:
+Version 2.4.1
+-------------
 - The main focus of this patch is on the TRR transaction:
   - The output of TRR is sorted by Trip IDs now
   - Added the direction ID to the output (this is lifted right from the feed(s))
@@ -8,8 +19,6 @@ THIS RELEASE: Version 2.4.1
     immediately disappear when the agency time has passed).
 - Starting to build in some ability to Dockerize the application
 
-
-PREVIOUS RELEASES:
 Version 2.4.0
 -------------
 - Changed how GtfsProc startup works, now replaces command-line arguments with a configuration

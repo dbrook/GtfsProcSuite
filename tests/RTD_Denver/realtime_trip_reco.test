@@ -23,7 +23,7 @@ NEX/NCF unless they are filtered out.
             "url": "http://rtd-denver.com"
         }
     ],
-    "application": "GtfsProc 2.4.1",
+    "application": "GtfsProc 2.5.0",
 *   "appuptime_sec": 503,
 *   "dataloadtime_ms": 2298,
     "error": 0,

@@ -1,6 +1,6 @@
 /*
  * GtfsProc_Server
- * Copyright (C) 2023, Daniel Brook
+ * Copyright (C) 2023-2026, Daniel Brook
  *
  * This file is part of GtfsProc.
  *
@@ -75,10 +75,31 @@ void EndToEndTrips::fillResponseData(QJsonObject &resp)
     // Ensure the validity of input arguments
     for (quint32 i = 0; i < argLength; ++i) {
         if (i >= 2 && (i - 2) % 3 == 0) {
-            bool numberOK;
-            qint32 cnxTimeMin = _tripCnx[i].toInt(&numberOK);
-            if (!numberOK || cnxTimeMin < 0) {
-                fillProtocolFields("E2E", 902, resp);  // Non-numeric OR negative connection time specified
+            QList<QString> connectionRange = _tripCnx[i].split("-");
+            if (connectionRange.length() > 2) {
+                fillProtocolFields("E2E", 904, resp);  // Only allowed a minimum and maximum connection time, ex: "1-5"
+                return;
+            } else if (connectionRange.length() == 2) {
+                bool minCnxTimeOK;
+                qint32 cnxTimeMin = connectionRange[0].toInt(&minCnxTimeOK);
+                bool maxCnxTimeOK;
+                qint32 cnxTimeMax = connectionRange[1].toInt(&maxCnxTimeOK);
+                if (!minCnxTimeOK || cnxTimeMin < 0 || !maxCnxTimeOK || cnxTimeMax < 0) {
+                    fillProtocolFields("E2E", 902, resp);  // Non-numeric OR negative connection time specified
+                    return;
+                } else if (cnxTimeMax < cnxTimeMin) {
+                    fillProtocolFields("E2E", 905, resp);  // Maximum connection time is less than the minimum
+                    return;
+                }
+            } else if (connectionRange.length() == 1) {
+                bool numberOK;
+                qint32 cnxTimeMin = _tripCnx[i].toInt(&numberOK);
+                if (!numberOK || cnxTimeMin < 0) {
+                    fillProtocolFields("E2E", 902, resp);  // Non-numeric OR negative connection time specified
+                    return;
+                }
+            } else {
+                fillProtocolFields("E2E", 906, resp);  // Unknown issue parsing the connection time
                 return;
             }
         } else {
@@ -144,10 +165,21 @@ void EndToEndTrips::fillResponseData(QJsonObject &resp)
     QDateTime nullQDT;
     QDateTime firstConnection;
     quint32 xferMin = 0;
+    quint32 xferMax = 0;
     quint8 cnxOriStartIdx = 0;
     quint8 cnxDesStartIdx = 1;
     if (_firstIsTripId && argLength > 2) {
-        xferMin = _tripCnx[2].toUInt();
+        QList<QString> connectionRange = _tripCnx[2].split("-");
+        // Note: these were already validated at the start of this function
+        if (connectionRange.length() == 2) {
+            xferMin = connectionRange[0].toInt();
+            xferMax = connectionRange[1].toInt();
+        } else {
+            xferMin = connectionRange[0].toInt();
+            xferMax = 0;
+        }
+
+        // xferMin = _tripCnx[2].toUInt();
         cnxOriStartIdx = 3;
         cnxDesStartIdx = 4;
         if (foundCurrentTrip) {
@@ -158,16 +190,28 @@ void EndToEndTrips::fillResponseData(QJsonObject &resp)
         }
     }
     if (!(_firstIsTripId && argLength == 2)) {
-        fillRecoOD(0, firstConnection, xferMin, _tripCnx[cnxOriStartIdx], _tripCnx[cnxDesStartIdx], deadRecos, travelRecoTimes);
+        fillRecoOD(0, firstConnection, xferMin, xferMax,
+                   _tripCnx[cnxOriStartIdx], _tripCnx[cnxDesStartIdx],
+                   deadRecos, travelRecoTimes);
     }
 
     if ((_firstIsTripId && argLength > 5) || (!_firstIsTripId && argLength > 2)) {
         quint32 totalConnections = _firstIsTripId ? (argLength - 5) / 3 : (argLength - 2) / 3;
         for (quint32 connection = 0; connection < totalConnections; ++connection) {
-            qint32 cnxTime = _tripCnx[2 + cnxOriStartIdx + connection * 3].toInt();
+            QList<QString> connectionRange = _tripCnx[2 + cnxOriStartIdx + connection * 3].split("-");
+            // Note: these were already validated at the start of this function
+            if (connectionRange.length() == 2) {
+                xferMin = connectionRange[0].toInt();
+                xferMax = connectionRange[1].toInt();
+            } else {
+                xferMin = connectionRange[0].toInt();
+                xferMax = 0;
+            }
+            // qint32 cnxTime = _tripCnx[2 + cnxOriStartIdx + connection * 3].toInt();
             QString originStopId = _tripCnx[3 + cnxOriStartIdx + connection * 3];
             QString destinationStopId = _tripCnx[4 + cnxOriStartIdx + connection * 3];
-            fillRecoOD(connection + 1, nullQDT, cnxTime, originStopId, destinationStopId, deadRecos, travelRecoTimes);
+            fillRecoOD(connection + 1, nullQDT, xferMin, xferMax,
+                       originStopId, destinationStopId, deadRecos, travelRecoTimes);
         }
     }
 
@@ -229,6 +273,7 @@ void EndToEndTrips::fillResponseData(QJsonObject &resp)
 void EndToEndTrips::fillRecoOD(quint8                             legNum,
                                QDateTime                          initialCnx,
                                quint32                            xferMin,
+                               quint32                            xferMax,
                                QString                            oriStopId,
                                QString                            desStopId,
                                QSet<qsizetype>                   &deadRecos,
@@ -355,6 +400,7 @@ void EndToEndTrips::fillRecoOD(quint8                             legNum,
                                                     allRecos[r].last().schArrTime : allRecos[r].last().realTimeArrival;
 
                     QDateTime earliestDep = arrivalPreviousDest.addSecs(xferMin * 60);
+                    QDateTime latestDep   = arrivalPreviousDest.addSecs(xferMax * 60);
 
                     // Pick the first "reachable" trip that covers the origin-and-destination
                     for (const GTFS::StopRecoTripRec &rtdest : tripsForBothStopsDes[routeID].tripRecos) {
@@ -366,7 +412,7 @@ void EndToEndTrips::fillRecoOD(quint8                             legNum,
                         }
                         QDateTime dep = rtorigin.realTimeDeparture.isNull() ?
                                         rtorigin.schDepTime : rtorigin.realTimeDeparture;
-                        if (dep < earliestDep) {
+                        if (dep < earliestDep || (xferMax != 0 && dep > latestDep)) {
                             continue;
                         }
                         allRecos[r].push_back(rtorigin);

@@ -31,7 +31,7 @@ revealing NODATA when the stop ID nor stop sequence are matched
             "url": "http://www.mbta.com"
         }
     ],
-    "application": "GtfsProc 2.4.1",
+    "application": "GtfsProc 2.5.0",
 *   "appuptime_sec": 375,
 *   "dataloadtime_ms": 5728,
     "error": 0,
