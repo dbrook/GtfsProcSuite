@@ -25,7 +25,7 @@ published with an offset, the remaining stops in a trip are assumed to have the 
             "url": "http://www.septa.org"
         }
     ],
-    "application": "GtfsProc 2.4.1",
+    "application": "GtfsProc 2.5.0",
 *   "appuptime_sec": 9,
 *   "dataloadtime_ms": 8,
     "error": 0,

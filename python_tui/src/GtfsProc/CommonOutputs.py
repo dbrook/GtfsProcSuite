@@ -171,6 +171,9 @@ def decode_error_number(ec: int) -> str:
         901: 'Incorrect number of arguments',
         902: 'Non-numeric or negative value requested in a connection time field',
         903: 'One of the stop IDs requested does not exist in the dataset',
+        904: 'Too many arguments for connection time range',
+        905: 'Minimum connection time is greater than the maximum',
+        906: 'Connection time parsing unknown error',
     }
     if ec in error_map:
         return error_map[ec]

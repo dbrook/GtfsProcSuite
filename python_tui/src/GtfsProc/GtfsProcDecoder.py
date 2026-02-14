@@ -415,6 +415,22 @@ class GtfsProcDecoder:
             return route_list
         elif message_type == 'E2E':
             ret_list = []
+            if 'current_trip' in data:
+                if data['current_trip'] is not None:
+                    ct = data['current_trip']
+                    ret_list.append([f'Trip on route {self.route_name_from_id_cache(ct["route_id"])}'
+                                     f' is in transit towards: {ct["headsign"]}'])
+                    if "realtime_data" in ct:
+                        ret_list.append([f'Reaches drop-off in [{round(ct["wait_time_sec"] / 60)} min]'
+                                         f' [offset: {ct["realtime_data"]["offset_seconds"]} sec]'
+                                         f' [{ct["realtime_data"]["actual_arrival"]}]'])
+                    else:
+                        ret_list.append([f'Reaches drop-off in [{round(ct["wait_time_sec"] / 60)} min] []'
+                                         f' [{ct["arr_time"]}]'])
+                    ret_list.append([''])
+                else:
+                    ret_list.append(['(!) Trip has concluded or reached destination, see connection options below:'])
+                    ret_list.append([''])
             stops = data['stops']
             trips = data['trips']
             if len(trips) == 0:
